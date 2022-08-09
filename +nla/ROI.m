@@ -1,0 +1,18 @@
+classdef ROI
+    %ROI Region of interest in the brain
+    %   Right now this class isn't so useful but in the future there could
+    %   be more metadata associated with each region such as more detailed
+    %   bounds, etc.
+    
+    properties
+        pos
+    end
+    
+    methods
+        function obj = ROI(pos)
+            import nla.* % required due to matlab package system quirks
+            obj.pos = pos;
+        end
+    end
+end
+

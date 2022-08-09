@@ -1,0 +1,122 @@
+classdef TestPool < nla.DeepCopyable
+    %TESTPOOL Pool of tests to be run
+    %   TODO write this
+    
+    properties
+        edge_test = nla.edge.test.Pearson()
+        net_tests = {}
+        data_queue = false
+    end
+    
+    methods
+        function runPermSingleProc(obj, input_struct, net_input_struct, net_atlas, previous_edge_result, previous_net_results, block_start, block_end, perm_seed)
+            import nla.* % required due to matlab package system quirks
+            for iteration = block_start:block_end - 1
+                % set RNG per-iteration based on the random seed and
+                % iteration number, so the # of processes doesn't impact
+                % the result(important for repeatability if running
+                % permutations with the same seed intentionally)
+                rng(bitxor(perm_seed, iteration));
+                obj.runEdgeTest(input_struct, previous_edge_result);
+                obj.runNetTests(net_input_struct, previous_edge_result, net_atlas, previous_net_results);
+                
+                % if the test is being run with an output data queue,
+                % update it
+                if ~islogical(obj.data_queue)
+                    send(obj.data_queue, true);
+                end
+            end
+        end
+    end
+    methods
+        function obj = TestPool()
+        end
+        
+        function edge_result = runEdgeTest(obj, input_struct, previous_result)
+            import nla.* % required due to matlab package system quirks
+            edge_result = obj.edge_test.run(input_struct, previous_result);
+        end
+        
+        function net_results = runNetTests(obj, input_struct, edge_result, net_atlas, previous_results)
+            import nla.* % required due to matlab package system quirks
+            net_results = {};
+            for i = 1:numNetTests(obj)
+                % Use the corresponding previous test result, if they are
+                % all provided, else just pass on the parameter
+                previous_result = previous_results;
+                if iscell(previous_results)
+                    previous_result = previous_results{i};
+                end
+                net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas, previous_result);
+            end
+        end
+
+        function result = runPerm(obj, input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
+            import nla.* % required due to matlab package system quirks
+            % Optional perm_seed parameter for replicating runs. If not
+            % passed in, is set from current date/time and thus will
+            % produce different results, assuming you don't run it twice at
+            % the same time
+            if ~exist('perm_seed', 'var')
+                rng(posixtime(datetime()));
+                perm_seed = randi(intmax('uint32'), 'uint32');
+            end
+            
+            % get current parallel pool or start a new one
+            p = gcp;
+            num_procs = p.NumWorkers;
+            
+            % blocks of iteration to be handled by each process
+            blocks = uint32(linspace(1, num_perms + 1, num_procs + 1));
+
+            % start multiprocessing(can't multithread because it prevents you from using some functions)
+            parfor proc = 1:num_procs
+                edge_result_block = copy(edge_result_nonperm);
+                net_result_block = cell(numNetTests(obj), 1);
+                for i = 1:numNetTests(obj)
+                    net_result_block{i} = copy(net_results_nonperm{i});
+                end
+                
+                % it may be possible to wrap these up into a reduction w/ custom func(merge)
+                % and eliminate the chunk merging step
+                obj.runPermSingleProc(input_struct, net_input_struct, net_atlas, edge_result_block, net_result_block, blocks(proc), blocks(proc + 1), perm_seed);
+                edge_result_blocks(proc) = edge_result_block;
+                net_result_blocks{proc} = net_result_block;
+            end
+
+            % merge edge level result chunks
+            edge_level_result = edge_result_blocks(1);
+            edge_level_result.merge(edge_result_blocks(2:end));
+
+            % and net level result chunks
+            net_level_results = {};
+            for test_index = 1:numNetTests(obj)
+                for proc_index = 1:num_procs
+                    cur_proc_net_results = net_result_blocks{proc_index};
+                    cur_test_net_results(proc_index) = cur_proc_net_results(test_index);
+                end
+                net_level_results{test_index} = cur_test_net_results{1};
+                net_level_results{test_index}.merge(net_input_struct, edge_result_nonperm, edge_level_result, net_atlas, {cur_test_net_results{2:end}});
+            end
+            
+            edge_level_result.removeExtraData();
+            result = ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_level_result, net_level_results, perm_seed);
+        end
+        
+        function val = numNetTests(obj)
+            import nla.* % required due to matlab package system quirks
+            val = numel(obj.net_tests);
+        end
+        
+        function val = containsSigBasedNetworkTest(obj)
+            import nla.* % required due to matlab package system quirks
+            val = false;
+            for i = 1:obj.numNetTests()
+                if isa(obj.net_tests{i}, 'net.BaseSigTest')
+                    val = true;
+                end
+            end
+        end
+    end
+end
+
