@@ -211,9 +211,24 @@ classdef Behavior < nla.inputField.InputField
                         obj.behavior = false;
                         obj.covariates = false;
                         
-                        obj.update();
-                        
                         close(prog);
+                        % check for unusual values in behavior
+                        vals = table2array(obj.behavior_full);
+                        labels = obj.behavior_full.Properties.VariableNames;
+                        containsNaN = sum(isnan(vals)) > 0;
+                        repeatedNines = ((vals == 99) + (vals == 999) + (vals == 9999)) > 0;
+                        unusualValues = abs((vals - mean(vals)) ./ std(vals)) > 3;
+                        containsRepeatedNines = sum(repeatedNines & unusualValues) > 0;
+                        if sum(containsNaN) > 0
+                            uialert(obj.fig, sprintf('Columns %s could not be loaded due to containing NaN values.', nla.helpers.humanReadableList(labels(containsNaN))), 'Warning');
+                            colindexes = [1:numel(labels)];
+                            obj.behavior_full(:, colindexes(containsNaN)) = [];
+                        end
+                        if sum(containsRepeatedNines) > 0
+                            uialert(obj.fig, sprintf("Columns %s contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.", nla.helpers.humanReadableList(labels(containsRepeatedNines))), 'Warning', 'Icon', 'warning');
+                        end
+                        
+                        obj.update();
                     catch ex
                         close(prog);
                         uialert(obj.fig, ex.message, 'Error while loading behavior file');
