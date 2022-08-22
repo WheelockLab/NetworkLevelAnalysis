@@ -33,21 +33,22 @@ classdef Base < nla.TestResult
             import nla.* % required due to matlab package system quirks
             if obj.perm_count == 0
                 coeff_label = sprintf('Edge-level %s', obj.coeff_name);
+                prob_label_appended = '';
                 if ~strcmp(obj.behavior_name, '')
-                    coeff_label = [coeff_label sprintf(' (%s)', obj.behavior_name)];
-                    prob_label = [prob_label sprintf(' (%s)', obj.behavior_name)];
+                    coeff_label = [coeff_label, sprintf(' (%s)', obj.behavior_name)];
+                    prob_label_appended = sprintf(' (%s)', obj.behavior_name);
                 end
                 
                 fig = gfx.createFigure();
                 [w, h] = gfx.drawMatrixOrg(fig, 0, 0, coeff_label, obj.coeff, obj.coeff_range(1), obj.coeff_range(2), net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
                 
                 if flags.display_sig
-                    prob_label = sprintf('Edge-level Significance (P < %g)', obj.prob_max);
+                    prob_label = [sprintf('Edge-level Significance (P < %g)', obj.prob_max), prob_label_appended];
                     [w2, h2] = gfx.drawMatrixOrg(fig, w, 0, prob_label, obj.prob_sig, 0, 1, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, false, false, [[1,1,1];[0,0,0]]);
                     w = w + w2;
                     h = max(h, h2);
                 else
-                    prob_label = 'Edge-level P-values (non-thresholded, displayed on log scale)';
+                    prob_label = ['Edge-level P-values (displayed on log scale)', prob_label_appended];
                     %prob_log = TriMatrix(net_atlas.numROIs());
                     %prob_log.v = -1 * log10(obj.prob.v);
                     cm_base = parula(1000);
