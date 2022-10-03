@@ -29,47 +29,78 @@ classdef BaseResult < nla.net.BasePermResult
             obj.within_np_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
         end
         
-        function output(obj, input_struct, net_atlas, flags)
+        function output(obj, input_struct, net_atlas, edge_result, flags)
             import nla.* % required due to matlab package system quirks
             if obj.perm_count > 0
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    fig = gfx.createFigure(1000, 900);
-
-                    %% Histogram of probabilities, with thresholds marked
-                    ax = subplot(2,2,2);
-                    loglog(HistBin.EDGES(2:end), obj.empirical_fdr, 'k');
-                    hold('on');
-                    loglog(obj.prob.v, obj.perm_prob_ew.v, 'ok');
-                    axis([min(obj.prob.v), 1, min(obj.perm_prob_ew.v), 1])            
-                    loglog(ax.XLim, [input_struct.prob_max, input_struct.prob_max], 'b');
-                    loglog([obj.prob_max_ew, obj.prob_max_ew], ax.YLim, 'r')
-
-                    name_label = sprintf("%s P-values", obj.name_formatted);
-                    title(name_label);
-                    xlabel('Asymptotic');
-                    ylabel('Permutation-based P-value');
-
-                    %% Check that network-pair size is not a confound
-                    obj.plotProbVsNetSize(net_atlas, subplot(2,2,3));
-                    obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
-
-                    %% Matrix with significant networks marked
                     perm_prob_ew_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
                     perm_prob_ew_sig.v = obj.perm_prob_ew.v < input_struct.prob_max;
-                    obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'));
+                    
+                    if flags.plot_type == nla.PlotType.FIGURE
+                        fig = gfx.createFigure(1000, 900);
+
+                        %% Histogram of probabilities, with thresholds marked
+                        ax = subplot(2,2,2);
+                        loglog(HistBin.EDGES(2:end), obj.empirical_fdr, 'k');
+                        hold('on');
+                        loglog(obj.prob.v, obj.perm_prob_ew.v, 'ok');
+                        axis([min(obj.prob.v), 1, min(obj.perm_prob_ew.v), 1])            
+                        loglog(ax.XLim, [input_struct.prob_max, input_struct.prob_max], 'b');
+                        loglog([obj.prob_max_ew, obj.prob_max_ew], ax.YLim, 'r')
+
+                        name_label = sprintf("%s P-values", obj.name_formatted);
+                        title(name_label);
+                        xlabel('Asymptotic');
+                        ylabel('Permutation-based P-value');
+
+                        %% Check that network-pair size is not a confound
+                        obj.plotProbVsNetSize(net_atlas, subplot(2,2,3));
+                        obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
+
+                        %% Matrix with significant networks marked
+                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN);
+                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                        obj.plotChord(input_struct, net_atlas, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                    end
                 end
             else
                 if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
-                    %% Non-permuted
-                    fig = gfx.createFigure(500, 900);
-
-                    %% Check that network-pair size is not a confound
-                    obj.plotProbVsNetSize(net_atlas, subplot(2,1,2));
-
-                    %% Matrix with significant networks marked
                     prob_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
                     prob_sig.v = obj.prob.v < input_struct.prob_max / net_atlas.numNetPairs();
-                    obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true);
+                        
+                    if flags.plot_type == nla.PlotType.FIGURE
+                        %% Non-permuted
+                        fig = gfx.createFigure(500, 900);
+
+                        %% Check that network-pair size is not a confound
+                        obj.plotProbVsNetSize(net_atlas, subplot(2,1,2));
+
+                        %% Matrix with significant networks marked
+                        obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED);
+                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                        obj.plotChord(input_struct, net_atlas, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
+                    end
+                end
+            end
+        end
+        
+        function [num_tests, sig_count_mat, names] = getSigMat(obj, input_struct, net_atlas, flags)
+            import nla.* % required due to matlab package system quirks
+            num_tests = 0;
+            sig_count_mat = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            names = [];
+            
+            if obj.perm_count > 0
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    num_tests = num_tests + 1;
+                    sig_count_mat.v = sig_count_mat.v + (obj.perm_prob_ew.v < input_struct.prob_max);
+                    names = [names sprintf("Full Connectome %s", obj.name)];
+                end
+            else
+                if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
+                    num_tests = num_tests + 1;
+                    sig_count_mat.v = sig_count_mat.v + (obj.prob.v < input_struct.prob_max / net_atlas.numNetPairs());
+                    names = [names sprintf("Non-Permuted %s", obj.name)];
                 end
             end
         end
@@ -114,7 +145,8 @@ classdef BaseResult < nla.net.BasePermResult
             [r, p] = corr(net_size.v, p_val);
             title(ax, 'Non-permuted P-values vs. Net-Pair Size');
             subtitle(ax, sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p, r));
-            %ylim(ax, [0 1]);
+            lims = ylim(ax);
+            ylim(ax, [0 lims(2)]);
         end
         
         function plotWithinNetPairProbVsNetSize(obj, net_atlas, ax)

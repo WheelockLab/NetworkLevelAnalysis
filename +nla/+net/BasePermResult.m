@@ -43,39 +43,140 @@ classdef BasePermResult < nla.TestResult
     end
     
     methods (Access = protected)
-        function [w, h] = plotProb(obj, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig, plot_name, divide_by_netpairs)
+        function [cm, plot_mat, plot_max, name_label, sig_increasing] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, name_formatted, plot_name, divide_by_netpairs, method)
             import nla.* % required due to matlab package system quirks
-            
-            if ~exist('divide_by_netpairs','var'), divide_by_netpairs = false; end
+
+            if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
+                plot_name = sprintf("%s (-log_1_0(P))", plot_name);
+            end
+
             n_net_pairs = net_atlas.numNetPairs();
             if divide_by_netpairs
                 p_max = input_struct.prob_max / n_net_pairs;
             else
                 p_max = input_struct.prob_max;
             end
-            
+
             if divide_by_netpairs
-                name_label = sprintf("%s %s\nP < %.2g (%g/%d tests/%d net-pairs)", obj.name_formatted, plot_name, p_max, p_max * input_struct.behavior_count * n_net_pairs, input_struct.behavior_count, n_net_pairs);
+                name_label = sprintf("%s %s\nP < %.2g (%g/%d tests/%d net-pairs)", name_formatted, plot_name, p_max, p_max * input_struct.behavior_count * n_net_pairs, input_struct.behavior_count, n_net_pairs);
             else
-                name_label = sprintf("%s %s\nP < %.2g (%g/%d tests)", obj.name_formatted, plot_name, p_max, p_max * input_struct.behavior_count, input_struct.behavior_count);
-            end
-            
-            if input_struct.log_plot_prob
-                cm_base = parula(1000);
-                cm = flip(cm_base(ceil(logspace(-3, 0, 256) .* 1000), :));
-                [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_prob, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig);
+                name_label = sprintf("%s %s\nP < %.2g (%g/%d tests)", name_formatted, plot_name, p_max, p_max * input_struct.behavior_count, input_struct.behavior_count);
+            end    
+
+            discrete_colors_count = 1000;
+
+            % scale values very slightly for display so numbers just below
+            % the threshold don't show up white but marked significant
+            plot_prob_sc = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            plot_prob_sc.v = plot_prob.v .* (discrete_colors_count / (discrete_colors_count + 1));
+
+            if input_struct.prob_plot_method == gfx.ProbPlotMethod.LOG
+                min_log = log10(min(nonzeros(plot_prob.v)));
+                if min_log < -40
+                    min_log = -40;
+                end
+                cm_base = parula(discrete_colors_count);
+                cm = flip(cm_base(ceil(logspace(min_log, 0, discrete_colors_count) .* discrete_colors_count), :));
+                cm = [cm; [1 1 1]];
+                plot_mat = plot_prob_sc;
+                plot_max = p_max;
+                sig_increasing = false;
+            elseif input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
+                cm = parula(discrete_colors_count);
+                plot_mat = nla.TriMatrix(net_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
+                plot_mat.v = -1 * log10(plot_prob.v);
+                plot_max = 40;
+                if method == nla.Method.FULL_CONN
+                    plot_max = 2;
+                end
+                sig_increasing = true;
             else
-                discrete_colors_count = 1000;
                 cm = flip(parula(discrete_colors_count));
                 cm = [cm; [1 1 1]];
-                
-                % scale values very slightly for display so numbers just below
-                % the threshold don't show up white but marked significant
-                plot_prob_sc = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
-                plot_prob_sc.v = plot_prob.v .* (discrete_colors_count / (discrete_colors_count + 1));
-                
-                [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_prob_sc, 0, p_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig);
+                plot_mat = plot_prob_sc;
+                plot_max = p_max;
+                sig_increasing = false;
             end
+        end
+        
+        function [w, h] = plotProb(obj, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig, plot_name, divide_by_netpairs, method)
+            import nla.* % required due to matlab package system quirks
+            [cm, plot_mat, plot_max, name_label, ~] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, obj.name_formatted, plot_name, divide_by_netpairs, method);
+            [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig);
+        end
+        
+        function genChordPlotFig(obj, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
+            import nla.* % required due to matlab package system quirks
+            ax_width = 750;
+            trimat_width = 500;
+            bottom_text_height = 250;
+
+            fig = gfx.createFigure(ax_width + trimat_width, ax_width);
+            fig.Renderer = 'painters';
+
+            %% Chord plot
+            if chord_type == nla.PlotType.CHORD
+                ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width, ax_width]);
+                gfx.hideAxes(ax);
+            
+                plot_mat_norm = TriMatrix(net_atlas.numNets(), TriMatrixDiag.KEEP_DIAGONAL);
+                plot_mat_norm.v = max(0, min(plot_mat.v ./ plot_max, 1));
+                gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_increasing, chord_type);
+            else
+                ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width - 50, ax_width - 50]);
+                gfx.hideAxes(ax);
+                ax.Visible = true; % to show title
+                
+                cm_edge_base = parula(1000);
+                cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 256) .* 1000), :));
+                prob_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
+                prob_clipped.v = nla.helpers.normClipped(edge_result.prob.v, 0, edge_result.prob_max);
+                
+                % threshold out insignificant networks
+                for y = 1:net_atlas.numNets()
+                    for x = 1:y
+                        if ~plot_sig.get(y, x)
+                            prob_clipped.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, 1);
+                        end
+                    end
+                end
+                
+                gfx.drawChord(ax, 450, net_atlas, prob_clipped, cm_edge, false, chord_type);
+                title(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                colormap(ax, cm_edge);
+                cb = colorbar(ax);
+                cb.Units = 'pixels';
+                cb.Location = 'east';
+                cb.Position = [cb.Position(1) + 25, cb.Position(2) + 100, cb.Position(3), cb.Position(4) - 200];
+                
+                num_ticks = 10;
+                ticks = [0:num_ticks];
+                cb.Ticks = double(ticks) ./ num_ticks;
+
+                % tick labels
+                labels = {};
+                for i = ticks
+                    labels{i + 1} = sprintf("%.2g", (i * (edge_result.prob_max / num_ticks)));
+                end
+                cb.TickLabels = labels;
+            end
+
+            %% Trimatrix plot
+            function brainFigsButtonClickedCallback(net1, net2)
+                gfx.drawBrainVis(net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2);
+            end
+            gfx.drawMatrixOrg(fig, 0, bottom_text_height, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            
+            %% Plot names
+            text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
+            gfx.hideAxes(text_ax);
+            text(text_ax, 0, 0, "Click any net-pair in the above plot to view its edge-level correlations", 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+        end
+        
+        function plotChord(obj, input_struct, net_atlas, plot_prob, plot_sig, plot_name, divide_by_netpairs, method, edge_result, chord_type)
+            import nla.* % required due to matlab package system quirks
+            [cm, plot_mat, plot_max, name_label, sig_increasing] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, obj.name_formatted, plot_name, divide_by_netpairs, method);
+            genChordPlotFig(obj, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type);
         end
         
         function net_size = getNetSizes(obj, net_atlas)
@@ -93,8 +194,11 @@ classdef BasePermResult < nla.TestResult
             plotValsVsNetSize(obj, net_atlas, ax, obj.perm_prob_ew, 'Permuted P-values vs. Net-Pair Size', '-log_1_0(Permutation-based P-value)');
         end
         
-        function plotValsVsNetSize(obj, net_atlas, ax, prob, title_label, y_label)
+        function plotValsVsNetSize(obj, net_atlas, ax, prob, title_label, y_label, val_name)
             import nla.* % required due to matlab package system quirks
+            
+            if ~exist('val_name', 'var'), val_name = 'P-values'; end
+            
             net_size = obj.getNetSizes(net_atlas);
             p_val = -log10(prob.v);
             
@@ -112,8 +216,9 @@ classdef BasePermResult < nla.TestResult
             ylabel(ax, y_label)
             [r, p] = corr(net_size.v, p_val);
             title(ax, title_label);
-            subtitle(ax, sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p, r));
-            %ylim(ax, [0 1]);
+            subtitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r));
+            lims = ylim(ax);
+            ylim(ax, [0 lims(2)]);
         end
     end
 end

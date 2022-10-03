@@ -13,29 +13,41 @@ function drawCortex(ax, anat, ctx, mesh_alpha, view_pos, color_l, color_r)
 
     % Set lighting and persepctive
     if view_pos == gfx.ViewPos.LAT || view_pos == gfx.ViewPos.MED
-        view([-90,0]);
-        light('Position', [-100,200,0], 'Style', 'local');
-        light('Position', [-50,-500,100], 'Style', 'infinite'); % These two lines create minimal lighting good luck. <-- what did he mean by this?
-        light('Position', [-50,0,0], 'Style', 'infinite');
+        view(ax, [-90,0]);
+        light(ax, 'Position', [-100,200,0], 'Style', 'local');
+        light(ax, 'Position', [-50,-500,100], 'Style', 'infinite'); % These two lines create minimal lighting good luck. <-- what did he mean by this?
+        light(ax, 'Position', [-50,0,0], 'Style', 'infinite');
     else
         if view_pos == gfx.ViewPos.POST
-            view([0 0]);
+            view(ax, [0 0]);
+        elseif view_pos == gfx.ViewPos.DORSAL
+            view(ax, [0 90]);
+            light(ax, 'Position', [100,300,100], 'Style', 'infinite');
+        elseif view_pos == gfx.ViewPos.LEFT
+            view(ax, [-90,0]);
+            light(ax, 'Position', [-100,0,0], 'Style', 'infinite');
+        elseif view_pos == gfx.ViewPos.RIGHT
+            view(ax, [90,0]);
+            light(ax, 'Position', [100,0,0], 'Style', 'infinite');
+        elseif view_pos == gfx.ViewPos.FRONT
+            view(ax, [180,0]);
+            light(ax, 'Position', [100,300,100], 'Style', 'infinite');
+        elseif view_pos == gfx.ViewPos.BACK
+            view(ax, [0,0]);
+            light(ax, 'Position', [0,-200,0], 'Style', 'infinite');
         end
-        if view_pos == gfx.ViewPos.DORSAL
-            view([0 90]);
-            light('Position', [100,300,100], 'Style', 'infinite');
-        end 
-        if view_pos == gfx.ViewPos.POST || view_pos == gfx.ViewPos.DORSAL
-            light('Position', [-500,-20,0], 'Style', 'local');
-            light('Position', [500,-20,0], 'Style', 'local');
-            light('Position', [0,-200,50], 'Style', 'local');
+        
+        if view_pos == gfx.ViewPos.POST || view_pos == gfx.ViewPos.DORSAL || view_pos == gfx.ViewPos.LEFT || view_pos == gfx.ViewPos.RIGHT || view_pos == gfx.ViewPos.FRONT || view_pos == gfx.ViewPos.BACK
+            light(ax, 'Position', [-500,-20,0], 'Style', 'local');
+            light(ax, 'Position', [500,-20,0], 'Style', 'local');
+            light(ax, 'Position', [0,-200,50], 'Style', 'local');
         end
     end
     
     gfx.drawCortexHemi(ax, anat.hemi_l, mesh_l, color_l, mesh_alpha);
     gfx.drawCortexHemi(ax, anat.hemi_r, mesh_r, color_r, mesh_alpha);
 
-    axis('image');
-    axis('off');
+    axis(ax, 'image');
+    axis(ax, 'off');
 end
 

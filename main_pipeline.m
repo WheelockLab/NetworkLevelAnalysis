@@ -57,7 +57,7 @@ input_struct.prob_max = 0.05;
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;
-net_input_struct.log_plot_prob = false;
+net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
 
 %% Partial variance
 % covariates = NxM matrix of covariates to factor from behavioral scores/fc
@@ -67,21 +67,16 @@ net_input_struct.log_plot_prob = false;
 %% Clean up unnecessary variables
 clear fc_unordered fc_struct bx
 
-%% Load cortex anatomy
-% Pick which one of these to use based on your network atlas, TT or MNI
-%anat = CortexAnatomy('support_files/meshes/MNI_32k.mat');
-%anat = CortexAnatomy('support_files/meshes/Conte69_32k_on_TT.mat');
-
 %% Visualize average functional connectivity values
 fc_avg = copy(input_struct.func_conn);
 fc_avg.v = mean(fc_avg.v, 2);
-fig_l = figure('Color', 'w');
+fig_l = gfx.createFigure(100, 100);
 [fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average', fc_avg, -0.3, 0.3, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
 drawnow();
 
 %% Visualize network/ROI locations
-gfx.drawNetworkROIs(net_atlas, anat, gfx.MeshType.STD, 0.8, 4, false);
-%gfx.drawNetworkROIs(net_atlas, anat, gfx.MeshType.STD, 1, 4, true);
+gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
+%gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 1, 4, true);
 drawnow();
 
 %% Run tests

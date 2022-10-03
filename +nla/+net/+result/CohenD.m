@@ -45,32 +45,65 @@ classdef CohenD < nla.net.BasePermResult
             end
         end
         
-        function output(obj, input_struct, net_atlas, flags)
+        function output(obj, input_struct, net_atlas, edge_result, flags)
             import nla.* % required due to matlab package system quirks
             
             if obj.perm_count > 0
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    %% Permuted probability (fullConn)
-                    fig = gfx.createFigure(500, 1000);
+                    d_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+                    d_sig.v = obj.d.v >= input_struct.d_max;
+                    name_label = sprintf("Observed %s Full Connectome Significance\nD > %g", obj.name_formatted, input_struct.d_max);
+                    
+                    if flags.plot_type == nla.PlotType.FIGURE
+                        %% Permuted probability (fullConn)
+                        fig = gfx.createFigure(500, 1000);
 
-                    %% Check that network-pair size is not a confound
-                    obj.plotPermProbVsNetSize(net_atlas, subplot(2,1,2));
+                        %% Check that network-pair size is not a confound
+                        %obj.plotPermProbVsNetSize(net_atlas, subplot(2,1,2));
+                        obj.plotValsVsNetSize(net_atlas, subplot(2,1,2), obj.d, "Full Connectome Observed Cohen's D vs. Net-Pair Size", "Cohen's D", "Cohen's D effect sizes");
 
-                    %% Matrix plot
-                    perm_prob_ew_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-                    perm_prob_ew_sig.v = obj.perm_prob_ew.v < input_struct.prob_max;
-                    obj.plotProb(input_struct, net_atlas, fig, 0, 525, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'));
+                        %% Matrix plot
+                        %perm_prob_ew_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+                        %perm_prob_ew_sig.v = obj.perm_prob_ew.v < input_struct.prob_max;
+                        %obj.plotProb(input_struct, net_atlas, fig, 0, 525, obj.perm_prob_ew, perm_prob_ew_sig, );
+                        gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), d_sig);
+                    elseif flags.plot_type == nla.PlotType.CHORD
+                        obj.genChordPlotFig(net_atlas, edge_result, d_sig, obj.d, 1, parula(256), name_label, true);
+                    end
                 end
                 
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
-                    %% Within Net-Pair statistics (withinNP)
                     within_np_d_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
                     within_np_d_sig.v = obj.within_np_d.v >= input_struct.d_max;
-
                     name_label = sprintf("%s Within Net-Pair Significance\nD > %g", obj.name_formatted, input_struct.d_max);
-
-                    fig = gfx.createFigure();
-                    [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), within_np_d_sig);
+                    
+                    if flags.plot_type == nla.PlotType.FIGURE
+                        %% Within Net-Pair statistics (withinNP)
+                        fig = gfx.createFigure();
+                        [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), within_np_d_sig);
+                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                        obj.genChordPlotFig(net_atlas, edge_result, within_np_d_sig, obj.within_np_d, 1, parula(256), name_label, true, flags.plot_type);
+                    end
+                end
+            end
+        end
+        
+        function [num_tests, sig_count_mat, names] = getSigMat(obj, input_struct, net_atlas, flags)
+            import nla.* % required due to matlab package system quirks
+            num_tests = 0;
+            sig_count_mat = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            names = [];
+            
+            if obj.perm_count > 0
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    num_tests = num_tests + 1;
+                    sig_count_mat.v = sig_count_mat.v + (obj.d.v >= input_struct.d_max);
+                    names = [names sprintf("Full Connectome Observed %s", obj.name)];
+                end
+                if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
+                    num_tests = num_tests + 1;
+                    sig_count_mat.v = sig_count_mat.v + (obj.within_np_d.v >= input_struct.d_max);
+                    names = [names sprintf("Within Net-Pair %s", obj.name)];
                 end
             end
         end

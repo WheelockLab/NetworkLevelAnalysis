@@ -3,7 +3,7 @@ classdef WelchT < nla.edge.BaseTest
     %   Differs slightly from built-in Welch's ttest (errors ~1e-13) but
     %   runs about 4x faster.
     properties (Constant)
-        name = "Welch's T"
+        name = "Welch's T (Custom)"
         coeff_name = "Welch's T"
     end
     

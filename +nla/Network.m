@@ -22,6 +22,10 @@ classdef Network < handle & nla.interfaces.IndexGroup
             import nla.* % required due to matlab package system quirks
             obj.indexes = [obj.indexes; new_ROI];
         end
+        
+        function n = numROIs(obj)
+            n = numel(obj.indexes);
+        end
     end
 end
 

@@ -1,4 +1,4 @@
-function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matrix, llimit, ulimit, networks, fig_size, fig_margins, draw_legend, draw_colorbar, color_map, marked_networks)
+function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matrix, llimit, ulimit, networks, fig_size, fig_margins, draw_legend, draw_colorbar, color_map, marked_networks, discrete_colorbar, net_clicked_callback)
     import nla.* % required due to matlab package system quirks
     %DRAWMATRIXORG Draw a matrix or TriMatrix, organized into networks
     %   fig: figure to draw in
@@ -16,14 +16,19 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     %   draw_colorbar: Whether to display a colorbar
     %   color_map: color map to use for the matrix
     %   marked_networks: networks to mark with a symbol
+    %   discrete_colorbar: whether to display the colorbar as continous or
+    %   discrete.
+    %   per_net_func: button function to add to each network, for clickable
+    %   networks.
     
     fig.Renderer = 'painters';
     
     %% Parameters    
     if ~exist('color_map', 'var'), color_map = turbo(256); end
     color_scale = size(color_map, 1);
-    
     if ~exist('marked_networks', 'var'), marked_networks = false; end
+    if ~exist('discrete_colorbar', 'var'), discrete_colorbar = false; end
+    if ~exist('net_clicked_callback', 'var'), net_clicked_callback = false; end
     
     % Convert to common type of matrix so we can use the same interface for
     % both. If Matlab supported operator overriding this wouldn't have to
@@ -119,6 +124,28 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     % Display image and stretch to fill axes
     image_display = image(ax, image_data, 'XData', [1 ax.Position(3)], 'YData', [1 ax.Position(4)]);
     
+    % network buttons
+    net_dims = zeros(num_nets, num_nets, 4);
+    function clickedCallback(~, ~)
+        if ~isequal(net_clicked_callback, false)
+            % get point clicked
+            coords = get(ax, 'CurrentPoint'); 
+            coords = coords(1,1:2);
+            
+            % find network membership
+            for y_iter = 1:num_nets
+                for x_iter = 1:y_iter
+                    net_coords = net_dims(x_iter, y_iter, :);
+                    if coords(1) >= net_coords(1) && coords(1) <= net_coords(2) && coords(2) >= net_coords(3) && coords(2) <= net_coords(4)
+                        % call callback using clicked network
+                        net_clicked_callback(y_iter, x_iter);
+                    end
+                end
+            end
+        end
+    end
+    image_display.ButtonDownFcn = @clickedCallback;
+    
     % Set limits of axes
     ax.XLim = [0 image_display.XData(2)];
     ax.YLim = [0 image_display.YData(2) + 1];
@@ -185,6 +212,11 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
                 plot(ax, cx, cy, 'x', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
             end
             
+            % store network bounds for later use
+            if ~isequal(net_clicked_callback, false)
+                net_dims(x,y,:) = [x_pos, x_pos + chunk_w - 1, y_pos, y_pos + chunk_h - 1];
+            end
+            
             % draw lines left of and below each chunk
             gfx.drawLine(ax, [x_pos - 1, x_pos - 1], [y_pos, y_pos + chunk_h + 1]);
             gfx.drawLine(ax, [x_pos - 2, x_pos + chunk_w - 1], [y_pos + chunk_h, y_pos + chunk_h]);
@@ -224,13 +256,21 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     
     %% Colorbar
     if draw_colorbar
-        colormap(ax, color_map);
+        if discrete_colorbar
+            num_ticks = double(ulimit - llimit);
+            disp_color_map = color_map(floor((size(color_map,1) - 1) * [0:num_ticks] ./ num_ticks) + 1, :);
+            disp_color_map = repelem(disp_color_map, 2, 1);
+            disp_color_map = disp_color_map(2:((num_ticks + 1) * 2 - 1), :);
+            colormap(ax, disp_color_map);
+        else
+            num_ticks = min(size(color_map, 1) - 1, 10);
+            colormap(ax, color_map);
+        end
+        
         cb = colorbar(ax);
         
-        % tick positions
-        num_ticks = min(size(color_map, 1) - 1, 10);
         ticks = [0:num_ticks];
-        cb.Ticks = ticks ./ num_ticks;
+        cb.Ticks = double(ticks) ./ num_ticks;
         
         % tick labels
         labels = {};
@@ -243,6 +283,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
         cb.Units = 'pixels';
         cb.Location = 'east';
         cb.Position = [cb.Position(1) - offset_x, cb.Position(2) + offset_y, colorbar_width, image_h - (offset_y * 2) - 20];
+        caxis(ax, [0, 1]);
     end
     
     %% Legend
@@ -276,6 +317,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     
     %% General axes settings
     gfx.hideAxes(ax); % hide axes lines
+    ax.DataAspectRatio = [1,1,1];
     ax.Toolbar.Visible = 'off'; % disable zoom/etc
     disableDefaultInteractivity(ax); % disable zoom/etc
     

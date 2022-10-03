@@ -7,8 +7,8 @@ function hideAxes(ax)
     ax.YTick = [];
     ax.XColor = 'w';
     ax.YColor = 'w';
-    ax.DataAspectRatio = [1,1,1];
     ax.TickDir = 'out';
     ax.Visible = 'off';
+    disableDefaultInteractivity(ax)
 end
 

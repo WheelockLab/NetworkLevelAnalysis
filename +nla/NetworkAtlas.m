@@ -8,6 +8,7 @@ classdef NetworkAtlas < nla.DeepCopyable
         ROI_order
         name
         space
+        anat = false;
         parcels = false;
     end
     
@@ -68,6 +69,16 @@ classdef NetworkAtlas < nla.DeepCopyable
                 ROI_index = net_struct.ROI_key(i, 1);
                 net_index = net_struct.ROI_key(i, 2);
                 obj.nets(net_index).addROI(ROI_index);
+            end
+            
+            %% Cortex anatomy
+            if strcmp(obj.space, 'MNI')
+                obj.anat = CortexAnatomy('support_files/meshes/MNI_32k.mat');
+            elseif strcmp(obj.space, 'TT')
+                obj.anat = CortexAnatomy('support_files/meshes/Conte69_32k_on_TT.mat');
+            else
+                error("Could not load cortex anatomy - you may have forgotten to set the 'space' field in your Network Atlas")
+                %[file, path, idx] = uigetfile({'*.mat', 'Cortex anatomy (*.mat)'}, 'Select Cortex Anatomy to display Network Atlas on');
             end
             
             %% Parcels (optional)

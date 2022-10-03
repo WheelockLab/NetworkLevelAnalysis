@@ -163,6 +163,7 @@ classdef NetworkAtlas < nla.inputField.InputField
                         if ~islogical(obj.net_atlas.parcels)
                             obj.checkbox_surface_parcels.Value = true;
                         end
+                        
                         obj.update();
                         close(prog);
                     catch ex
@@ -233,21 +234,10 @@ classdef NetworkAtlas < nla.inputField.InputField
             prog = uiprogressdlg(obj.fig, 'Title', 'Generating visualization', 'Message', 'Generating net atlas visualization', 'Indeterminate', true);
             drawnow;
             
-            %% Load cortex anatomy
-            if strcmp(obj.net_atlas.space, 'MNI')
-                anat = CortexAnatomy('support_files/meshes/MNI_32k.mat');
-            elseif strcmp(obj.net_atlas.space, 'TT')
-                anat = CortexAnatomy('support_files/meshes/Conte69_32k_on_TT.mat');
+            if obj.checkbox_surface_parcels.Value && ~islogical(obj.net_atlas.parcels) && size(obj.net_atlas.parcels.ctx_l, 1) == size(obj.net_atlas.anat.hemi_l.nodes, 1) && size(obj.net_atlas.parcels.ctx_r, 1) == size(obj.net_atlas.anat.hemi_r.nodes, 1)
+                gfx.drawNetworkROIs(obj.net_atlas, gfx.MeshType.STD, 1, 4, true);
             else
-                %[file, path, idx] = uigetfile({'*.mat', 'Cortex anatomy (*.mat)'}, 'Select Cortex Anatomy to display Network Atlas on');
-                anat = CortexAnatomy();
-            end
-            
-             % TODO test this
-            if obj.checkbox_surface_parcels.Value && ~islogical(obj.net_atlas.parcels) && size(obj.net_atlas.parcels.ctx_l, 1) == size(anat.hemi_l.nodes, 1) && size(obj.net_atlas.parcels.ctx_r, 1) == size(anat.hemi_r.nodes, 1)
-                gfx.drawNetworkROIs(obj.net_atlas, anat, gfx.MeshType.STD, 1, 4, true);
-            else
-                gfx.drawNetworkROIs(obj.net_atlas, anat, gfx.MeshType.STD, 0.8, 4, false);
+                gfx.drawNetworkROIs(obj.net_atlas, gfx.MeshType.STD, 0.8, 4, false);
             end
             
             close(prog);
