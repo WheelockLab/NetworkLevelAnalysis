@@ -27,5 +27,5 @@ function drawConvergenceMap(net_atlas, sig_count_mat, num_tests, names, edge_res
     %% Plot names
     text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
     gfx.hideAxes(text_ax);
-    text(text_ax, 0, 0, sprintf("Click any net-pair in the above plot to view its edge-level correlations\n\nMethods/Tests used:") + newline + join(names, newline), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    text(text_ax, 0, 0, sprintf("Click any net-pair in the above plot to view its edge-level correlations.\n\nMethods/Tests used:") + newline + join(names, newline), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
 end

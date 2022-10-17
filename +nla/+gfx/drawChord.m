@@ -13,7 +13,11 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
     text_radius = circle_radius + (text_width / 4);
     
     circle_thickness = 3;
-    space_between_nets_and_labels = 3;
+    if chord_type == nla.PlotType.CHORD
+        space_between_nets_and_labels = 3;
+    else
+        space_between_nets_and_labels = 6;
+    end
     space_between_nets = 5;
     space_between_nets_rad = atan(space_between_nets / circle_radius);
     
@@ -36,7 +40,7 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
             net_size(n) = net_atlas.nets(n).numROIs();
         end
         ROI_size_rads = ((2 * pi) - (space_between_nets_rad * net_atlas.numNets())) ./ net_atlas.numROIs();
-        net_size_rads_arr = net_size .* ((2 * pi) / net_atlas.numROIs());
+        net_size_rads_arr = net_size .* ROI_size_rads + space_between_nets_rad;
         net_size_cum = cumsum(net_size_rads_arr(1:n));
     end
     
@@ -67,10 +71,13 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
         text_pos(1) = text_pos(1);
         text_angle = n_center_rad + (pi / 2);
         
-        if chord_type == nla.PlotType.CHORD_EDGE && net_size_rads_arr(n) < 0.25
-            name_disp = net_atlas.nets(n).name;
-            if strlength(name_disp) > 10
-                name_disp = sprintf("%.9s...", name_disp);
+        name_disp = net_atlas.nets(n).name;
+        
+        % display network label rotated 90 degrees if the associated
+        % network is small and name is large
+        if chord_type == nla.PlotType.CHORD_EDGE && net_size_rads_arr(n) < 0.25 && strlength(name_disp) > 5
+            if strlength(name_disp) > 8
+                name_disp = sprintf("%.7s...", name_disp);
             end
             text_angle = text_angle - (pi / 2);
             if text_angle > pi/2 && text_angle < 3 * pi/2 
@@ -83,7 +90,7 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
             if text_pos(2) > 0
                 text_angle = text_angle - pi;
             end
-            text(text_pos(1), text_pos(2), net_atlas.nets(n).name, 'HorizontalAlignment', 'center', 'Rotation', rad2deg(text_angle));
+            text(text_pos(1), text_pos(2), name_disp, 'HorizontalAlignment', 'center', 'Rotation', rad2deg(text_angle));
         end
 
         if chord_type == nla.PlotType.CHORD
@@ -113,6 +120,18 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
     if chord_type == nla.PlotType.CHORD_EDGE
         row_mat = TriMatrix(repelem(1:net_atlas.numROIs(),net_atlas.numROIs(),1)');
         col_mat = TriMatrix(repelem(1:net_atlas.numROIs(),net_atlas.numROIs(),1));
+    end
+    
+    % ROI locations for edge-level plot
+    if chord_type == nla.PlotType.CHORD_EDGE
+        for n = 1:net_atlas.numNets()
+            for r = 1:net_atlas.nets(n).numROIs()
+                ROI_center_rad = n_start_rad_arr(n) + (((r - 1) * ROI_size_rads)) + (ROI_size_rads / 2);
+                ROI_center = gfx.genArcSegment([0, 0], [ROI_center_rad, ROI_center_rad], (circle_radius_inner + chord_radius) / 2, 1);
+                ROI_centers_rad(net_atlas.nets(n).indexes(r)) = ROI_center_rad;
+                ROI_centers(net_atlas.nets(n).indexes(r), :) = ROI_center;
+            end
+        end
     end
     
     for idx_iter = 1:numel(sig_mat.v)
@@ -169,13 +188,8 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
             else
                 r1 = col_mat.v(i);
                 r2 = row_mat.v(i);
-                cs_net = cumsum(net_size);
-                net1 = find((cs_net >= r1), 1, 'first');
-                net2 = find((cs_net >= r2), 1, 'first');
-                r1_index_in_net = find(net_atlas.nets(net1).indexes == r1);
-                r2_index_in_net = find(net_atlas.nets(net2).indexes == r2);
-                r1_center_rad = n_start_rad_arr(net1) + ((r1_index_in_net - 1) * ROI_size_rads) + (ROI_size_rads / 2);
-                r2_center_rad = n_start_rad_arr(net2) + ((r2_index_in_net - 1) * ROI_size_rads) + (ROI_size_rads / 2);
+                r1_center_rad = ROI_centers_rad(r1);
+                r2_center_rad = ROI_centers_rad(r2);
                 
                 r1_center = gfx.genArcSegment([0, 0], [r1_center_rad, r1_center_rad], chord_radius + 1, 1);
                 r2_center = gfx.genArcSegment([0, 0], [r2_center_rad, r2_center_rad], chord_radius + 1, 1);
@@ -186,8 +200,14 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
             end
         end
     end
+
+    viscircles(ax, [0, 0], circle_radius_inner - (space_between_nets_and_labels / 2), 'Color', 'w', 'LineWidth', space_between_nets_and_labels - 1);
     
-    white_circle_width = 3;
-    viscircles(ax, [0, 0], chord_radius + 1, 'Color', 'w', 'LineWidth', white_circle_width);
+    % tick marks for edge-level chord plot
+    if chord_type == nla.PlotType.CHORD_EDGE
+        for r = 1:net_atlas.numROIs()
+            plot(ax, ROI_centers(r, 1), ROI_centers(r, 2), '.k', 'MarkerSize', 3);
+        end
+    end
 end
 

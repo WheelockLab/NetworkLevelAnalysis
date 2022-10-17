@@ -170,7 +170,11 @@ classdef BasePermResult < nla.TestResult
             %% Plot names
             text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
             gfx.hideAxes(text_ax);
-            text(text_ax, 0, 0, "Click any net-pair in the above plot to view its edge-level correlations", 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+            info_text = "Click any net-pair in the above plot to view its edge-level correlations.";
+            if chord_type == nla.PlotType.CHORD_EDGE
+                info_text = sprintf("%s\n\nChord plot:\nEach ROI is marked by a dot next to its corresponding network.\nROIs are placed in increasing order counter-clockwise, the first ROI in\na network being the most clockwise, the last being the most counter-\nclockwise.", info_text);
+            end
+            text(text_ax, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
         
         function plotChord(obj, input_struct, net_atlas, plot_prob, plot_sig, plot_name, divide_by_netpairs, method, edge_result, chord_type)
