@@ -163,7 +163,7 @@ classdef BasePermResult < nla.TestResult
 
             %% Trimatrix plot
             function brainFigsButtonClickedCallback(net1, net2)
-                gfx.drawBrainVis(net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2);
+                gfx.drawBrainVis(net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
             end
             gfx.drawMatrixOrg(fig, 0, bottom_text_height, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
             

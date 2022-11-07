@@ -22,7 +22,7 @@ function drawConvergenceMap(net_atlas, sig_count_mat, num_tests, names, edge_res
     function brainFigsButtonClickedCallback(net1, net2)
         gfx.drawBrainVis(net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2);
     end
-    gfx.drawMatrixOrg(fig, 0, bottom_text_height, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, 0, num_tests, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, color_map, false, true, @brainFigsButtonClickedCallback)
+    gfx.drawMatrixOrg(fig, 0, bottom_text_height, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, 0, num_tests, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, color_map, false, true, @brainFigsButtonClickedCallback);
 
     %% Plot names
     text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);

@@ -8,6 +8,7 @@ classdef Wilcoxon < nla.net.BaseCorrResult
     
     properties
         w
+        z
     end
     
     methods

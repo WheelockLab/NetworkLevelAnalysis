@@ -1,8 +1,8 @@
-function drawBrainVis(net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels, edge_result, net1, net2)
+function drawBrainVis(net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels, edge_result, net1, net2, sig_based)
     import nla.* % required due to matlab package system quirks
     %% Display figures 
     fig = gfx.createFigure(1550, 750);
-    fig.Name = sprintf('Brain Visualization: [%s - %s] Network Pair', net_atlas.nets(net1).name, net_atlas.nets(net2).name);
+    fig.Name = sprintf('Brain Visualization: Average of edge-level correlations between nets in [%s - %s] Network Pair', net_atlas.nets(net1).name, net_atlas.nets(net2).name);
     
     llimit = edge_result.coeff_range(1);
     ulimit = edge_result.coeff_range(2);
@@ -11,15 +11,32 @@ function drawBrainVis(net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels, e
     ROI_vals = nan(net_atlas.numROIs(), 1);
 	net1_ROI_indexes = net_atlas.nets(net1).indexes;
     net2_ROI_indexes = net_atlas.nets(net2).indexes;
+    
+    function [coeff1, coeff2] = get_coeffs(n1, n2)
+        coeff1 = edge_result.coeff.get(n1, n2);
+        coeff2 = edge_result.coeff.get(n2, n1);
+        
+        if sig_based
+            prob_sig1 = edge_result.prob_sig.get(n1, n2);
+            prob_sig2 = edge_result.prob_sig.get(n2, n1);
+            
+            coeff1 = coeff1(prob_sig1);
+            coeff2 = coeff2(prob_sig2);
+        end
+    end
+    
     for ROI_idx_iter = 1:numel(net1_ROI_indexes)
         ROI_idx = net1_ROI_indexes(ROI_idx_iter);
-        ROI_sum = sum(edge_result.coeff.get(ROI_idx, net2_ROI_indexes)) + sum(edge_result.coeff.get(net2_ROI_indexes, ROI_idx));
-        ROI_vals(ROI_idx) = ROI_sum / numel(net2_ROI_indexes);
+        [c1, c2] = get_coeffs(ROI_idx, net2_ROI_indexes);
+        ROI_sum = sum(c1) + sum(c2);
+        ROI_vals(ROI_idx) = ROI_sum / (numel(c1) + numel(c2));
     end
+    
     for ROI_idx_iter = 1:numel(net2_ROI_indexes)
         ROI_idx = net2_ROI_indexes(ROI_idx_iter);
-        ROI_sum = sum(edge_result.coeff.get(ROI_idx, net1_ROI_indexes)) + sum(edge_result.coeff.get(net1_ROI_indexes, ROI_idx));
-        ROI_val = ROI_sum / numel(net1_ROI_indexes);
+        [c1, c2] = get_coeffs(ROI_idx, net1_ROI_indexes);
+        ROI_sum = sum(c1) + sum(c2);
+        ROI_val = ROI_sum / (numel(c1) + numel(c2));
         if net1 == net2
             ROI_vals(ROI_idx) = (ROI_vals(ROI_idx) + ROI_val) ./ 2;
         else

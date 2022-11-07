@@ -170,11 +170,19 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
 
                 %% generate connecting circles between inner/outer points
                 [inner_origin, inner_origin_rad, inner_radius] = gfx.findCircleFromTwoTangents(np2_start, np1_end, np2_start_rad + pi, np1_end_rad);
-                inner = gfx.genArcSegment(inner_origin, inner_origin_rad, inner_radius, 50);
-                % TODO fix in certain cases
+                num_points = 50;
+                if abs(inner_origin_rad(1) - inner_origin_rad(2)) < 0.001
+                    num_points = 1;
+                end
+                inner = gfx.genArcSegment(inner_origin, inner_origin_rad, inner_radius, num_points);
+                
                 [outer_origin, outer_origin_rad, outer_radius] = gfx.findCircleFromTwoTangents(np2_end, np1_start, np2_end_rad + pi, np1_start_rad);
-                outer = gfx.genArcSegment(outer_origin, outer_origin_rad, outer_radius, 50);
-
+                num_points = 50;
+                if abs(outer_origin_rad(1) - outer_origin_rad(2)) < 0.001
+                    num_points = 1;
+                end
+                outer = gfx.genArcSegment(outer_origin, outer_origin_rad, outer_radius, num_points);
+                
                 %% construct mesh
                 poly_verts = [outer; flip(inner, 1)];
                 poly = polyshape(poly_verts(:, 1), poly_verts(:, 2));

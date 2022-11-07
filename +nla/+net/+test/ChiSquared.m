@@ -10,7 +10,7 @@ classdef ChiSquared < nla.net.BaseSigTest
             obj@nla.net.BaseSigTest();
         end
         
-        function result = run(obj, ~, edge_result, net_atlas, previous_result)
+        function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
             import nla.* % required due to matlab package system quirks
             %RUN Run the test
             %   edge_result: Result of edge-level statistics
@@ -58,14 +58,24 @@ classdef ChiSquared < nla.net.BaseSigTest
                 % We will later divide this by the total number of
                 % permutations to calculate the p value.
                 % Fisher, R.A. (1935) The Design of Experiments, New York: Hafner
-                result.perm_rank.v = result.perm_rank.v + uint64(chi2.v >= result.chi2.v);
+                if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
+                    sig_gt_nonpermuted = chi2.v >= result.chi2.v;
+                else
+                    sig_gt_nonpermuted = prob.v <= result.prob.v;
+                end
+                result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
                 
                 for i = 1:net_atlas.numNetPairs()
                     % Similar to the previous ranking, but experiment-wide
                     % (ranking a network's Chi stat among all permutations
                     % of all networks). Code is subtly different from
                     % previous usage, refactor with care.
-                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(chi2.v >= result.chi2.v(i)));
+                    if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
+                        sig_gt_nonpermuted = chi2.v >= result.chi2.v(i);
+                    else
+                        sig_gt_nonpermuted = prob.v <= result.prob.v(i);
+                    end
+                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(sig_gt_nonpermuted));
                 end
                 
                 result.perm_prob_hist = result.perm_prob_hist + uint32(histcounts(prob.v, HistBin.EDGES)');

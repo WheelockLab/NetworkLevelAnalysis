@@ -10,7 +10,7 @@ classdef CohenD < nla.net.BaseCorrTest
             obj@nla.net.BaseCorrTest();
         end
         
-        function result = run(obj, ~, edge_result, net_atlas, previous_result)
+        function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
             import nla.* % required due to matlab package system quirks
             num_nets = net_atlas.numNets();
             d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
@@ -26,7 +26,9 @@ classdef CohenD < nla.net.BaseCorrTest
             % if a previous result is passed in, add on to it
             if previous_result ~= false
                 result = previous_result;
+                
                 result.perm_rank.v = result.perm_rank.v + uint64(d.v >= result.d.v);
+                
                 for i = 1:net_atlas.numNetPairs()
                     result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(d.v >= result.d.v(i)));
                 end

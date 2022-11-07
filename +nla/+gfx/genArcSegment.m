@@ -4,7 +4,6 @@ function points = genArcSegment(origin, angles, radius, n)
     if radius < 1e-10
         points = origin;
     else
-        % TODO THERE'S A BUG HERE AND IT'S REALLY ANNOYING
         circ_rad = @(radius,rad_ang, origin)  [radius * cos(rad_ang) + origin(1);  radius * sin(rad_ang) + origin(2)]'; % circle function for angles in radians
         if angles(1) > angles(2) && angles(1) - pi > angles(2)
             % loop around zero

@@ -10,7 +10,7 @@ classdef HyperGeo < nla.net.BaseSigTest
             obj@nla.net.BaseSigTest();
         end
         
-        function result = run(obj, ~, edge_result, net_atlas, previous_result)
+        function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
             import nla.* % required due to matlab package system quirks
             %RUN Run the test
             %   edge_result: Result of edge-level statistics
