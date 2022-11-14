@@ -34,5 +34,10 @@ classdef HyperGeo < nla.net.BaseSigResult
                 end
             end
         end
+        
+        function table_new = genSummaryTable(obj, table_old)
+            import nla.* % required due to matlab package system quirks
+            table_new = genSummaryTable@nla.net.BasePermResult(obj, table_old);
+        end
     end
 end

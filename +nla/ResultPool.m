@@ -67,6 +67,27 @@ classdef ResultPool
             results_as_struct = helpers.classToStructRecursive(obj);
             save(filename, 'results', 'results_as_struct', '-nocompression','-v7.3');
         end
+        
+        function saveSummaryTable(obj, filename)
+            import nla.* % required due to matlab package system quirks
+
+            for n = 1:obj.net_atlas.numNets()
+                net_name = obj.net_atlas.nets(n).name;
+                for n2 = n:obj.net_atlas.numNets()
+                    net2_name = obj.net_atlas.nets(n2).name;
+                    net_pairs_mat(n2, n) = string(net_name);
+                    net_pairs2_mat(n2, n) = string(net2_name);
+                end
+            end
+            net_pairs = TriMatrix(net_pairs_mat, TriMatrixDiag.KEEP_DIAGONAL);
+            net_pairs2 = TriMatrix(net_pairs2_mat, TriMatrixDiag.KEEP_DIAGONAL);
+            summary_table = table(net_pairs.v, net_pairs2.v, 'VariableNames', ["Network 1", "Network 2"]);
+            for i = 1:numel(obj.perm_net_results)
+                summary_table = obj.perm_net_results{i}.genSummaryTable(summary_table);
+            end
+
+            writetable(summary_table, filename, 'Delimiter', '\t');
+        end
     end
     
     methods (Static)

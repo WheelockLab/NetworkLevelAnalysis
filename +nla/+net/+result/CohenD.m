@@ -107,5 +107,10 @@ classdef CohenD < nla.net.BasePermResult
                 end
             end
         end
+        
+        function table_new = genSummaryTable(obj, table_old)
+            import nla.* % required due to matlab package system quirks
+            table_new = [genSummaryTable@nla.net.BasePermResult(obj, table_old), table(obj.d.v, 'VariableNames', [obj.name])];
+        end
     end
 end

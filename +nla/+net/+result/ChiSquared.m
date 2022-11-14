@@ -50,5 +50,10 @@ classdef ChiSquared < nla.net.BaseSigResult
             obj.within_np_chi2 = chi2;
             obj.within_np_prob.v = chi2cdf(chi2.v, 1, 'upper');
         end
+        
+        function table_new = genSummaryTable(obj, table_old)
+            import nla.* % required due to matlab package system quirks
+            table_new = [genSummaryTable@nla.net.BasePermResult(obj, table_old), table(obj.chi2.v, 'VariableNames', [obj.name])];
+        end
     end
 end

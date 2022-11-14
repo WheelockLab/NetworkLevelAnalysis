@@ -40,6 +40,11 @@ classdef BasePermResult < nla.TestResult
             obj.perm_prob.v = double(1 + obj.perm_rank.v) ./ double(1 + obj.perm_count);
             obj.perm_prob_ew.v = double(1 + obj.perm_rank_ew.v) ./ double(1 + (obj.perm_count * num_pairs));
         end
+        
+        function table_new = genSummaryTable(obj, table_old)
+            import nla.* % required due to matlab package system quirks
+            table_new = [table_old, table(obj.perm_prob_ew.v, 'VariableNames', [obj.name + " P-value"])];
+        end
     end
     
     methods (Access = protected)

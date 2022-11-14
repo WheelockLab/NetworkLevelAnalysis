@@ -23,5 +23,10 @@ classdef Wilcoxon < nla.net.BaseCorrResult
         function prob = withinNetPairOneNet(obj, coeff_net, coeff_net_perm)
             [prob, ~, ~] = ranksum(coeff_net, coeff_net_perm);
         end
+        
+        function table_new = genSummaryTable(obj, table_old)
+            import nla.* % required due to matlab package system quirks
+            table_new = [genSummaryTable@nla.net.BasePermResult(obj, table_old), table(obj.w.v, 'VariableNames', [obj.name]), table(obj.z.v, 'VariableNames', [obj.name + " Z-score"])];
+        end
     end
 end
