@@ -45,7 +45,7 @@ classdef CohenD < nla.net.BasePermResult
             end
         end
         
-        function output(obj, input_struct, net_atlas, edge_result, flags)
+        function output(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags)
             import nla.* % required due to matlab package system quirks
             
             if obj.perm_count > 0
@@ -68,7 +68,7 @@ classdef CohenD < nla.net.BasePermResult
                         %obj.plotProb(input_struct, net_atlas, fig, 0, 525, obj.perm_prob_ew, perm_prob_ew_sig, );
                         gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), d_sig);
                     elseif flags.plot_type == nla.PlotType.CHORD
-                        obj.genChordPlotFig(net_atlas, edge_result, d_sig, obj.d, 1, parula(256), name_label, true);
+                        obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, d_sig, obj.d, 1, parula(256), name_label, true, flags.plot_type);
                     end
                 end
                 
@@ -82,7 +82,7 @@ classdef CohenD < nla.net.BasePermResult
                         fig = gfx.createFigure();
                         [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), within_np_d_sig);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.genChordPlotFig(net_atlas, edge_result, within_np_d_sig, obj.within_np_d, 1, parula(256), name_label, true, flags.plot_type);
+                        obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, within_np_d_sig, obj.within_np_d, 1, parula(256), name_label, true, flags.plot_type);
                     end
                 end
             end

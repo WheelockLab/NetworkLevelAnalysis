@@ -42,8 +42,8 @@ classdef ResultPool
             flags.show_within_net_pair = true;
             if ~islogical(obj.net_results)
                 for i = 1:numel(obj.net_results)
-                    obj.net_results{i}.output(obj.net_input_struct, obj.net_atlas, flags);
-                    obj.perm_net_results{i}.output(obj.net_input_struct, obj.net_atlas, flags);
+                    obj.net_results{i}.output(obj.input_struct, obj.net_input_struct, obj.net_atlas, flags);
+                    obj.perm_net_results{i}.output(obj.input_struct, obj.net_input_struct, obj.net_atlas, flags);
                 end
             end
         end
