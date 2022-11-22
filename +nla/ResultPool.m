@@ -77,11 +77,17 @@ classdef ResultPool
                     net2_name = obj.net_atlas.nets(n2).name;
                     net_pairs_mat(n2, n) = string(net_name);
                     net_pairs2_mat(n2, n) = string(net2_name);
+                    if n == n2
+                        net_pair_size_mat(n2, n) = nla.helpers.triNum(obj.net_atlas.nets(n).numROIs);
+                    else
+                        net_pair_size_mat(n2, n) = obj.net_atlas.nets(n).numROIs * obj.net_atlas.nets(n2).numROIs;
+                    end
                 end
             end
             net_pairs = TriMatrix(net_pairs_mat, TriMatrixDiag.KEEP_DIAGONAL);
             net_pairs2 = TriMatrix(net_pairs2_mat, TriMatrixDiag.KEEP_DIAGONAL);
-            summary_table = table(net_pairs.v, net_pairs2.v, 'VariableNames', ["Network 1", "Network 2"]);
+            net_pair_size = TriMatrix(net_pair_size_mat, TriMatrixDiag.KEEP_DIAGONAL);
+            summary_table = table(net_pairs.v, net_pairs2.v, net_pair_size.v, 'VariableNames', ["Network 1", "Network 2", "Net-Pair Size"]);
             for i = 1:numel(obj.perm_net_results)
                 summary_table = obj.perm_net_results{i}.genSummaryTable(summary_table);
             end
