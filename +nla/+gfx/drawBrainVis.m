@@ -116,36 +116,40 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
 
     
     if surface_parcels && ~islogical(net_atlas.parcels)
-        ax = subplot('Position',[.45,0.455,.53,.45]);
+        ax = subplot('Position',[.45,0.505,.53,.45]);
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, gfx.ViewPos.LAT, surface_parcels, gfx.BrainColorMode.COLOR_ROIS, color_mat);
         drawROISpheres(ROI_final_pos);
         
-        ax = subplot('Position',[.45,0.005,.53,.45]);
+        ax = subplot('Position',[.45,0.055,.53,.45]);
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, gfx.ViewPos.MED, surface_parcels, gfx.BrainColorMode.COLOR_ROIS, color_mat);
         drawROISpheres(ROI_final_pos);
     else
-        ax = subplot('Position',[.45,0.455,.26,.45]);
+        ax = subplot('Position',[.45,0.505,.26,.45]);
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.BACK, surface_parcels, gfx.BrainColorMode.NONE);
         drawROISpheres(ROI_final_pos);
         drawEdges(ROI_final_pos);
         
-        ax = subplot('Position',[.73,0.455,.26,.45]);
+        ax = subplot('Position',[.73,0.505,.26,.45]);
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.FRONT, surface_parcels, gfx.BrainColorMode.NONE);
         drawROISpheres(ROI_final_pos);
         drawEdges(ROI_final_pos);
         
-        ax = subplot('Position',[.45,0.005,.26,.45]);
+        ax = subplot('Position',[.45,0.055,.26,.45]);
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.LEFT, surface_parcels, gfx.BrainColorMode.NONE);
         drawROISpheres(ROI_final_pos);
         drawEdges(ROI_final_pos);
         
-        ax = subplot('Position',[.73,0.005,.26,.45]);
+        ax = subplot('Position',[.73,0.055,.26,.45]);
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.RIGHT, surface_parcels, gfx.BrainColorMode.NONE);
         drawROISpheres(ROI_final_pos);
         drawEdges(ROI_final_pos);
     end
     
-    ax = subplot('Position',[.075,0.025,.35,.9]);
+    if color_fc
+        ax = subplot('Position',[.075,0.175,.35,.75]);
+    else
+        ax = subplot('Position',[.075,0.025,.35,.9]);
+    end
     if surface_parcels && ~islogical(net_atlas.parcels)
         ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, gfx.ViewPos.DORSAL, surface_parcels, gfx.BrainColorMode.COLOR_ROIS, color_mat);
         drawROISpheres(ROI_final_pos);
@@ -175,7 +179,15 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     gfx.hideAxes(ax);
     
     %% Display colormap
-    if ~color_fc
+    if color_fc
+        colorbar_ax = subplot('Position',[.02,0,0.4,0.1]);
+        colorbar_image = imread('+nla/+gfx/+images/brain_vis_fc_colormap.png');
+        dims = size(colorbar_image);
+        image(colorbar_ax, colorbar_image);
+        gfx.hideAxes(colorbar_ax);
+        colorbar_ax.Units = 'pixels';
+        colorbar_ax.Position(3:4) = [dims(2), dims(1)];
+    else
         num_ticks = 10;
         colormap(ax, color_map);
         cb = colorbar(ax);
