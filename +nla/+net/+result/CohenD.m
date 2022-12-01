@@ -37,7 +37,7 @@ classdef CohenD < nla.net.BasePermResult
                     i_row = net_atlas.nets(row).indexes;
                     i_col = net_atlas.nets(col).indexes;
                     coeff_net = edge_result_nonperm.coeff.get(i_row, i_col);
-                    coeff_net_perm = edge_result.coeff_perm.get(i_row, i_col);
+                    coeff_net_perm = edge_result.coeff.get(i_row, i_col);
                     
                     coeff_net_perm = reshape(coeff_net_perm, [], 1); % TODO testing this line
                     obj.within_np_d.set(row, col, abs((mean(coeff_net) - mean(coeff_net_perm)) / sqrt((std(coeff_net) .^ 2) + (std(coeff_net_perm) .^ 2) / 2)));

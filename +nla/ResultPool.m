@@ -40,10 +40,12 @@ classdef ResultPool
             flags.show_nonpermuted = true;
             flags.show_full_conn = true;
             flags.show_within_net_pair = true;
+            %Add to display net results as nla.PlotType.FIGURE (ADE 20221121)
+            flags.plot_type = nla.PlotType.FIGURE;
             if ~islogical(obj.net_results)
                 for i = 1:numel(obj.net_results)
-                    obj.net_results{i}.output(obj.net_input_struct, obj.net_atlas, flags);
-                    obj.perm_net_results{i}.output(obj.net_input_struct, obj.net_atlas, flags);
+                    obj.net_results{i}.output(obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
+                    obj.perm_net_results{i}.output(obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
                 end
             end
         end

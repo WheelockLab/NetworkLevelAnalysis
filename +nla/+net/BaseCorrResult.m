@@ -28,7 +28,7 @@ classdef BaseCorrResult < nla.net.BaseResult
                     i_row = net_atlas.nets(row).indexes;
                     i_col = net_atlas.nets(col).indexes;
                     coeff_net = edge_result_nonperm.coeff.get(i_row, i_col);
-                    coeff_net_perm = edge_result.coeff_perm.get(i_row, i_col);
+                    coeff_net_perm = edge_result.coeff.get(i_row, i_col);
                     
                     coeff_net_perm = reshape(coeff_net_perm, [], 1);
                     obj.within_np_d.set(row, col, abs((mean(coeff_net) - mean(coeff_net_perm)) / sqrt((std(coeff_net) .^ 2) + (std(coeff_net_perm) .^ 2) / 2)));
@@ -55,7 +55,7 @@ classdef BaseCorrResult < nla.net.BaseResult
 
                         within_np_prob_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
                         within_np_prob_sig.v = obj.within_np_prob.v < input_struct.prob_max / net_atlas.numNetPairs();
-                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, within_np_prob_sig, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), true);
+                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, within_np_prob_sig, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), true, nla.Method.WITHIN_NET_PAIR);
                         
                         obj.plotProb(input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_prob_sig, name_label, true, nla.Method.WITHIN_NET_PAIR);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE

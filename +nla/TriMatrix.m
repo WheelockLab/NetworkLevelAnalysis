@@ -116,6 +116,15 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
             obj.calcIndexMatrix();
         end
         
+        function newTriMatrix = makeCopyFromSubset(obj, colsToCopy)
+            
+            %Make properly sized triMatrix with empty values
+            newTriMatrix = nla.TriMatrix(obj.size, obj.diag_offset);
+            
+            newTriMatrix.v = obj.v(:,colsToCopy);
+            
+        end
+        
         function returned = get(obj, row, col)
             import nla.* % required due to matlab package system quirks
             % Return the elements at the given indices. The vector of

@@ -35,7 +35,7 @@ classdef ChiSquared < nla.net.BaseSigResult
                     i_row = net_atlas.nets(row).indexes;
                     i_col = net_atlas.nets(col).indexes;
                     prob_net = edge_result_nonperm.prob_sig.get(i_row, i_col);
-                    prob_net_perm = edge_result.prob_perm.get(i_row, i_col);
+                    prob_net_perm = edge_result.prob.get(i_row, i_col);
                     
                     observed_sig = sum(prob_net);
                     expected_sig = sum(prob_net_perm, 'all') ./ double(obj.perm_count);
