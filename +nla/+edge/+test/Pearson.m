@@ -11,11 +11,9 @@ classdef Pearson < nla.edge.BaseTest
             obj@nla.edge.BaseTest();
         end
         
-        function result = run(obj, input_struct, previous_result)
-            import nla.* % required due to matlab package system quirks
-            behavior = permuteBehavior(input_struct.behavior, previous_result);
-            [r_vec, p_vec] = corr(behavior, input_struct.func_conn.v', 'type', 'Pearson');
-            result = obj.updateResult(input_struct, fisherR2Z(r_vec'), p_vec', previous_result);
+        function result = run(obj, input_struct)
+            [r_vec, p_vec] = corr(input_struct.behavior, input_struct.func_conn.v', 'type', 'Pearson');       
+            result = obj.composeResult(nla.fisherR2Z(r_vec'), p_vec', input_struct.prob_max);
         end
     end
 end

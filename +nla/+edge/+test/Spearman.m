@@ -11,11 +11,9 @@ classdef Spearman < nla.edge.BaseTest
             obj@nla.edge.BaseTest();
         end
         
-        function result = run(obj, input_struct, previous_result)
-            import nla.* % required due to matlab package system quirks
-            behavior = permuteBehavior(input_struct.behavior, previous_result);
-            [rho_vec, p_vec] = corr(behavior, input_struct.func_conn.v', 'type', 'Spearman');
-            result = obj.updateResult(input_struct, fisherR2Z(rho_vec'), p_vec', previous_result);
+        function result = run(obj, input_struct)
+            [rho_vec, p_vec] = corr(input_struct.behavior, input_struct.func_conn.v', 'type', 'Spearman');
+            result = obj.composeResult(nla.fisherR2Z(rho_vec'), p_vec', input_struct.prob_max);
         end
     end
 end

@@ -21,10 +21,9 @@ classdef WelchT < nla.edge.BaseTest
             % The input data, X1 and X2, are assumed to be multi-dimensional arrays of
             % equal size except for the last dimension that represents
             % subjects/instances/etc.
-            behavior = permuteBehavior(input_struct.behavior, previous_result);
             
-            group1 = (behavior == input_struct.group1_val);
-            group2 = (behavior == input_struct.group2_val);
+            group1 = (input_struct.behavior == input_struct.group1_val);
+            group2 = (input_struct.behavior == input_struct.group2_val);
             
             %total_size = size(input_struct.func_conn.v, 2)
             total_size = sum(group1) + sum(group2);
@@ -34,15 +33,12 @@ classdef WelchT < nla.edge.BaseTest
             
             [p_vec, t_vec, dof_vec] = welchT(x1, x2);
             
-            if previous_result ~= false
-                % Permuted
-                result = previous_result;
-                result.perm_count = result.perm_count + 1;
-            else
-                % Non-permuted
-                group_names = {input_struct.group1_name, input_struct.group2_name};
-                result = nla.edge.result.WelchT(input_struct.func_conn.size, input_struct.prob_max, group_names);
-            end
+            % Non-permuted
+            group_names = {input_struct.group1_name, input_struct.group2_name};
+            result = nla.edge.result.WelchT(input_struct.func_conn.size, input_struct.prob_max, group_names);
+            
+            result.name = obj.name;
+            result.coeff_name = obj.coeff_name;
             
             % Transpose to column vectors, and return
             result.prob.v = p_vec;
@@ -51,9 +47,9 @@ classdef WelchT < nla.edge.BaseTest
             % result.prob_sig.v = (result.prob.v < obj.prob_max);
             % Have to divide by 2 to get 2 tailed probability
             t_sig = tinv(1 - (input_struct.prob_max / 2), total_size - 2);
-            result.prob_sig.v = (abs(t_vec) > t_sig);
+            result.prob_sig.v = (abs(t_vec) > t_sig);            
             
-            result = obj.updateResult2(result);
+            result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
         end
     end
     

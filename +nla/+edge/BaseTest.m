@@ -11,42 +11,23 @@ classdef BaseTest < nla.Test
         end
     end
     
-    methods (Access = protected) 
-        function result = updateResult(obj, input_struct, rho_vec, p_vec, previous_result)
-            import nla.* % required due to matlab package system quirks
-            % rho: column vector of rho values(often fisher Z transformed)
-            % p: column vector of p values
+    methods (Access = protected)         
+        
+        function result = composeResult(obj, rho_vec, p_vec, prob_max)
             
-            if previous_result ~= false
-                % Permuted
-                result = previous_result;
-                result.perm_count = result.perm_count + 1;
-            else
-                % Non-permuted
-                result = nla.edge.result.Base(input_struct.func_conn.size, input_struct.prob_max);
-            end
+            fcEdges = length(rho_vec);
+            fcSquareEdgeSize = (1 + sqrt(1 + 8*fcEdges)) / 2;
             
+            result = nla.edge.result.Base(fcSquareEdgeSize, prob_max);
+            result.name = obj.name;
+            result.coeff_name = obj.coeff_name;
             result.coeff.v = rho_vec;
             result.prob.v = p_vec;
-            result.prob_sig.v = (result.prob.v < input_struct.prob_max);
-            result = obj.updateResult2(result);
-        end
-        
-        function result = updateResult2(obj, result)
-            import nla.* % required due to matlab package system quirks
-            
-            if result.perm_count == 0
-                result.name = obj.name;
-                result.coeff_name = obj.coeff_name;
-            end
-            
+            result.prob_sig.v = (result.prob.v < prob_max);
             result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
             
-            if result.perm_count ~= 0
-                result.coeff_perm(:, :, result.perm_count) = result.coeff.asMatrix();
-                result.prob_perm(:, :, result.perm_count) = result.prob_sig.asMatrix();
-            end
         end
+        
     end
     
     methods (Abstract)

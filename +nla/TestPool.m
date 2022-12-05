@@ -26,9 +26,9 @@ classdef TestPool < nla.DeepCopyable
             end
             
                         
-            edge_level_result = obj.runPermutedEdgeParallel(input_struct, num_perms, perm_seed);
+            edge_level_result = obj.runPermutedEdgeTest(input_struct, num_perms, perm_seed);
             
-            net_level_results = obj.runPermutedNetParallel(...
+            net_level_results = obj.runNetTestsOnPermutedEdgeResults(...
                                         net_input_struct, net_atlas, net_results_nonperm, edge_level_result, edge_result_nonperm);
             
             
@@ -37,7 +37,7 @@ classdef TestPool < nla.DeepCopyable
         end
         
         
-        function permEdgeResults = runPermutedEdgeParallel(obj, input_struct, num_perms, perm_seed)
+        function permEdgeResults = runPermutedEdgeTest(obj, input_struct, num_perms, perm_seed)
             
             % get current parallel pool or start a new one
             p = gcp;
@@ -69,7 +69,7 @@ classdef TestPool < nla.DeepCopyable
             
         end
         
-        function net_level_results = runPermutedNetParallel(obj, net_input_struct, net_atlas, net_results_nonperm, perm_edge_results, edge_result_nonperm)
+        function net_level_results = runNetTestsOnPermutedEdgeResults(obj, net_input_struct, net_atlas, net_results_nonperm, perm_edge_results, edge_result_nonperm)
             % get current parallel pool or start a new one
             p = gcp;
             num_procs = p.NumWorkers;
@@ -127,7 +127,7 @@ classdef TestPool < nla.DeepCopyable
                 % permutations with the same seed intentionally)
                 rng(bitxor(perm_seed, iteration));
                 permuted_input = input_struct.permute_method.permute(input_struct);
-                thisEdgeRes = obj.runEdgeTest(permuted_input, false);
+                thisEdgeRes = obj.runEdgeTest(permuted_input);
                 edgePermRes.addSingleEdgeResult(thisEdgeRes);
             end
         end
@@ -142,8 +142,8 @@ classdef TestPool < nla.DeepCopyable
         end
                 
         
-        function edge_result = runEdgeTest(obj, input_struct, previous_result)
-            edge_result = obj.edge_test.run(input_struct, previous_result);
+        function edge_result = runEdgeTest(obj, input_struct)
+            edge_result = obj.edge_test.run(input_struct);
         end
         
         function net_results = runNetTests(obj, input_struct, edge_result, net_atlas, previous_results)

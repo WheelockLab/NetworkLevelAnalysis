@@ -25,14 +25,13 @@ classdef SpearmanEstimator < nla.edge.BaseTest
             obj@nla.edge.BaseTest();
         end
         
-        function result = run(obj, input_struct, previous_result)
+        function result = run(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             %% input
-            behavior = permuteBehavior(input_struct.behavior, previous_result);
             y = input_struct.func_conn.v';
             
             %% Parameters
-            n = numel(behavior);%,p1
+            n = numel(input_struct.behavior);%,p1
             p2 = size(y, 2);
             n3const = (n + 1) * n * (n - 1) ./ 3;
             % rho = zeros(p1,p2,'single');
@@ -42,7 +41,7 @@ classdef SpearmanEstimator < nla.edge.BaseTest
             % tiedrank is a type of ranking where if two elements have the 
             % same score their rank is computed as the average of how they
             % would otherwise be ranked.
-            [x, xadj] = tiedrank(behavior, 0);
+            [x, xadj] = tiedrank(input_struct.behavior, 0);
             % These lines create a Subject x ROIpairs matrix ranking the
             % subjects by ROI pair correlation. Basically, for each ROI pair,
             % rank the subjects by their fc number in that ROI pair (smallest
@@ -79,7 +78,7 @@ classdef SpearmanEstimator < nla.edge.BaseTest
             ok = (abs(rho_vec) < 1);
             t(ok) = rho_vec(ok) .* sqrt((n - 2) ./ (1 - rho_vec(ok) .^ 2));
             
-            result = obj.updateResult(input_struct, fisherR2Z(rho_vec), (2 * tcdf(-abs(t), n - 2)), previous_result);
+            result = obj.composeResult(fisherR2Z(rho_vec), (2 * tcdf(-abs(t), n - 2)), input_struct.prob_max);
         end
     end
 end

@@ -12,11 +12,9 @@ classdef Kendall < nla.edge.BaseTest
             obj@nla.edge.BaseTest();
         end
         
-        function result = run(obj, input_struct, previous_result)
-            import nla.* % required due to matlab package system quirks
-            behavior = permuteBehavior(input_struct.behavior, previous_result);
-            [tau_vec, p_vec] = corr(behavior, input_struct.func_conn.v', 'type', 'Kendall');
-            result = obj.updateResult(input_struct, tau_vec', p_vec', previous_result);
+        function result = run(obj, input_struct)
+            [tau_vec, p_vec] = corr(input_struct.behavior, input_struct.func_conn.v', 'type', 'Kendall');
+            result = obj.composeResult(tau_vec', p_vec', input_struct.prob_max);
         end
     end
 end
