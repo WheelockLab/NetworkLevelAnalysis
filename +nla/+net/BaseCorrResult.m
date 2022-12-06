@@ -43,8 +43,8 @@ classdef BaseCorrResult < nla.net.BaseResult
             
             if obj.perm_count > 0
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
-                    within_np_prob_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-                    within_np_prob_sig.v = (obj.within_np_prob.v < input_struct.prob_max / net_atlas.numNetPairs()) & (obj.within_np_d.v >= input_struct.d_max);
+                    within_np_prob_d_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+                    within_np_prob_d_sig.v = (obj.within_np_prob.v < input_struct.prob_max / net_atlas.numNetPairs()) & (obj.within_np_d.v >= input_struct.d_max);
                     name_label = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)', input_struct.d_max);
                         
                     if flags.plot_type == nla.PlotType.FIGURE
@@ -55,11 +55,11 @@ classdef BaseCorrResult < nla.net.BaseResult
 
                         within_np_prob_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
                         within_np_prob_sig.v = obj.within_np_prob.v < input_struct.prob_max / net_atlas.numNetPairs();
-                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, within_np_prob_sig, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), true);
+                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, within_np_prob_sig, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), true, nla.Method.WITHIN_NET_PAIR);
                         
-                        obj.plotProb(input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_prob_sig, name_label, true, nla.Method.WITHIN_NET_PAIR);
+                        obj.plotProb(input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_prob_d_sig, name_label, true, nla.Method.WITHIN_NET_PAIR);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, within_np_prob_sig, name_label, true, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, within_np_prob_d_sig, name_label, true, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
                     end
                 end
             end

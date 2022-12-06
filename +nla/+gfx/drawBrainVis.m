@@ -66,7 +66,6 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
             cols_n = ind2rgb(ROI_vals_indexed_n, color_map_n);
             cols(ROI_vals > 0, :) = cols_p(ROI_vals > 0, :);
             cols(ROI_vals <= 0, :) = cols_n(ROI_vals <= 0, :);
-            % TODO WIP TEST THIS
         else
             color_scale = size(color_map, 1);
             ROI_vals_indexed = int32(helpers.normClipped(ROI_vals, llimit, ulimit) * color_scale);

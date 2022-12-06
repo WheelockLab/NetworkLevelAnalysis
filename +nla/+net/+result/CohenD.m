@@ -67,7 +67,7 @@ classdef CohenD < nla.net.BasePermResult
                         %perm_prob_ew_sig.v = obj.perm_prob_ew.v < input_struct.prob_max;
                         %obj.plotProb(input_struct, net_atlas, fig, 0, 525, obj.perm_prob_ew, perm_prob_ew_sig, );
                         gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), d_sig);
-                    elseif flags.plot_type == nla.PlotType.CHORD
+                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, d_sig, obj.d, 1, parula(256), name_label, true, flags.plot_type);
                     end
                 end
