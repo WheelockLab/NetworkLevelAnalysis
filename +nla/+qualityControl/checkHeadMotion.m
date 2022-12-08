@@ -9,35 +9,39 @@ function checkHeadMotion(fig, input_struct, motion)
     
     prob = nla.TriMatrix(input_struct.net_atlas.numROIs());
     r = nla.TriMatrix(input_struct.net_atlas.numROIs());
+    h = nla.TriMatrix(input_struct.net_atlas.numROIs(), 'logical');
     prob.v = p_vec';
     r.v = r_vec';
+    h.v = lib.fdr_bh(prob.v);
     
     prog.Value = 0.98;
     
     %% Visualization of head motion on brain
     color_scale = 1000;
-    color_map = parula(color_scale);
+    color_map = turbo(color_scale);
     mesh_alpha = 0.5;
     ROI_radius = 4;
     ctx = gfx.MeshType.STD;
-    llimit = -1;
-    ulimit = 1;
+    llimit = -0.3;
+    ulimit = 0.3;
     
-    gfx.createFigure(1550, 500);
+    gen_fig = gfx.createFigure(900, 900);
 
-    ax = subplot('Position',[0.075,0.1,0.25,0.8]);
-    title(ax, sprintf("Edges significantly (p < 0.05) related to motion\n"));
+    gfx.drawMatrixOrg(gen_fig, 25, 475, "FC-motion correlation (Pearson's r)", r, llimit, ulimit, input_struct.net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.NONE, false, true);
+    
+    ax = subplot('Position', [0.575, 0.540, 0.40, 0.40]);
+    title(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
     gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.DORSAL, false, gfx.BrainColorMode.NONE);
     
     for col = 1:input_struct.net_atlas.numROIs()
         for row = (col + 1):input_struct.net_atlas.numROIs()
-            if prob.get(row, col) < 0.05
+            if h.get(row, col)
                 pos1 = input_struct.net_atlas.ROIs(row).pos;
                 pos2 = input_struct.net_atlas.ROIs(col).pos;
                 
                 edge_val_indexed = int32(helpers.normClipped(r.get(row, col), llimit, ulimit) * color_scale);
                 edge_color = ind2rgb(edge_val_indexed, color_map);
-            
+                
                 p = plot3([pos1(1), pos2(1)], [pos1(2), pos2(2)], [pos1(3), pos2(3)], 'Color', edge_color, 'LineWidth', 2);
                 p.Annotation.LegendInformation.IconDisplayStyle = 'off';
             end
@@ -62,13 +66,13 @@ function checkHeadMotion(fig, input_struct, motion)
     caxis(ax, [0, 1]);
     
     %% Distribution of corr
-    ax = subplot('Position',[0.38,0.15,0.25,0.75]);
+    ax = subplot('Position', [0.075, 0.075, 0.375, 0.425]);
     title(ax, "FC-Motion Correlation Histogram");
     histogram(ax, r_vec, 'EdgeColor', 'black', 'FaceColor', 'black');
     xlabel(ax, 'FC-Motion Correlation (Pearson r)');
     
     %% Heatmap of corr/distance
-    ax = subplot('Position',[0.71,0.15,0.25,0.75]);
+    ax = subplot('Position', [0.525, 0.075, 0.45, 0.425]);
     title(ax, "FC-Motion Correlation vs. ROI Distance");
     [values, centers] = hist3([distances.v, r_vec'], [50, 50]);
     imagesc(ax, centers{:}, values');
