@@ -81,7 +81,7 @@ classdef TestPool < nla.DeepCopyable
                 blocks = 1:(num_perms+1);
                 num_procs = num_perms;
             else
-                blocks = uint32(linspace(1, num_perms + 1, num_procs + 1));
+                blocks = uint32(linspace(1, double(num_perms + 1), num_procs + 1));
             end
             
             %split permuted edge results into blocks for each worker to
