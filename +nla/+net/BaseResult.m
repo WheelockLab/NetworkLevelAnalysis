@@ -29,7 +29,7 @@ classdef BaseResult < nla.net.BasePermResult
             obj.within_np_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
         end
         
-        function output(obj, input_struct, net_atlas, edge_result, flags)
+        function output(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags)
             import nla.* % required due to matlab package system quirks
             if obj.perm_count > 0
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
@@ -60,7 +60,7 @@ classdef BaseResult < nla.net.BasePermResult
                         %% Matrix with significant networks marked
                         obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(input_struct, net_atlas, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN, edge_result, flags.plot_type);
                     end
                 end
             else
@@ -78,7 +78,7 @@ classdef BaseResult < nla.net.BasePermResult
                         %% Matrix with significant networks marked
                         obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(input_struct, net_atlas, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
                     end
                 end
             end

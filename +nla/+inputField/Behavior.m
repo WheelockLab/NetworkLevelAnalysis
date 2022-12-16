@@ -192,47 +192,69 @@ classdef Behavior < nla.inputField.InputField
         
         function buttonClickedCallback(obj, ~)
             import nla.* % required due to matlab package system quirks
-            [file, path, idx] = uigetfile({'*.txt', 'Behavior (*.txt)'}, 'Select Behavior File'); %TODO add all file options readtable can read from
-            
+            [file, path, idx] = uigetfile( ...
+                {'*.txt;*.dat;*.csv', 'Text (*.txt,*.dat,*.csv)'; ...
+                '*.xls;*.xlsb;*.xlsm;*.xlsx;*.xltm;*.xltx;*.ods', 'Spreadsheet (*.xls,*.xlsb,*.xlsm,*.xlsx,*.xltm,*.xltx,*.ods)'; ...
+                '*.xml', 'XML (*.xml)'; ...
+                '*.docx', 'Word (*.docx)'; ...
+                '*.html;*.xhtml;*.htm', 'HTML (*.html,*.xhtml,*.htm)'}, 'Select Behavior File');
             if idx ~= 0
-                % Load file to net_atlas, depending on the filetype. Right now
-                % it only supports .mat network atlases but if another file
-                % type were added, it would be handled under idx == 2 and so on
-                if idx == 1
-                    try
-                        prog = uiprogressdlg(obj.fig, 'Title', 'Loading behavior file', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
-                        drawnow;
-            
-                        behavior_file = readtable([path file]);
-                        obj.behavior_full = behavior_file; % TODO this should be turned into a table or something before setting the obj property - its a struct now
-                        obj.behavior_filename = file;
-                        
-                        % zero these since we loaded a new behavior_full
-                        obj.behavior = false;
-                        obj.covariates = false;
-                        
-                        close(prog);
-                        % check for unusual values in behavior
-                        vals = table2array(obj.behavior_full);
-                        labels = obj.behavior_full.Properties.VariableNames;
-                        containsNaN = sum(isnan(vals)) > 0;
-                        repeatedNines = ((vals == 99) + (vals == 999) + (vals == 9999)) > 0;
-                        unusualValues = abs((vals - mean(vals)) ./ std(vals)) > 3;
-                        containsRepeatedNines = sum(repeatedNines & unusualValues) > 0;
-                        if sum(containsNaN) > 0
-                            uialert(obj.fig, sprintf('Columns %s could not be loaded due to containing NaN values.', nla.helpers.humanReadableList(labels(containsNaN))), 'Warning');
-                            colindexes = [1:numel(labels)];
-                            obj.behavior_full(:, colindexes(containsNaN)) = [];
+                try
+                    prog = uiprogressdlg(obj.fig, 'Title', 'Loading behavior file', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
+                    drawnow;
+
+                    behavior_file = readtable([path file]);
+                    obj.behavior_full = behavior_file;
+                    obj.behavior_filename = file;
+
+                    % zero these since we loaded a new behavior_full
+                    obj.behavior = false;
+                    obj.covariates = false;
+
+                    close(prog);
+                    % check for unusual values in behavior
+                    labels = obj.behavior_full.Properties.VariableNames;
+                    could_not_load_some_columns = false;
+                    could_not_load_str = [];
+                    
+                    non_numerical_indexes = [];
+                    for i=1:numel(obj.behavior_full.Properties.VariableNames)
+                        col = table2array(obj.behavior_full(:, i));
+                        if ~(isnumeric(col) || islogical(col))
+                            non_numerical_indexes = [non_numerical_indexes i];
                         end
-                        if sum(containsRepeatedNines) > 0
-                            uialert(obj.fig, sprintf("Columns %s contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.", nla.helpers.humanReadableList(labels(containsRepeatedNines))), 'Warning', 'Icon', 'warning');
-                        end
-                        
-                        obj.update();
-                    catch ex
-                        close(prog);
-                        uialert(obj.fig, ex.message, 'Error while loading behavior file');
                     end
+                    if numel(non_numerical_indexes) > 0
+                        could_not_load_some_columns = true;
+                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing non-numerical values.", nla.helpers.humanReadableList(labels(non_numerical_indexes)))];
+                        obj.behavior_full(:, non_numerical_indexes) = [];
+                    end
+                    
+                    vals = table2array(obj.behavior_full);
+
+                    containsNaN = sum(isnan(vals)) > 0;
+                    repeatedNines = ((vals == 99) + (vals == 999) + (vals == 9999)) > 0;
+                    unusualValues = abs((vals - mean(vals)) ./ std(vals)) > 3;
+                    containsRepeatedNines = sum(repeatedNines & unusualValues) > 0;
+                    if sum(containsNaN) > 0
+                        could_not_load_some_columns = true;
+                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing NaN values.", nla.helpers.humanReadableList(labels(containsNaN)))];
+                        colindexes = [1:numel(labels)];
+                        obj.behavior_full(:, colindexes(containsNaN)) = [];
+                    end
+                    
+                    if could_not_load_some_columns
+                        uialert(obj.fig, join(could_not_load_str, newline), 'Warning', 'Icon', 'warning');
+                    end
+                    
+                    if sum(containsRepeatedNines) > 0
+                        uialert(obj.fig, sprintf("Columns %s contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.", nla.helpers.humanReadableList(labels(containsRepeatedNines))), 'Warning', 'Icon', 'warning');
+                    end
+
+                    obj.update();
+                catch ex
+                    close(prog);
+                    uialert(obj.fig, ex.message, 'Error while loading behavior file');
                 end
             end
         end
@@ -297,7 +319,6 @@ classdef Behavior < nla.inputField.InputField
             
             removeStyle(obj.table);
             if islogical(obj.behavior_full)
-                %obj.table.Visible = false;
                 
                 obj.table.Enable = 'off';
                 obj.button_set_bx.Enable = false;
@@ -308,29 +329,20 @@ classdef Behavior < nla.inputField.InputField
                 obj.select_partial_variance.Enable = false;
                 obj.select_partial_variance_label.Enable = false;
             else
-                %obj.table.Visible = true;
-                % TODO implement this to make the table display behavior_full
                 obj.table.Data = obj.behavior_full;
                 obj.table.ColumnName = obj.behavior_full.Properties.VariableNames;
                 
                 % Set column colors
                 obj.satisfied = false;
                 if ~islogical(obj.behavior_idx)
-                    % TODO make this color the label instead of renaming
                     bx_s = uistyle('BackgroundColor','#E3FDD8');
                     addStyle(obj.table, bx_s, 'column', obj.behavior_idx)
-                    %obj.table.ColumnName{obj.behavior_idx} = ['[Bx] ' obj.table.ColumnName{obj.behavior_idx}];
                     obj.satisfied = true;
                 end
                 
                 if ~islogical(obj.covariates_idx)
-                    % TODO make this color the label instead of renaming
                     cov_s = uistyle('BackgroundColor','#FADADD');
                     addStyle(obj.table, cov_s, 'column', obj.covariates_idx)
-%                     for i = 1:numel(obj.covariates_idx)
-%                         idx = obj.covariates_idx(i);
-%                         obj.table.ColumnName{idx} = ['[Cov] ' obj.table.ColumnName{idx}];
-%                     end
                 end
                 
                 % Enable buttons

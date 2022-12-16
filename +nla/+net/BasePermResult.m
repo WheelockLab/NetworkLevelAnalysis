@@ -110,8 +110,9 @@ classdef BasePermResult < nla.TestResult
             [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig);
         end
         
-        function genChordPlotFig(obj, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
+        function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
             import nla.* % required due to matlab package system quirks
+            
             ax_width = 750;
             trimat_width = 500;
             bottom_text_height = 250;
@@ -168,7 +169,7 @@ classdef BasePermResult < nla.TestResult
 
             %% Trimatrix plot
             function brainFigsButtonClickedCallback(net1, net2)
-                gfx.drawBrainVis(net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
+                gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
             end
             gfx.drawMatrixOrg(fig, 0, bottom_text_height, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
             
@@ -182,10 +183,10 @@ classdef BasePermResult < nla.TestResult
             text(text_ax, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
         
-        function plotChord(obj, input_struct, net_atlas, plot_prob, plot_sig, plot_name, divide_by_netpairs, method, edge_result, chord_type)
+        function plotChord(obj, edge_input_struct, input_struct, net_atlas, plot_prob, plot_sig, plot_name, divide_by_netpairs, method, edge_result, chord_type)
             import nla.* % required due to matlab package system quirks
             [cm, plot_mat, plot_max, name_label, sig_increasing] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, obj.name_formatted, plot_name, divide_by_netpairs, method);
-            genChordPlotFig(obj, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type);
+            genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type);
         end
         
         function net_size = getNetSizes(obj, net_atlas)

@@ -201,9 +201,7 @@ classdef NetworkAtlas < nla.inputField.InputField
                             end
                         end
                     end
-                end 
-                %fc_struct = load('/data/eggebrecht/data1/Muriah/papers/NLA_HCP/HCP333_NetAverages/HCPfcRest1.mat');
-                %fc_unordered = fc_struct.HCPfcRest1;
+                end
 
                 % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
                 if ~islogical(fc_unordered)
@@ -284,16 +282,16 @@ classdef NetworkAtlas < nla.inputField.InputField
             if islogical(obj.net_atlas)
                 obj.button.Text = 'Select';
                 obj.button_view_net_atlas.Enable = false;
-                obj.checkbox_surface_parcels.Enable = false; % TODO test this
-                obj.checkbox_surface_parcels.Value = false; % TODO test this
+                obj.checkbox_surface_parcels.Enable = false;
+                obj.checkbox_surface_parcels.Value = false;
             else
                 obj.button.Text = obj.net_atlas.name;
                 obj.button_view_net_atlas.Enable = true;
                 if ~islogical(obj.net_atlas.parcels)
-                    obj.checkbox_surface_parcels.Enable = true; % TODO test this
+                    obj.checkbox_surface_parcels.Enable = true;
                 else
-                    obj.checkbox_surface_parcels.Enable = false; % TODO test this
-                    obj.checkbox_surface_parcels.Value = false; % TODO test this
+                    obj.checkbox_surface_parcels.Enable = false;
+                    obj.checkbox_surface_parcels.Value = false;
                 end
             end
             obj.button.Position(3) = inputField.widthOfString(obj.button.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
