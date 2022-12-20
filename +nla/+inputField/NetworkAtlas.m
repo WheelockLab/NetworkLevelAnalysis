@@ -19,6 +19,8 @@ classdef NetworkAtlas < nla.inputField.InputField
         button_view_fc_avg = false
         label = false
         label2 = false
+        inflation_label = false
+        inflation_dropdown = false
     end
     
     methods
@@ -51,13 +53,30 @@ classdef NetworkAtlas < nla.inputField.InputField
             button_w = 100;
             obj.button.Position = [x + label_w + label_gap, y - inputField.LABEL_H, button_w, inputField.LABEL_H];
             
+            %% Mesh inflation selector
+            if ~isgraphics(obj.inflation_label)
+                obj.inflation_label = uilabel(parent);
+                obj.inflation_label.HorizontalAlignment = 'right';
+                obj.inflation_label.Text = 'Inflation: ';
+            end
+            inflation_label_w = inputField.widthOfString(obj.inflation_label.Text, inputField.LABEL_H);
+            obj.inflation_label.Position = [0, y - inputField.LABEL_H, inflation_label_w, inputField.LABEL_H];
+
+            inflation_dropdown_w = 50;
+            if ~isgraphics(obj.inflation_dropdown)
+                obj.inflation_dropdown = uidropdown(parent);
+                obj.inflation_dropdown.Items = ["Std", "Inf", "VInf"];
+                obj.inflation_dropdown.ItemsData = {gfx.MeshType.STD, gfx.MeshType.INF, gfx.MeshType.VINF};
+            end
+            obj.inflation_dropdown.Position = [0, y - inputField.LABEL_H, inflation_dropdown_w, inputField.LABEL_H];
+            
             %% 'View as surface parcel' checkbox
             checkbox_surface_parcels_w = 108;
             if ~isgraphics(obj.checkbox_surface_parcels)
                 obj.checkbox_surface_parcels = uicheckbox(parent);
                 obj.checkbox_surface_parcels.Text = ' Surface parcels';
-                obj.checkbox_surface_parcels.Position = [x + label_w + label_gap + button_w + label_gap, y - inputField.LABEL_H, checkbox_surface_parcels_w, inputField.LABEL_H];
             end
+            obj.checkbox_surface_parcels.Position = [0, y - inputField.LABEL_H, checkbox_surface_parcels_w, inputField.LABEL_H];
             
             %% Create view button
             if ~isgraphics(obj.button_view_net_atlas)
@@ -65,7 +84,7 @@ classdef NetworkAtlas < nla.inputField.InputField
             end
             button_view_net_atlas_w = 45;
             obj.button_view_net_atlas.Text = 'View';
-            obj.button_view_net_atlas.Position = [x + label_w + label_gap + button_w + label_gap + checkbox_surface_parcels_w + label_gap, y - inputField.LABEL_H, button_view_net_atlas_w, inputField.LABEL_H];
+            obj.button_view_net_atlas.Position = [0, y - inputField.LABEL_H, button_view_net_atlas_w, inputField.LABEL_H];
             
             w = label_w + label_gap + button_w + label_gap + checkbox_surface_parcels_w + label_gap + button_view_net_atlas_w;
             
@@ -119,6 +138,12 @@ classdef NetworkAtlas < nla.inputField.InputField
             end
             if isgraphics(obj.label2)
                 delete(obj.label2)
+            end
+            if isgraphics(obj.inflation_label)
+                delete(obj.inflation_label)
+            end
+            if isgraphics(obj.inflation_dropdown)
+                delete(obj.inflation_dropdown)
             end
         end
         
@@ -232,10 +257,12 @@ classdef NetworkAtlas < nla.inputField.InputField
             prog = uiprogressdlg(obj.fig, 'Title', 'Generating visualization', 'Message', 'Generating net atlas visualization', 'Indeterminate', true);
             drawnow;
             
+            mesh_inf = obj.inflation_dropdown.Value;
+            
             if obj.checkbox_surface_parcels.Value && ~islogical(obj.net_atlas.parcels) && size(obj.net_atlas.parcels.ctx_l, 1) == size(obj.net_atlas.anat.hemi_l.nodes, 1) && size(obj.net_atlas.parcels.ctx_r, 1) == size(obj.net_atlas.anat.hemi_r.nodes, 1)
-                gfx.drawNetworkROIs(obj.net_atlas, gfx.MeshType.STD, 1, 4, true);
+                gfx.drawNetworkROIs(obj.net_atlas, mesh_inf, 1, 4, true);
             else
-                gfx.drawNetworkROIs(obj.net_atlas, gfx.MeshType.STD, 0.8, 4, false);
+                gfx.drawNetworkROIs(obj.net_atlas, mesh_inf, 0.8, 4, false);
             end
             
             close(prog);
@@ -295,8 +322,13 @@ classdef NetworkAtlas < nla.inputField.InputField
                 end
             end
             obj.button.Position(3) = inputField.widthOfString(obj.button.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
-            obj.checkbox_surface_parcels.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP;
-            obj.button_view_net_atlas.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP + obj.checkbox_surface_parcels.Position(3) + inputField.LABEL_GAP;
+            
+
+            obj.inflation_label.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP;
+            obj.inflation_dropdown.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP + obj.inflation_label.Position(3);
+            
+            obj.checkbox_surface_parcels.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP + obj.inflation_label.Position(3) + obj.inflation_dropdown.Position(3) + inputField.LABEL_GAP;
+            obj.button_view_net_atlas.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP + obj.inflation_label.Position(3) + obj.inflation_dropdown.Position(3) + inputField.LABEL_GAP + obj.checkbox_surface_parcels.Position(3) + inputField.LABEL_GAP;
             
             if islogical(obj.func_conn_unordered)
                 obj.button2.Text = 'Select';

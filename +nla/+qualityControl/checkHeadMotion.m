@@ -25,10 +25,13 @@ function checkHeadMotion(fig, input_struct, motion)
     llimit = -0.3;
     ulimit = 0.3;
     
+    trimat_fig = gfx.createFigure(900, 900);
+    [width, height] = gfx.drawMatrixOrg(trimat_fig, 0, 0, "FC-motion correlation (Pearson's r)", r, llimit, ulimit, input_struct.net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
+    trimat_fig.Position(3) = width;
+    trimat_fig.Position(4) = height;
+    
     gen_fig = gfx.createFigure(900, 900);
 
-    gfx.drawMatrixOrg(gen_fig, 25, 475, "FC-motion correlation (Pearson's r)", r, llimit, ulimit, input_struct.net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.NONE, false, true);
-    
     ax = subplot('Position', [0.575, 0.540, 0.40, 0.40]);
     title(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
     gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.DORSAL, false, gfx.BrainColorMode.NONE);
