@@ -62,7 +62,7 @@ classdef NetworkAtlas < nla.inputField.InputField
             inflation_label_w = inputField.widthOfString(obj.inflation_label.Text, inputField.LABEL_H);
             obj.inflation_label.Position = [0, y - inputField.LABEL_H, inflation_label_w, inputField.LABEL_H];
 
-            inflation_dropdown_w = 50;
+            inflation_dropdown_w = 55;
             if ~isgraphics(obj.inflation_dropdown)
                 obj.inflation_dropdown = uidropdown(parent);
                 obj.inflation_dropdown.Items = ["Std", "Inf", "VInf"];
