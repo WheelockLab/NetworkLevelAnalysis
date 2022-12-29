@@ -37,7 +37,7 @@ classdef Behavior < nla.inputField.InputField
             
             obj.fig = fig;
             
-            table_w = 510;
+            table_w = max(parent.Position(3) - (inputField.LABEL_GAP * 4), 500);
             table_h = 300;
             
             label_gap = inputField.LABEL_GAP;
