@@ -70,7 +70,13 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
         end
     else
         if fig_size == gfx.FigSize.LARGE
-            element_size = 2;
+            % If a parcellation has many ROIs we might have to plot each
+            % individual one smaller.
+            if size(matrix, 1) <= 500
+                element_size = 2;
+            else
+                element_size = 1;
+            end
         end
     end
     
