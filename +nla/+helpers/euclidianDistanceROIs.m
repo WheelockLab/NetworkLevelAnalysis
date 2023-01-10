@@ -1,15 +1,15 @@
 function distances = euclidianDistanceROIs(network_atlas)
     import nla.* % required due to matlab package system quirks
-    
-    distances = nla.TriMatrix(network_atlas.numROIs());
-    
-    for col = 1:network_atlas.numROIs()
-        for row = (col + 1):network_atlas.numROIs()
-            pos1 = network_atlas.ROIs(row).pos;
-            pos2 = network_atlas.ROIs(col).pos;
-            distance = sqrt((pos1(1) - pos2(1))^2 + (pos1(2) - pos2(2))^2 + (pos1(3) - pos2(3))^2);
-            distances.set(row, col, distance);
-        end
+
+    pos_vec = [network_atlas.ROIs(1:network_atlas.numROIs()).pos]';
+    dist_comp_sum = zeros(network_atlas.numROIs(), network_atlas.numROIs());
+    compute_dist_component = @(a, b) (a - b) .^ 2;
+    for dim = 1:3
+        pos_comp = pos_vec(:, dim);
+        dist_comp = bsxfun(compute_dist_component, pos_comp, pos_comp');
+        dist_comp_sum = dist_comp_sum + dist_comp;
     end
+    dist = sqrt(dist_comp_sum);
+    distances = nla.TriMatrix(dist);
 end
 

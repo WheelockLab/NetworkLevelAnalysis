@@ -91,6 +91,15 @@ function checkHeadMotion(fig, input_struct, motion)
     hold('on');
     plot(lsline_x, lsline_y, 'r');
     
+    %% Summary statistics
+    percent_sig = (sum(h.v) ./ numel(h.v)) * 100;
+    med_abs_corr = median(abs(r.v));
+    fc_motion_distance_corr = corr(r.v, distances.v);
+    
+    ax = subplot('Position', [0.075, 0.95, 0.375, 0.40]);
+    gfx.hideAxes(ax);
+    text(ax, 0, 0, sprintf("Percent of significant edges: %0.2f%%\nMedian absolute correlation: %0.2f\nFC-motion-distance correlation: %0.2f", percent_sig, med_abs_corr, fc_motion_distance_corr), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    
     close(prog);
 end
 
