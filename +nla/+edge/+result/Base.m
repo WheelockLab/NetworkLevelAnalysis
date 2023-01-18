@@ -6,13 +6,10 @@ classdef Base < nla.TestResult
         prob
         prob_sig
         avg_prob_sig = NaN
-        perm_count = uint32(0)
         prob_max = NaN
         behavior_name = ''
         coeff_range = [-0.3 0.3]
         coeff_name
-        coeff_perm
-        prob_perm
         name
     end
     
@@ -24,64 +21,41 @@ classdef Base < nla.TestResult
                 obj.prob = TriMatrix(size);
                 obj.prob_sig = TriMatrix(size, 'logical');
                 obj.prob_max = prob_max;
-                obj.coeff_perm = ones([size, size]);
-                obj.prob_perm = ones([size, size]);
             end
         end
         
         function output(obj, net_atlas, flags)
             import nla.* % required due to matlab package system quirks
-            if obj.perm_count == 0
-                coeff_label = sprintf('Edge-level %s', obj.coeff_name);
-                prob_label_appended = '';
-                if ~strcmp(obj.behavior_name, '')
-                    coeff_label = [coeff_label, sprintf(' (%s)', obj.behavior_name)];
-                    prob_label_appended = sprintf(' (%s)', obj.behavior_name);
-                end
-                
-                fig = gfx.createFigure();
-                [w, h] = gfx.drawMatrixOrg(fig, 0, 0, coeff_label, obj.coeff, obj.coeff_range(1), obj.coeff_range(2), net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
-                
-                if flags.display_sig
-                    prob_label = [sprintf('Edge-level Significance (P < %g)', obj.prob_max), prob_label_appended];
-                    [w2, h2] = gfx.drawMatrixOrg(fig, w, 0, prob_label, obj.prob_sig, 0, 1, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, false, false, [[1,1,1];[0,0,0]]);
-                    w = w + w2;
-                    h = max(h, h2);
-                else
-                    prob_label = ['Edge-level P-values (displayed on log scale)', prob_label_appended];
-                    %prob_log = TriMatrix(net_atlas.numROIs());
-                    %prob_log.v = -1 * log10(obj.prob.v);
-                    cm_base = parula(1000);
-                    cm = flip(cm_base(ceil(logspace(-3, 0, 256) .* 1000), :));
-                    [w2, h2] = gfx.drawMatrixOrg(fig, w, 0, prob_label, obj.prob, 0, 1, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, false, true, cm);
-                    w = w + w2;
-                    h = max(h, h2);
-                end
-                
-                fig.Position(3) = w;
-                fig.Position(4) = h;
-            end
-        end
-        
-        % merged is a function which merges 2 results from the same test
-        function merge(obj, results)
-            import nla.* % required due to matlab package system quirks
-            obj.perm_count = obj.perm_count + sum([results.perm_count]);
             
-            % Summations
-            coeff_arr = obj.coeff_perm;
-            prob_arr = obj.prob_perm;
-            for j = 1:numel(results)
-                coeff_arr = cat(3, coeff_arr, results(j).coeff_perm);
-                prob_arr = cat(3, prob_arr, results(j).prob_perm);
+            coeff_label = sprintf('Edge-level %s', obj.coeff_name);
+            prob_label_appended = '';
+            if ~strcmp(obj.behavior_name, '')
+                coeff_label = [coeff_label, sprintf(' (%s)', obj.behavior_name)];
+                prob_label_appended = sprintf(' (%s)', obj.behavior_name);
             end
-            obj.coeff_perm = TriMatrix(coeff_arr);
-            obj.prob_perm = TriMatrix(prob_arr);
+
+            fig = gfx.createFigure();
+            [w, h] = gfx.drawMatrixOrg(fig, 0, 0, coeff_label, obj.coeff, obj.coeff_range(1), obj.coeff_range(2), net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
+
+            if flags.display_sig
+                prob_label = [sprintf('Edge-level Significance (P < %g)', obj.prob_max), prob_label_appended];
+                [w2, h2] = gfx.drawMatrixOrg(fig, w, 0, prob_label, obj.prob_sig, 0, 1, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, false, false, [[1,1,1];[0,0,0]]);
+                w = w + w2;
+                h = max(h, h2);
+            else
+                prob_label = ['Edge-level P-values (displayed on log scale)', prob_label_appended];
+                %prob_log = TriMatrix(net_atlas.numROIs());
+                %prob_log.v = -1 * log10(obj.prob.v);
+                cm_base = parula(1000);
+                cm = flip(cm_base(ceil(logspace(-3, 0, 256) .* 1000), :));
+                [w2, h2] = gfx.drawMatrixOrg(fig, w, 0, prob_label, obj.prob, 0, 1, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, false, true, cm);
+                w = w + w2;
+                h = max(h, h2);
+            end
+
+            fig.Position(3) = w;
+            fig.Position(4) = h;
         end
         
-        function removeExtraData(obj)
-            obj.coeff_perm = false;
-            obj.prob_perm = false;
-        end
     end
 end
