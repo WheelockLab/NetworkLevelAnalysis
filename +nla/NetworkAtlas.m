@@ -16,7 +16,12 @@ classdef NetworkAtlas < nla.DeepCopyable
         function obj = NetworkAtlas(fname)
             import nla.* % required due to matlab package system quirks
             %% IM structure
-            net_struct = load(fname);
+            if ischar(fname) || isstring(fname)
+                net_struct = load(fname);
+            else
+                % loading directly from struct
+                net_struct = fname;
+            end
             
             net_names = net_struct.net_names;
             
