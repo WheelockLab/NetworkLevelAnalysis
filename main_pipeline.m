@@ -21,15 +21,21 @@ tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
 % Example: Using a certain pool of net-level tests
 % tests.net_tests = {net.test.ChiSquared(0.05) net.test.HyperGeo(0.05)};
 
-%% Load network atlas
-net_atlas = NetworkAtlas('# Path to network atlas here #');
-
 %% Load functional connectivity matrix
 % load your FC matrix here
 fc_unordered = 
 
 % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
 func_conn_unordered = double(fc_unordered);
+
+%% Load network atlas
+net_atlas = NetworkAtlas('# Path to network atlas here #');
+
+%% OR load network atlas + FC and remove undesired networks (Optional)
+prev_net_atlas = load('# Path to starting network atlas here #');
+nets_to_remove = [1,2,3, etc. Indexes of whichever networks you wish to remove];
+[new_net_atlas, func_conn_unordered] = removeNetworks(prev_net_atlas, nets_to_remove, func_conn_unordered);
+net_atlas = NetworkAtlas(new_net_atlas);
 
 %% Transform R-values to Z-scores
 % If this condition isn't true, it cannot be R values
