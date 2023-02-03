@@ -8,6 +8,7 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrResult
     
     properties
         ks
+        ss_ks
     end
     
     methods

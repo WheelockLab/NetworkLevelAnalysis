@@ -8,6 +8,7 @@ classdef StudentT < nla.net.BaseCorrResult
     
     properties
         t
+        ss_t
     end
     
     methods

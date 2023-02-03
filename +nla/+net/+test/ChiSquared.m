@@ -64,6 +64,7 @@ classdef ChiSquared < nla.net.BaseSigTest
                     sig_gt_nonpermuted = prob.v <= result.prob.v;
                 end
                 result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
+                result.within_np_rank.v = result.within_np_rank.v + uint64(sig_gt_nonpermuted);
                 
                 for i = 1:net_atlas.numNetPairs()
                     % Similar to the previous ranking, but experiment-wide

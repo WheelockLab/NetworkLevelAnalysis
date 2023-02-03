@@ -18,14 +18,26 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
             prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             ks = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             
+            ss_prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
+            ss_ks = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
+            
+            within_np_d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
+            
             for row = 1:num_nets
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
                     
                     [~, p_val, ks_val] = kstest2(coeff_net, edge_result.coeff.v);
-                    
                     prob.set(row, col, p_val);
                     ks.set(row, col, ks_val);
+                    
+                    [~, ss_val, ss_ks_val, ~] = kstest(coeff_net);
+                    ss_prob.set(row, col, ss_val);
+                    ss_ks.set(row, col, ss_ks_val);
+                    
+                    % Cohen's D, needed in within net-pair figures
+                    within_np_d_val = abs((mean(coeff_net) - mean(edge_result.coeff.v)) / sqrt(((std(coeff_net) .^ 2) + (std(edge_result.coeff.v) .^ 2)) / 2));
+                    within_np_d.set(row, col, within_np_d_val);
                 end
             end
             
@@ -36,10 +48,13 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
                 % rank either test statistic or p-values
                 if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
                     sig_gt_nonpermuted = ks.v >= result.ks.v;
+                    ss_sig_gt_nonpermuted = ss_ks.v >= result.ss_ks.v;
                 else
                     sig_gt_nonpermuted = prob.v <= result.prob.v;
+                    ss_sig_gt_nonpermuted = ss_prob.v <= result.ss_prob.v;
                 end
                 result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
+                result.within_np_rank.v = result.within_np_rank.v + uint64(ss_sig_gt_nonpermuted);
                 
                 for i = 1:net_atlas.numNetPairs()
                     % Similar to the previous ranking, but experiment-wide
@@ -59,6 +74,9 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
                 result = net.result.KolmogorovSmirnov(num_nets);
                 result.prob = prob;
                 result.ks = ks;
+                result.ss_prob = ss_prob;
+                result.ss_ks = ss_ks;
+                result.within_np_d = within_np_d;
             end
         end
     end

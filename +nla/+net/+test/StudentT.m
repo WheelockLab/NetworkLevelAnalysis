@@ -18,15 +18,28 @@ classdef StudentT < nla.net.BaseCorrTest
             prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             t = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             
+            ss_prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
+            ss_t = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
+            
+            within_np_d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
+            
             for row = 1:num_nets
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
                     
                     [~, p_val, ~, stats] = ttest2(coeff_net, edge_result.coeff.v);
                     t_val = stats.tstat;
-                    
                     prob.set(row, col, p_val);
                     t.set(row, col, t_val);
+                    
+                    [~, ss_val, ~, ss_stats] = ttest(coeff_net);
+                    ss_t_val = ss_stats.tstat;
+                    ss_prob.set(row, col, ss_val);
+                    ss_t.set(row, col, ss_t_val);
+                    
+                    % Cohen's D, needed in within net-pair figures
+                    within_np_d_val = abs((mean(coeff_net) - mean(edge_result.coeff.v)) / sqrt(((std(coeff_net) .^ 2) + (std(edge_result.coeff.v) .^ 2)) / 2));
+                    within_np_d.set(row, col, within_np_d_val);
                 end
             end
             
@@ -37,10 +50,13 @@ classdef StudentT < nla.net.BaseCorrTest
                 % rank either test statistic or p-values
                 if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
                     sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v);
+                    ss_sig_gt_nonpermuted = ss_t.v >= result.ss_t.v;
                 else
                     sig_gt_nonpermuted = prob.v <= result.prob.v;
+                    ss_sig_gt_nonpermuted = ss_prob.v <= result.ss_prob.v;
                 end
                 result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
+                result.within_np_rank.v = result.within_np_rank.v + uint64(ss_sig_gt_nonpermuted);
                 
                 for i = 1:net_atlas.numNetPairs()
                     % Similar to the previous ranking, but experiment-wide
@@ -60,6 +76,9 @@ classdef StudentT < nla.net.BaseCorrTest
                 result = net.result.StudentT(num_nets);
                 result.prob = prob;
                 result.t = t;
+                result.ss_prob = ss_prob;
+                result.ss_t = ss_t;
+                result.within_np_d = within_np_d;
             end
         end
     end

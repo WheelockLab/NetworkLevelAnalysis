@@ -7,10 +7,10 @@ classdef BaseResult < nla.net.BasePermResult
     
     properties
         prob
+        ss_prob
         perm_prob_hist
         empirical_fdr
         prob_max_ew = NaN
-        within_np_prob
     end
     
     methods
@@ -24,9 +24,6 @@ classdef BaseResult < nla.net.BasePermResult
             % permuted stats
             obj.perm_prob_hist = zeros(HistBin.SIZE, 'uint32');
             obj.empirical_fdr = zeros(HistBin.SIZE);
-            
-            %% Within Net-Pair (withinNP)
-            obj.within_np_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
         end
         
         function output(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags)
@@ -46,7 +43,7 @@ classdef BaseResult < nla.net.BasePermResult
                         loglog(obj.prob.v, obj.perm_prob_ew.v, 'ok');
                         axis([min(obj.prob.v), 1, min(obj.perm_prob_ew.v), 1])            
                         loglog(ax.XLim, [input_struct.prob_max, input_struct.prob_max], 'b');
-                        loglog([obj.prob_max_ew, obj.prob_max_ew], ax.YLim, 'r')
+                        loglog([obj.prob_max_ew, obj.prob_max_ew], ax.YLim, 'r');
 
                         name_label = sprintf("%s P-values", obj.name_formatted);
                         title(name_label);

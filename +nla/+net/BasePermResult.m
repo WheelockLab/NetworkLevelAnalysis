@@ -12,6 +12,8 @@ classdef BasePermResult < nla.TestResult
         perm_prob
         perm_prob_ew
         perm_count = uint32(0)
+        within_np_rank
+        within_np_prob
     end
     
     methods
@@ -20,9 +22,12 @@ classdef BasePermResult < nla.TestResult
             % permuted stats
             obj.perm_rank = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
             obj.perm_rank_ew = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
-
             obj.perm_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
             obj.perm_prob_ew = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
+            
+            %% Within Net-Pair (withinNP)
+            obj.within_np_rank = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
+            obj.within_np_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
         end
         
         % merged is a function which merges 2 results from the same test
@@ -34,11 +39,13 @@ classdef BasePermResult < nla.TestResult
                 obj.perm_count = obj.perm_count + results{j}.perm_count;
                 obj.perm_rank.v = obj.perm_rank.v + results{j}.perm_rank.v;
                 obj.perm_rank_ew.v = obj.perm_rank_ew.v + results{j}.perm_rank_ew.v;
+                obj.within_np_rank.v = obj.within_np_rank.v + results{j}.within_np_rank.v;
             end
             
             % Results based on summations
             obj.perm_prob.v = double(1 + obj.perm_rank.v) ./ double(1 + obj.perm_count);
             obj.perm_prob_ew.v = double(1 + obj.perm_rank_ew.v) ./ double(1 + (obj.perm_count * num_pairs));
+            obj.within_np_prob.v = double(1 + obj.within_np_rank.v) ./ double(1 + obj.perm_count);
         end
         
         function table_new = genSummaryTable(obj, table_old)
@@ -90,9 +97,10 @@ classdef BasePermResult < nla.TestResult
                 cm = parula(discrete_colors_count);
                 plot_mat = nla.TriMatrix(net_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
                 plot_mat.v = -1 * log10(plot_prob.v);
-                plot_max = 40;
-                if method == nla.Method.FULL_CONN
+                if method == nla.Method.FULL_CONN || method == nla.Method.WITHIN_NET_PAIR
                     plot_max = 2;
+                else
+                    plot_max = 40;
                 end
                 sig_increasing = true;
             else

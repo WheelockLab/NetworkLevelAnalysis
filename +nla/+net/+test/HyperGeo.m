@@ -42,6 +42,7 @@ classdef HyperGeo < nla.net.BaseSigTest
             if previous_result ~= false
                 result = previous_result;
                 result.perm_rank.v = result.perm_rank.v + uint64(prob.v <= result.prob.v);
+                result.within_np_rank.v = result.within_np_rank.v + uint64(prob.v <= result.prob.v);
                 
                 for i = 1:net_atlas.numNetPairs()
                     result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(prob.v <= result.prob.v(i)));

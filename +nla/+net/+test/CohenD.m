@@ -36,6 +36,7 @@ classdef CohenD < nla.net.BaseCorrTest
             else
                 result = net.result.CohenD(num_nets);
                 result.d = d;
+                result.within_np_d = copy(d);
             end
         end
     end

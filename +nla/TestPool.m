@@ -92,7 +92,6 @@ classdef TestPool < nla.DeepCopyable
                 allEdgeResBlocks{proc} = perm_edge_results.getResultsByIdxs(thisBlockIdxs);
             end
             
-            
             parfor proc = 1:num_procs
                 net_result_block = cell(numNetTests(obj), 1);
                 for i = 1:numNetTests(obj)
@@ -127,6 +126,7 @@ classdef TestPool < nla.DeepCopyable
                 % permutations with the same seed intentionally)
                 rng(bitxor(perm_seed, iteration));
                 permuted_input = input_struct.permute_method.permute(input_struct);
+                permuted_input.iteration = iteration;
                 thisEdgeRes = obj.runEdgeTest(permuted_input);
                 edgePermRes.addSingleEdgeResult(thisEdgeRes);
             end
@@ -143,6 +143,10 @@ classdef TestPool < nla.DeepCopyable
                 
         
         function edge_result = runEdgeTest(obj, input_struct)
+            if ~isfield(input_struct, 'iteration')
+                input_struct.iteration = 0;
+            end
+            
             edge_result = obj.edge_test.run(input_struct);
         end
         
