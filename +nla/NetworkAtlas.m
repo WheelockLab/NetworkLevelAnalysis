@@ -77,13 +77,10 @@ classdef NetworkAtlas < nla.DeepCopyable
             end
             
             %% Cortex anatomy
-            if strcmp(obj.space, 'MNI')
-                obj.anat = CortexAnatomy('support_files/meshes/MNI_32k.mat');
-            elseif strcmp(obj.space, 'TT')
-                obj.anat = CortexAnatomy('support_files/meshes/Conte69_32k_on_TT.mat');
-            else
+            try
+                obj.anat = CortexAnatomy(sprintf('support_files/meshes/%s.mat', obj.space));
+            catch
                 error("Could not load cortex anatomy - you may have forgotten to set the 'space' field in your Network Atlas")
-                %[file, path, idx] = uigetfile({'*.mat', 'Cortex anatomy (*.mat)'}, 'Select Cortex Anatomy to display Network Atlas on');
             end
             
             %% Parcels (optional)
