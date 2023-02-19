@@ -59,9 +59,9 @@ classdef ChiSquared < nla.net.BaseSigTest
                 % permutations to calculate the p value.
                 % Fisher, R.A. (1935) The Design of Experiments, New York: Hafner
                 if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                    sig_gt_nonpermuted = chi2.v >= result.chi2.v;
+                    sig_gt_nonpermuted = chi2.v >= result.chi2.v - ACCURACY_MARGIN;
                 else
-                    sig_gt_nonpermuted = prob.v <= result.prob.v;
+                    sig_gt_nonpermuted = prob.v <= result.prob.v + ACCURACY_MARGIN;
                 end
                 result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
                 result.within_np_rank.v = result.within_np_rank.v + uint64(sig_gt_nonpermuted);
@@ -72,9 +72,9 @@ classdef ChiSquared < nla.net.BaseSigTest
                     % of all networks). Code is subtly different from
                     % previous usage, refactor with care.
                     if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                        sig_gt_nonpermuted = chi2.v >= result.chi2.v(i);
+                        sig_gt_nonpermuted = chi2.v >= result.chi2.v(i) - ACCURACY_MARGIN;
                     else
-                        sig_gt_nonpermuted = prob.v <= result.prob.v(i);
+                        sig_gt_nonpermuted = prob.v <= result.prob.v(i) + ACCURACY_MARGIN;
                     end
                     result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(sig_gt_nonpermuted));
                 end

@@ -46,7 +46,7 @@ classdef BaseResult < nla.net.BasePermResult
                         loglog([obj.prob_max_ew, obj.prob_max_ew], ax.YLim, 'r');
 
                         name_label = sprintf("%s P-values", obj.name_formatted);
-                        title(name_label);
+                        setTitle(ax, name_label);
                         xlabel('Asymptotic');
                         ylabel('Permutation-based P-value');
 
@@ -140,8 +140,8 @@ classdef BaseResult < nla.net.BasePermResult
             xlabel(ax, 'Number of ROI pairs within network pair')
             ylabel(ax, '-log_1_0(Asymptotic P-value)')
             [r, p] = corr(net_size.v, p_val);
-            title(ax, 'Non-permuted P-values vs. Net-Pair Size');
-            subtitle(ax, sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p, r));
+            setTitle(ax, 'Non-permuted P-values vs. Net-Pair Size');
+            setTitle(ax, sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p, r), true);
             lims = ylim(ax);
             ylim(ax, [0 lims(2)]);
         end

@@ -18,7 +18,7 @@ classdef CohenD < nla.net.BaseCorrTest
             for row = 1:num_nets
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
-                    d_val = abs((mean(coeff_net) - mean(edge_result.coeff.v)) / sqrt(((std(coeff_net) .^ 2) + (std(edge_result.coeff.v) .^ 2)) / 2));
+                    d_val = net.ssCohensD(coeff_net, edge_result.coeff.v);
                     d.set(row, col, d_val)
                 end
             end
@@ -27,10 +27,10 @@ classdef CohenD < nla.net.BaseCorrTest
             if previous_result ~= false
                 result = previous_result;
                 
-                result.perm_rank.v = result.perm_rank.v + uint64(d.v >= result.d.v);
+                result.perm_rank.v = result.perm_rank.v + uint64(d.v >= result.d.v - ACCURACY_MARGIN);
                 
                 for i = 1:net_atlas.numNetPairs()
-                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(d.v >= result.d.v(i)));
+                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(d.v >= result.d.v(i) - ACCURACY_MARGIN));
                 end
                 result.perm_count = result.perm_count + 1;
             else

@@ -236,7 +236,7 @@ classdef NetworkAtlas < nla.inputField.InputField
                     % If this condition isn't true, it cannot be R values
                     % If it is true, it is almost certainly R values but might not be
                     if all(abs(obj.func_conn_unordered(:)) <= 1)
-                        sel = uiconfirm(obj.fig, 'Fisher Z transform functional connectivity data?\n(If you have provided R-values)', 'Fisher Z transform?');
+                        sel = uiconfirm(obj.fig, sprintf('Fisher Z transform functional connectivity data?\n(If you have provided R-values)'), 'Fisher Z transform?');
                         if strcmp(sel, 'Ok')
                             obj.func_conn_unordered = fisherR2Z(obj.func_conn_unordered);
                         end

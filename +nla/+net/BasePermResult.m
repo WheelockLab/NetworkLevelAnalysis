@@ -156,7 +156,7 @@ classdef BasePermResult < nla.TestResult
                 end
                 
                 gfx.drawChord(ax, 450, net_atlas, prob_clipped, cm_edge, false, chord_type);
-                title(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                setTitle(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
                 colormap(ax, cm_edge);
                 cb = colorbar(ax);
                 cb.Units = 'pixels';
@@ -233,8 +233,8 @@ classdef BasePermResult < nla.TestResult
             xlabel(ax, 'Number of ROI pairs within network pair')
             ylabel(ax, y_label)
             [r, p] = corr(net_size.v, p_val);
-            title(ax, title_label);
-            subtitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r));
+            setTitle(ax, title_label);
+            setTitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r), true);
             lims = ylim(ax);
             ylim(ax, [0 lims(2)]);
         end

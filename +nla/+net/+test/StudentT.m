@@ -38,7 +38,7 @@ classdef StudentT < nla.net.BaseCorrTest
                     ss_t.set(row, col, ss_t_val);
                     
                     % Cohen's D, needed in within net-pair figures
-                    within_np_d_val = abs((mean(coeff_net) - mean(edge_result.coeff.v)) / sqrt(((std(coeff_net) .^ 2) + (std(edge_result.coeff.v) .^ 2)) / 2));
+                    within_np_d_val = net.ssCohensD(coeff_net, edge_result.coeff.v);
                     within_np_d.set(row, col, within_np_d_val);
                 end
             end
@@ -49,11 +49,11 @@ classdef StudentT < nla.net.BaseCorrTest
                 
                 % rank either test statistic or p-values
                 if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                    sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v);
-                    ss_sig_gt_nonpermuted = ss_t.v >= result.ss_t.v;
+                    sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v) - ACCURACY_MARGIN;
+                    ss_sig_gt_nonpermuted = ss_t.v >= result.ss_t.v - ACCURACY_MARGIN;
                 else
-                    sig_gt_nonpermuted = prob.v <= result.prob.v;
-                    ss_sig_gt_nonpermuted = ss_prob.v <= result.ss_prob.v;
+                    sig_gt_nonpermuted = prob.v <= result.prob.v + ACCURACY_MARGIN;
+                    ss_sig_gt_nonpermuted = ss_prob.v <= result.ss_prob.v + ACCURACY_MARGIN;
                 end
                 result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
                 result.within_np_rank.v = result.within_np_rank.v + uint64(ss_sig_gt_nonpermuted);
@@ -63,9 +63,9 @@ classdef StudentT < nla.net.BaseCorrTest
                     % Code is subtly different from previous usage, 
                     % refactor with care.
                     if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                        sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v(i));
+                        sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v(i)) - ACCURACY_MARGIN;
                     else
-                        sig_gt_nonpermuted = prob.v <= result.prob.v(i);
+                        sig_gt_nonpermuted = prob.v <= result.prob.v(i) + ACCURACY_MARGIN;
                     end
                     result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(sig_gt_nonpermuted));
                 end

@@ -318,7 +318,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     %% Name/title
     if ~isempty(name)
         t = title(ax, ' ');
-        text(ax, plot_w / 2, offset_y / 2, name, 'FontName', t.FontName, 'FontSize', 15, 'FontWeight', t.FontWeight, 'HorizontalAlignment', 'center');
+        text(ax, plot_w / 2, offset_y / 2, name, 'FontName', t.FontName, 'FontSize', 14, 'FontWeight', t.FontWeight, 'HorizontalAlignment', 'center');
     end
     
     %% General axes settings

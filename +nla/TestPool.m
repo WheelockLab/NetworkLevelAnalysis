@@ -129,6 +129,10 @@ classdef TestPool < nla.DeepCopyable
                 permuted_input.iteration = iteration;
                 thisEdgeRes = obj.runEdgeTest(permuted_input);
                 edgePermRes.addSingleEdgeResult(thisEdgeRes);
+                
+                if ~islogical(obj.data_queue)
+                    send(obj.data_queue, iteration);
+                end
             end
         end
         

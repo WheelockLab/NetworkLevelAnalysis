@@ -55,7 +55,7 @@ classdef BaseCorrResult < nla.net.BaseResult
             if obj.perm_count > 0
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
                     num_tests = num_tests + 1;
-                    sig_count_mat.v = sig_count_mat.v + (obj.within_np_prob.v < input_struct.prob_max / net_atlas.numNetPairs()) & (obj.within_np_d.v >= input_struct.d_max);
+                    sig_count_mat.v = sig_count_mat.v + (obj.within_np_prob.v < input_struct.prob_max) & (obj.within_np_d.v >= input_struct.d_max);
                     names = [names sprintf("Within Net-Pair %s", obj.name)];
                 end
             end
