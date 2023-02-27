@@ -60,6 +60,7 @@ input_struct.behavior =
 %% Other params
 input_struct.prob_max = 0.05;
 
+net_input_struct = genBaseNetInputs();
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;
