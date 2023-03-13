@@ -1,13 +1,13 @@
-classdef Kendall < nla.edge.BaseTest
+classdef KendallB < nla.edge.BaseTest
     %KENDALL Edge-level Kendall's tau
     %   Very slow
     properties (Constant)
-        name = "Kendall's tau"
-        coeff_name = "Kendall's tau"
+        name = "Kendall's tau-b"
+        coeff_name = "Kendall's tau-b"
     end
     
     methods
-        function obj = Kendall()
+        function obj = KendallB()
             import nla.* % required due to matlab package system quirks
             obj@nla.edge.BaseTest();
         end
