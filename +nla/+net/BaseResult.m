@@ -9,8 +9,6 @@ classdef BaseResult < nla.net.BasePermResult
         prob
         ss_prob
         perm_prob_hist
-        empirical_fdr
-        prob_max_ew = NaN
     end
     
     methods
@@ -23,7 +21,6 @@ classdef BaseResult < nla.net.BasePermResult
 
             % permuted stats
             obj.perm_prob_hist = zeros(HistBin.SIZE, 'uint32');
-            obj.empirical_fdr = zeros(HistBin.SIZE);
         end
         
         function output(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags)
@@ -37,13 +34,21 @@ classdef BaseResult < nla.net.BasePermResult
                         fig = gfx.createFigure(1000, 900);
 
                         %% Histogram of probabilities, with thresholds marked
+                        empirical_fdr = zeros(HistBin.SIZE);
+                        empirical_fdr = cumsum(double(obj.perm_prob_hist) ./ sum(obj.perm_prob_hist));
+                        [~, min_idx]= min(abs(input_struct.prob_max - empirical_fdr));
+                        prob_max_ew = HistBin.EDGES(min_idx);
+                        if (empirical_fdr(min_idx) > input_struct.prob_max) && min_idx > 1
+                            prob_max_ew = HistBin.EDGES(min_idx - 1);
+                        end
+                        
                         ax = subplot(2,2,2);
-                        loglog(HistBin.EDGES(2:end), obj.empirical_fdr, 'k');
+                        loglog(HistBin.EDGES(2:end), empirical_fdr, 'k');
                         hold('on');
                         loglog(obj.prob.v, obj.perm_prob_ew.v, 'ok');
                         axis([min(obj.prob.v), 1, min(obj.perm_prob_ew.v), 1])            
                         loglog(ax.XLim, [input_struct.prob_max, input_struct.prob_max], 'b');
-                        loglog([obj.prob_max_ew, obj.prob_max_ew], ax.YLim, 'r');
+                        loglog([prob_max_ew, prob_max_ew], ax.YLim, 'r');
 
                         name_label = sprintf("%s P-values", obj.name_formatted);
                         setTitle(ax, name_label);
@@ -107,15 +112,9 @@ classdef BaseResult < nla.net.BasePermResult
             import nla.* % required due to matlab package system quirks
             merge@nla.net.BasePermResult(obj, input_struct, edge_result_nonperm, edge_result, net_atlas, results);
             
-            % Empirical FDR
+            % Histogram
             for j = 1:numel(results)
                 obj.perm_prob_hist = obj.perm_prob_hist + results{j}.perm_prob_hist;
-            end
-            obj.empirical_fdr = cumsum(double(obj.perm_prob_hist) ./ sum(obj.perm_prob_hist));
-            [~, min_idx]= min(abs(input_struct.prob_max - obj.empirical_fdr));
-            obj.prob_max_ew = HistBin.EDGES(min_idx);
-            if (obj.empirical_fdr(min_idx) > input_struct.prob_max) && min_idx > 1
-                obj.prob_max_ew = HistBin.EDGES(min_idx - 1);
             end
         end
     end
