@@ -170,18 +170,10 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
 
                 %% generate connecting circles between inner/outer points
                 [inner_origin, inner_origin_rad, inner_radius] = gfx.findCircleFromTwoTangents(np2_start, np1_end, np2_start_rad + pi, np1_end_rad);
-                num_points = 50;
-                if abs(inner_origin_rad(1) - inner_origin_rad(2)) < 0.001
-                    num_points = 1;
-                end
-                inner = gfx.genArcSegment(inner_origin, inner_origin_rad, inner_radius, num_points);
+                inner = gfx.genArcSegmentHandlePoorlyDefined(inner_origin, inner_origin_rad, inner_radius, np1_end, np2_start, 50);
                 
                 [outer_origin, outer_origin_rad, outer_radius] = gfx.findCircleFromTwoTangents(np2_end, np1_start, np2_end_rad + pi, np1_start_rad);
-                num_points = 50;
-                if abs(outer_origin_rad(1) - outer_origin_rad(2)) < 0.001
-                    num_points = 1;
-                end
-                outer = gfx.genArcSegment(outer_origin, outer_origin_rad, outer_radius, num_points);
+                outer = gfx.genArcSegmentHandlePoorlyDefined(outer_origin, outer_origin_rad, outer_radius, np1_start, np2_end, 50);
                 
                 %% construct mesh
                 poly_verts = [outer; flip(inner, 1)];
@@ -202,7 +194,10 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
                 r1_center = gfx.genArcSegment([0, 0], [r1_center_rad, r1_center_rad], chord_radius + 1, 1);
                 r2_center = gfx.genArcSegment([0, 0], [r2_center_rad, r2_center_rad], chord_radius + 1, 1);
                 [arc_origin, arc_origin_rad, arc_radius] = gfx.findCircleFromTwoTangents(r2_center, r1_center, r2_center_rad + pi, r1_center_rad);
-                arc = gfx.genArcSegment(arc_origin, arc_origin_rad, arc_radius, 50);
+                
+                % Handle poorly-defined circles
+                arc = gfx.genArcSegmentHandlePoorlyDefined(arc_origin, arc_origin_rad, arc_radius, r1_center, r2_center, 50);
+                
                 pg = plot(ax, arc(:,1), arc(:,2), 'LineWidth', 2);
                 pg.Color = np_color;
             end
