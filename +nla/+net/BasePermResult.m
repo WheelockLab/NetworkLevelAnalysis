@@ -132,9 +132,15 @@ classdef BasePermResult < nla.TestResult
             if chord_type == nla.PlotType.CHORD
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width, ax_width]);
                 gfx.hideAxes(ax);
-            
+                
                 plot_mat_norm = TriMatrix(net_atlas.numNets(), TriMatrixDiag.KEEP_DIAGONAL);
                 plot_mat_norm.v = max(0, min(plot_mat.v ./ plot_max, 1));
+                
+                if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
+                    thresh = -log10(input_struct.prob_max);
+                    plot_mat_norm.v(plot_mat.v < thresh) = 0;
+                end
+                
                 gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_increasing, chord_type);
             else
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width - 50, ax_width - 50]);
