@@ -197,13 +197,29 @@ classdef Behavior < nla.inputField.InputField
                 '*.xls;*.xlsb;*.xlsm;*.xlsx;*.xltm;*.xltx;*.ods', 'Spreadsheet (*.xls,*.xlsb,*.xlsm,*.xlsx,*.xltm,*.xltx,*.ods)'; ...
                 '*.xml', 'XML (*.xml)'; ...
                 '*.docx', 'Word (*.docx)'; ...
+                '*.mat', 'MATLAB table (*.mat)'; ...
                 '*.html;*.xhtml;*.htm', 'HTML (*.html,*.xhtml,*.htm)'}, 'Select Behavior File');
             if idx ~= 0
                 try
                     prog = uiprogressdlg(obj.fig, 'Title', 'Loading behavior file', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
                     drawnow;
 
-                    behavior_file = readtable([path file]);
+                    if idx == 5
+                        containing_struct = load([path file]);
+                        fn = fieldnames(containing_struct);
+                        if numel(fn) == 1
+                            fname = fn{1};
+                            if istable(containing_struct.(fname))
+                                behavior_file = containing_struct.(fname);
+                            else
+                                error('No table to load from MATLAB file.');
+                            end
+                        else
+                            error('Could not find table to load from MATLAB file - make sure it only contains a table.');
+                        end
+                    else
+                        behavior_file = readtable([path file]);
+                    end
                     obj.behavior_full = behavior_file;
                     obj.behavior_filename = file;
 
