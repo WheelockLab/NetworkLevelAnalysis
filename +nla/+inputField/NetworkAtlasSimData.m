@@ -1,14 +1,16 @@
-classdef NetworkAtlas < nla.inputField.InputField
+classdef NetworkAtlasSimData < nla.inputField.InputField
     %NETWORKATLAS Network atlas, contains network + ROI details
     properties (Constant)
         name = 'net_atlas'
-        disp_name = 'Network atlas/Functional connectivity';
+        disp_name = 'Network atlas/Simulated data';
     end
     
     properties
         net_atlas = false
-        func_conn = false
-        func_conn_unordered = false
+        sim_obs = false
+        sim_obs_unordered = false
+        sim_perm = false
+        sim_perm_unordered = false
     end
     
     properties (Access = protected)
@@ -16,15 +18,16 @@ classdef NetworkAtlas < nla.inputField.InputField
         button_view_net_atlas = false
         checkbox_surface_parcels = false
         button2 = false
-        button_view_fc_avg = false
+        button3 = false
         label = false
         label2 = false
+        label3 = false
         inflation_label = false
         inflation_dropdown = false
     end
     
     methods
-        function obj = NetworkAtlas()
+        function obj = NetworkAtlasSimData()
             import nla.* % required due to matlab package system quirks
             obj.satisfied = false;
         end
@@ -35,7 +38,7 @@ classdef NetworkAtlas < nla.inputField.InputField
             obj.fig = fig;
             
             label_gap = inputField.LABEL_GAP;
-            h = inputField.LABEL_H * 2 + label_gap;
+            h = (inputField.LABEL_H * 3) + (label_gap * 2);
             
             %% Create label
             if ~isgraphics(obj.label)
@@ -92,28 +95,37 @@ classdef NetworkAtlas < nla.inputField.InputField
             if ~isgraphics(obj.label2)
                 obj.label2 = uilabel(parent);
             end
-            obj.label2.Text = 'Functional connectivity:';
+            obj.label2.Text = 'Simulated data (observed):';
             label2_w = inputField.widthOfString(obj.label2.Text, inputField.LABEL_H);
             obj.label2.HorizontalAlignment = 'left';
-            obj.label2.Position = [x, y - h, label2_w + label_gap, inputField.LABEL_H];
+            obj.label2.Position = [x, y - (inputField.LABEL_H * 2) - label_gap, label2_w + label_gap, inputField.LABEL_H];
             
             %% Create button2
             if ~isgraphics(obj.button2)
                 obj.button2 = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.button2ClickedCallback());
             end
             button2_w = 100;
-            obj.button2.Position = [x + label2_w + label_gap, y - h, button2_w, inputField.LABEL_H];
+            obj.button2.Position = [x + label2_w + label_gap, y - (inputField.LABEL_H * 2) - label_gap, button2_w, inputField.LABEL_H];
+            w2 = label2_w + label_gap + button2_w;
             
-            %% Create view button
-            if ~isgraphics(obj.button_view_fc_avg)
-                obj.button_view_fc_avg = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.buttonViewFCAvgClickedCallback());
+            %% Create label3
+            if ~isgraphics(obj.label3)
+                obj.label3 = uilabel(parent);
             end
-            button_view_fc_avg_w = 45;
-            obj.button_view_fc_avg.Text = 'View';
-            obj.button_view_fc_avg.Position = [x + label2_w + label_gap + button2_w + label_gap, y - h, button_view_fc_avg_w, inputField.LABEL_H];
+            obj.label3.Text = 'Simulated data (permuted):';
+            label3_w = inputField.widthOfString(obj.label3.Text, inputField.LABEL_H);
+            obj.label3.HorizontalAlignment = 'left';
+            obj.label3.Position = [x, y - h, label3_w + label_gap, inputField.LABEL_H];
             
-            w2 = label2_w + label_gap + button2_w + label_gap + button_view_fc_avg_w;
-            w = max(w, w2);
+            %% Create button3
+            if ~isgraphics(obj.button3)
+                obj.button3 = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.button3ClickedCallback());
+            end
+            button3_w = 100;
+            obj.button3.Position = [x + label3_w + label_gap, y - h, button3_w, inputField.LABEL_H];
+            w3 = label3_w + label_gap + button3_w;
+            
+            w = max([w, w2, w3]);
         end
         
         function undraw(obj)
@@ -130,14 +142,17 @@ classdef NetworkAtlas < nla.inputField.InputField
             if isgraphics(obj.button2)
                 delete(obj.button2)
             end
-            if isgraphics(obj.button_view_fc_avg)
-                delete(obj.button_view_fc_avg)
+            if isgraphics(obj.button3)
+                delete(obj.button3)
             end
             if isgraphics(obj.label)
                 delete(obj.label)
             end
             if isgraphics(obj.label2)
                 delete(obj.label2)
+            end
+            if isgraphics(obj.label3)
+                delete(obj.label3)
             end
             if isgraphics(obj.inflation_label)
                 delete(obj.inflation_label)
@@ -150,8 +165,10 @@ classdef NetworkAtlas < nla.inputField.InputField
         function read(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             obj.loadField(input_struct, 'net_atlas');
-            obj.loadField(input_struct, 'func_conn');
-            obj.loadField(input_struct, 'func_conn_unordered');
+            obj.loadField(input_struct, 'sim_obs');
+            obj.loadField(input_struct, 'sim_obs_unordered');
+            obj.loadField(input_struct, 'sim_perm');
+            obj.loadField(input_struct, 'sim_perm_unordered');
             
             if isfield(input_struct, 'surface_parcels')
                 obj.checkbox_surface_parcels.Value = input_struct.surface_parcels;
@@ -165,8 +182,10 @@ classdef NetworkAtlas < nla.inputField.InputField
         function input_struct = store(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             input_struct.net_atlas = obj.net_atlas;
-            input_struct.func_conn_unordered = obj.func_conn_unordered;
-            input_struct.func_conn = obj.func_conn;
+            input_struct.sim_obs_unordered = obj.sim_obs_unordered;
+            input_struct.sim_obs = obj.sim_obs;
+            input_struct.sim_perm_unordered = obj.sim_perm_unordered;
+            input_struct.sim_perm = obj.sim_perm;
             input_struct.surface_parcels = obj.checkbox_surface_parcels.Value;
         end
     end
@@ -201,52 +220,68 @@ classdef NetworkAtlas < nla.inputField.InputField
         
         function button2ClickedCallback(obj, ~)
             import nla.* % required due to matlab package system quirks
-            [file, path, idx] = uigetfile({'*.mat', 'Functional connectivity matrix (*.mat)'}, 'Select Functional Connectivity Matrix');
+            [file, path, idx] = uigetfile({'*.mat', 'Simulated observed coeffs (*.mat)'}, 'Select Simulated Observed Coeffs Matrix');
             if idx == 1
-                prog = uiprogressdlg(obj.fig, 'Title', 'Loading functional connectivity data', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
+                prog = uiprogressdlg(obj.fig, 'Title', 'Loading simulated observed coeffs', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
                 drawnow;
                     
-                fc_data = load([path file]);
-                fc_unordered = false;
-                if isnumeric(fc_data)
-                    fc_unordered = fc_data;
-                elseif isstruct(fc_data)
-                    if isfield(fc_data, 'functional_connectivity')
-                        fc_unordered = fc_data.functional_connectivity;
-                    elseif isfield(fc_data, 'func_conn')
-                        fc_unordered = fc_data.func_conn;
-                    elseif isfield(fc_data, 'fc')
-                        fc_unordered = fc_data.fc;
-                    else
-                        fn = fieldnames(fc_data);
-                        if numel(fn) == 1
-                            fname = fn{1};
-                            if isnumeric(fc_data.(fname))
-                                fc_unordered = fc_data.(fname);
-                            end
+                sim_obs = load([path file]);
+                sim_obs_unordered = false;
+                if isnumeric(sim_obs)
+                    sim_obs_unordered = fc_data;
+                elseif isstruct(sim_obs)
+                    fn = fieldnames(sim_obs);
+                    if numel(fn) == 1
+                        fname = fn{1};
+                        if isnumeric(sim_obs.(fname))
+                            sim_obs_unordered = sim_obs.(fname);
                         end
                     end
                 end
 
                 % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
-                if ~islogical(fc_unordered)
-                    obj.func_conn_unordered = double(fc_unordered);
-                    
-                    %% Transform R-values to Z-scores
-                    % If this condition isn't true, it cannot be R values
-                    % If it is true, it is almost certainly R values but might not be
-                    if all(abs(obj.func_conn_unordered(:)) <= 1)
-                        sel = uiconfirm(obj.fig, sprintf('Fisher Z transform functional connectivity data?\n(If you have provided R-values)'), 'Fisher Z transform?');
-                        if strcmp(sel, 'Ok')
-                            obj.func_conn_unordered = fisherR2Z(obj.func_conn_unordered);
-                        end
-                    end
+                if ~islogical(sim_obs_unordered)
+                    obj.sim_obs_unordered = double(sim_obs_unordered);
                     
                     obj.update();
                     close(prog);
                 else
                     close(prog);
-                    uialert(obj.fig, sprintf('Could not load functional connectivity matrix from %s', file), 'Invalid functional connectivity file');
+                    uialert(obj.fig, sprintf('Could not load simulated observed coeff matrix from %s', file), 'Invalid simulated data file');
+                end
+            end
+        end
+
+         function button3ClickedCallback(obj, ~)
+            import nla.* % required due to matlab package system quirks
+            [file, path, idx] = uigetfile({'*.mat', 'Simulated permuted coeffs (*.mat)'}, 'Select Simulated Permuted Coeffs Matrix');
+            if idx == 1
+                prog = uiprogressdlg(obj.fig, 'Title', 'Loading simulated permuted coeffs', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
+                drawnow;
+                    
+                sim_perm = load([path file]);
+                sim_perm_unordered = false;
+                if isnumeric(sim_perm)
+                    sim_perm_unordered = fc_data;
+                elseif isstruct(sim_perm)
+                    fn = fieldnames(sim_perm);
+                    if numel(fn) == 1
+                        fname = fn{1};
+                        if isnumeric(sim_perm.(fname))
+                            sim_perm_unordered = sim_perm.(fname);
+                        end
+                    end
+                end
+
+                % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
+                if ~islogical(sim_perm_unordered)
+                    obj.sim_perm_unordered = double(sim_perm_unordered);
+                    
+                    obj.update();
+                    close(prog);
+                else
+                    close(prog);
+                    uialert(obj.fig, sprintf('Could not load simulated permuted coeff matrix from %s', file), 'Invalid simulated data file');
                 end
             end
         end
@@ -269,34 +304,28 @@ classdef NetworkAtlas < nla.inputField.InputField
             drawnow();
         end
         
-        function buttonViewFCAvgClickedCallback(obj)
+        function updateSimData(obj)
             import nla.* % required due to matlab package system quirks
             
-            prog = uiprogressdlg(obj.fig, 'Title', 'Generating figure', 'Message', 'Generating FC average figure', 'Indeterminate', true);
-            drawnow;
-            
-            %% Visualize average functional connectivity values
-            fc_avg = copy(obj.func_conn);
-            fc_avg.v = mean(fc_avg.v, 2);
-            fig_l = gfx.createFigure();
-            [fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average (Fisher Z(R))', fc_avg, -0.3, 0.3, obj.net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
-            
-            close(prog);
-            drawnow();
-        end
-        
-        function updateFuncConn(obj)
-            import nla.* % required due to matlab package system quirks
-            
-            obj.func_conn = false;
+            obj.sim_obs = false;
+            obj.sim_perm = false;
             obj.satisfied = false;
-            if ~islogical(obj.net_atlas) && ~islogical(obj.func_conn_unordered)
-                dims = size(obj.func_conn_unordered);
-                if numel(dims) == 3 && dims(1) == dims(2) && dims(1) == obj.net_atlas.numROIs
-                    obj.func_conn = TriMatrix(obj.func_conn_unordered(obj.net_atlas.ROI_order, obj.net_atlas.ROI_order, :));
-                    obj.satisfied = true;
+            if ~islogical(obj.net_atlas) && ~islogical(obj.sim_obs_unordered) && ~islogical(obj.sim_perm_unordered)
+                dims = size(obj.sim_obs_unordered);
+                dims_perm = size(obj.sim_perm_unordered);
+                if numel(dims) == 2 && dims(1) == nla.helpers.triNum(obj.net_atlas.numROIs - 1)
+                    obj.sim_obs = TriMatrix(obj.net_atlas.numROIs);
+                    obj.sim_obs.v = mean(zscore(obj.sim_obs_unordered), 2);
+                    
+                    if numel(dims_perm) == 2 && dims(1) == nla.helpers.triNum(obj.net_atlas.numROIs - 1)
+                        obj.sim_perm = TriMatrix(obj.net_atlas.numROIs);
+                        obj.sim_perm.v = zscore(obj.sim_perm_unordered);
+                        obj.satisfied = true;
+                    else
+                        uialert(obj.fig, 'Network atlas and simulated permuted matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
+                    end
                 else
-                    uialert(obj.fig, 'Network atlas and functional connectivity matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
+                    uialert(obj.fig, 'Network atlas and simulated observed matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
                 end
             end
         end
@@ -304,7 +333,7 @@ classdef NetworkAtlas < nla.inputField.InputField
         function update(obj)
             import nla.* % required due to matlab package system quirks
             
-            obj.updateFuncConn();
+            obj.updateSimData();
             
             if islogical(obj.net_atlas)
                 obj.button.Text = 'Select';
@@ -330,20 +359,21 @@ classdef NetworkAtlas < nla.inputField.InputField
             obj.checkbox_surface_parcels.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP + obj.inflation_label.Position(3) + obj.inflation_dropdown.Position(3) + inputField.LABEL_GAP;
             obj.button_view_net_atlas.Position(1) = obj.button.Position(1) + obj.button.Position(3) + inputField.LABEL_GAP + obj.inflation_label.Position(3) + obj.inflation_dropdown.Position(3) + inputField.LABEL_GAP + obj.checkbox_surface_parcels.Position(3) + inputField.LABEL_GAP;
             
-            if islogical(obj.func_conn_unordered)
+            if islogical(obj.sim_obs_unordered)
                 obj.button2.Text = 'Select';
             else
-                nstr = join(string(size(obj.func_conn_unordered)), 'x');
+                nstr = join(string(size(obj.sim_obs_unordered)), 'x');
                 obj.button2.Text = [sprintf('Matrix (%s)', nstr)];
             end
             obj.button2.Position(3) = inputField.widthOfString(obj.button2.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
             
-            if ~islogical(obj.net_atlas) && ~islogical(obj.func_conn_unordered)
-                obj.button_view_fc_avg.Enable = true;
+            if islogical(obj.sim_perm_unordered)
+                obj.button3.Text = 'Select';
             else
-                obj.button_view_fc_avg.Enable = false;
+                nstr = join(string(size(obj.sim_perm_unordered)), 'x');
+                obj.button3.Text = [sprintf('Matrix (%s)', nstr)];
             end
-            obj.button_view_fc_avg.Position(1) = obj.button2.Position(1) + inputField.LABEL_GAP + obj.button2.Position(3);
+            obj.button3.Position(3) = inputField.widthOfString(obj.button3.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
         end
     end
 end
