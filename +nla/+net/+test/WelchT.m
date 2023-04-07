@@ -52,7 +52,7 @@ classdef WelchT < nla.net.BaseCorrTest
                 % rank either test statistic or p-values
                 if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
                     sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v) - ACCURACY_MARGIN;
-                    ss_sig_gt_nonpermuted = ss_t.v >= result.ss_t.v - ACCURACY_MARGIN;
+                    ss_sig_gt_nonpermuted = abs(ss_t.v) >= abs(result.ss_t.v) - ACCURACY_MARGIN;
                 else
                     sig_gt_nonpermuted = prob.v <= result.prob.v + ACCURACY_MARGIN;
                     ss_sig_gt_nonpermuted = ss_prob.v <= result.ss_prob.v + ACCURACY_MARGIN;
