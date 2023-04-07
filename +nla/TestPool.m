@@ -97,7 +97,7 @@ classdef TestPool < nla.DeepCopyable
                 for i = 1:numNetTests(obj)
                     net_result_block{i} = copy(net_results_nonperm{i});
                 end
-                obj.runNetTestsOnPermEdgeProcBlock(net_input_struct, net_atlas, net_result_block, allEdgeResBlocks{proc});
+                obj.runNetTestsOnPermEdgeProcBlock(net_input_struct, net_atlas, net_result_block, allEdgeResBlocks{proc}, blocks(proc), blocks(proc+1));
                 net_result_blocks{proc} = net_result_block;
             end
             
@@ -136,11 +136,15 @@ classdef TestPool < nla.DeepCopyable
             end
         end
         
-        function previous_net_results = runNetTestsOnPermEdgeProcBlock(obj, net_input_struct, net_atlas, previous_net_results, perm_edge_results)
+        function previous_net_results = runNetTestsOnPermEdgeProcBlock(obj, net_input_struct, net_atlas, previous_net_results, perm_edge_results, block_start, block_end)
             
-            for iteration = 1:perm_edge_results.perm_count
-                previous_edge_result = perm_edge_results.getResultsByIdxs(iteration);
+            for iteration_within_block = 1:perm_edge_results.perm_count
+                previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
+                net_input_struct.iteration = block_start + iteration_within_block - 1;
                 obj.runNetTests(net_input_struct, previous_edge_result, net_atlas, previous_net_results);
+                if ~islogical(obj.data_queue)
+                    send(obj.data_queue, iteration_within_block);
+                end
             end
             
         end
