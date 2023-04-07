@@ -31,7 +31,10 @@ classdef ChiSquared < nla.net.BaseSigTest
                     net_ROI_count = numel(net_pair_ROI_sig);
                     observed_sig = sum(net_pair_ROI_sig);
                     expected_sig = edge_result.avg_prob_sig * net_ROI_count;
-                    chi2.set(row, col, ((observed_sig - expected_sig) .^ 2) .* ((expected_sig .^ -1) + ((net_ROI_count - expected_sig) .^ -1)));
+                    % previous function for calculating chi^2
+                    %chi2_val = ((observed_sig - expected_sig) .^ 2) .* ((expected_sig .^ -1) + ((net_ROI_count - expected_sig) .^ -1))
+                    chi2_val = ((observed_sig - expected_sig) .^ 2) .* (expected_sig .^ -1);
+                    chi2.set(row, col, chi2_val);
                     observed_gt_expected.set(row, col, observed_sig > expected_sig);
                 end
             end
