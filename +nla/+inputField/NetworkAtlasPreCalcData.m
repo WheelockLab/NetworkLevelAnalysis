@@ -95,7 +95,7 @@ classdef NetworkAtlasPreCalcData < nla.inputField.InputField
             if ~isgraphics(obj.label2)
                 obj.label2 = uilabel(parent);
             end
-            obj.label2.Text = 'Simulated data (observed):';
+            obj.label2.Text = 'Precalculated data (observed):';
             label2_w = inputField.widthOfString(obj.label2.Text, inputField.LABEL_H);
             obj.label2.HorizontalAlignment = 'left';
             obj.label2.Position = [x, y - (inputField.LABEL_H * 2) - label_gap, label2_w + label_gap, inputField.LABEL_H];
@@ -112,7 +112,7 @@ classdef NetworkAtlasPreCalcData < nla.inputField.InputField
             if ~isgraphics(obj.label3)
                 obj.label3 = uilabel(parent);
             end
-            obj.label3.Text = 'Simulated data (permuted):';
+            obj.label3.Text = 'Precalculated data (permuted):';
             label3_w = inputField.widthOfString(obj.label3.Text, inputField.LABEL_H);
             obj.label3.HorizontalAlignment = 'left';
             obj.label3.Position = [x, y - h, label3_w + label_gap, inputField.LABEL_H];
@@ -220,9 +220,9 @@ classdef NetworkAtlasPreCalcData < nla.inputField.InputField
         
         function button2ClickedCallback(obj, ~)
             import nla.* % required due to matlab package system quirks
-            [file, path, idx] = uigetfile({'*.mat', 'Simulated observed coeffs (*.mat)'}, 'Select Simulated Observed Coeffs Matrix');
+            [file, path, idx] = uigetfile({'*.mat', 'Precalculated observed coeffs (*.mat)'}, 'Select Precalculated Observed Coeffs Matrix');
             if idx == 1
-                prog = uiprogressdlg(obj.fig, 'Title', 'Loading simulated observed coeffs', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
+                prog = uiprogressdlg(obj.fig, 'Title', 'Loading precalculated observed coeffs', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
                 drawnow;
                     
                 sim_obs = load([path file]);
@@ -247,16 +247,16 @@ classdef NetworkAtlasPreCalcData < nla.inputField.InputField
                     close(prog);
                 else
                     close(prog);
-                    uialert(obj.fig, sprintf('Could not load simulated observed coeff matrix from %s', file), 'Invalid simulated data file');
+                    uialert(obj.fig, sprintf('Could not load precalculated observed coeff matrix from %s', file), 'Invalid precalculated data file');
                 end
             end
         end
 
          function button3ClickedCallback(obj, ~)
             import nla.* % required due to matlab package system quirks
-            [file, path, idx] = uigetfile({'*.mat', 'Simulated permuted coeffs (*.mat)'}, 'Select Simulated Permuted Coeffs Matrix');
+            [file, path, idx] = uigetfile({'*.mat', 'Precalculated permuted coeffs (*.mat)'}, 'Select Precalculated Permuted Coeffs Matrix');
             if idx == 1
-                prog = uiprogressdlg(obj.fig, 'Title', 'Loading simulated permuted coeffs', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
+                prog = uiprogressdlg(obj.fig, 'Title', 'Loading precalculated permuted coeffs', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
                 drawnow;
                     
                 sim_perm = load([path file]);
@@ -281,7 +281,7 @@ classdef NetworkAtlasPreCalcData < nla.inputField.InputField
                     close(prog);
                 else
                     close(prog);
-                    uialert(obj.fig, sprintf('Could not load simulated permuted coeff matrix from %s', file), 'Invalid simulated data file');
+                    uialert(obj.fig, sprintf('Could not load precalculated permuted coeff matrix from %s', file), 'Invalid precalculated data file');
                 end
             end
         end
@@ -313,19 +313,24 @@ classdef NetworkAtlasPreCalcData < nla.inputField.InputField
             if ~islogical(obj.net_atlas) && ~islogical(obj.sim_obs_unordered) && ~islogical(obj.sim_perm_unordered)
                 dims = size(obj.sim_obs_unordered);
                 dims_perm = size(obj.sim_perm_unordered);
-                if numel(dims) == 2 && dims(1) == nla.helpers.triNum(obj.net_atlas.numROIs - 1)
-                    obj.sim_obs = TriMatrix(obj.net_atlas.numROIs);
-                    obj.sim_obs.v = mean(zscore(obj.sim_obs_unordered), 2);
+                if numel(dims) == 2 && (dims(1) == nla.helpers.triNum(obj.net_atlas.numROIs - 1) || (dims(1) == obj.net_atlas.numROIs && dims(2) == obj.net_atlas.numROIs))
+                    if dims(1) == obj.net_atlas.numROIs
+                        obj.sim_obs = TriMatrix(obj.sim_obs_unordered);
+                        obj.sim_obs.v = zscore(obj.sim_obs.v);
+                    else
+                        obj.sim_obs = TriMatrix(obj.net_atlas.numROIs);
+                        obj.sim_obs.v = mean(zscore(obj.sim_obs_unordered), 2);
+                    end
                     
-                    if numel(dims_perm) == 2 && dims(1) == nla.helpers.triNum(obj.net_atlas.numROIs - 1)
+                    if numel(dims_perm) == 2 && dims_perm(1) == nla.helpers.triNum(obj.net_atlas.numROIs - 1)
                         obj.sim_perm = TriMatrix(obj.net_atlas.numROIs);
                         obj.sim_perm.v = zscore(obj.sim_perm_unordered);
                         obj.satisfied = true;
                     else
-                        uialert(obj.fig, 'Network atlas and simulated permuted matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
+                        uialert(obj.fig, 'Network atlas and precalculated permuted matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
                     end
                 else
-                    uialert(obj.fig, 'Network atlas and simulated observed matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
+                    uialert(obj.fig, 'Network atlas and precalculated observed matrix do not match!', 'Mismatched input files', 'Icon', 'warning');
                 end
             end
         end

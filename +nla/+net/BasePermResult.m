@@ -141,28 +141,53 @@ classdef BasePermResult < nla.TestResult
                     plot_mat_norm.v(plot_mat.v < thresh) = 0;
                 end
                 
-                gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_increasing, chord_type);
+                if sig_increasing
+                    sig_type = gfx.SigType.INCREASING;
+                else
+                    sig_type = gfx.SigType.DECREASING;
+                end
+                gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_type, chord_type);
             else
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width - 50, ax_width - 50]);
                 gfx.hideAxes(ax);
                 ax.Visible = true; % to show title
                 
-                cm_edge_base = parula(1000);
-                cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 256) .* 1000), :));
-                prob_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
-                prob_clipped.v = nla.helpers.normClipped(edge_result.prob.v, 0, edge_result.prob_max);
+                vals_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
+                if isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF
+                    edge_coeff_plot = true;
+                    cm_edge = turbo(1000);
+                    vals_clipped.v = edge_result.coeff.v;
+                    sig_type = gfx.SigType.ABS_INCREASING;
+                    coeff_min = edge_result.coeff_range(1);
+                    coeff_max = edge_result.coeff_range(2);
+                    insig = 0;
+                else
+                    edge_coeff_plot = false;
+                    cm_edge_base = parula(1000);
+                    cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 256) .* 1000), :));
+                    vals_clipped.v = nla.helpers.normClipped(edge_result.prob.v, 0, edge_result.prob_max);
+                    sig_type = gfx.SigType.DECREASING;
+                    coeff_min = 0;
+                    coeff_max = 1;
+                    insig = 1;
+                end
                 
                 % threshold out insignificant networks
                 for y = 1:net_atlas.numNets()
                     for x = 1:y
                         if ~plot_sig.get(y, x)
-                            prob_clipped.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, 1);
+                            vals_clipped.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, insig);
                         end
                     end
                 end
                 
-                gfx.drawChord(ax, 450, net_atlas, prob_clipped, cm_edge, false, chord_type);
-                setTitle(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                
+                if edge_coeff_plot
+                    setTitle(ax, sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                else
+                    setTitle(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                end
                 colormap(ax, cm_edge);
                 cb = colorbar(ax);
                 cb.Units = 'pixels';

@@ -1,9 +1,12 @@
-function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, chord_type)
+function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_type, coeff_min, coeff_max, representative)
     import nla.* % required due to matlab package system quirks
     
-    if ~exist('sig_increasing', 'var'), sig_increasing = true; end
+    if ~exist('sig_type', 'var'), sig_type = gfx.SigType.INCREASING; end
     if ~exist('chord_type', 'var'), chord_type = nla.PlotType.CHORD; end
-
+    if ~exist('coeff_min', 'var'), coeff_min = 0; end
+    if ~exist('coeff_max', 'var'), coeff_max = 1; end
+    if ~exist('representative', 'var'), representative = false; end
+    
     axis(ax, [-ax_width / 2, ax_width / 2, -ax_width / 2, ax_width / 2]);
     set(ax,'xtick',[],'ytick',[])
     hold(ax, 'on');
@@ -111,10 +114,16 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
     end
     
     %% draw polygons
-    if sig_increasing
-        [~, idx] = sort(sig_mat.v);
+    if representative
+        idx = randperm(numel(sig_mat.v));
     else
-        [~, idx] = sort(sig_mat.v, 'descend');
+        if sig_type == gfx.SigType.INCREASING
+            [~, idx] = sort(sig_mat.v);
+        elseif sig_type == gfx.SigType.DECREASING
+            [~, idx] = sort(sig_mat.v, 'descend');
+        else
+            [~, idx] = sort(abs(sig_mat.v));
+        end
     end
     
     if chord_type == nla.PlotType.CHORD_EDGE
@@ -136,12 +145,17 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
     
     for idx_iter = 1:numel(sig_mat.v)
         i = idx(idx_iter);
-        if (sig_increasing && sig_mat.v(i) > 0) || (~sig_increasing && sig_mat.v(i) < 1)
+        if ~isnan(sig_mat.v(i)) && ((sig_type == gfx.SigType.INCREASING && sig_mat.v(i) > coeff_min) || (sig_type == gfx.SigType.DECREASING && sig_mat.v(i) < coeff_max) || (sig_type == gfx.SigType.ABS_INCREASING && abs(sig_mat.v(i)) > 0))
             %% color
             sig = sig_mat.v(i);
-            c_val = sig;
+            c_val = nla.helpers.normClipped(sig, coeff_min, coeff_max);
             np_color = color_map(floor(c_val * (size(color_map, 1) - 1)) + 1, :);
-            np_alpha = 1;
+            
+            if representative
+                np_alpha = 0.5;
+            else
+                np_alpha = 1;
+            end
 
             if chord_type == nla.PlotType.CHORD
                 n = n_arr.v(i);
@@ -199,7 +213,7 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_increasing, 
                 arc = gfx.genArcSegmentHandlePoorlyDefined(arc_origin, arc_origin_rad, arc_radius, r1_center, r2_center, 50);
                 
                 pg = plot(ax, arc(:,1), arc(:,2), 'LineWidth', 2);
-                pg.Color = np_color;
+                pg.Color = [np_color np_alpha];
             end
         end
     end
