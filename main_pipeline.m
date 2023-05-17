@@ -23,19 +23,22 @@ tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
 
 %% Load functional connectivity matrix
 % load your FC matrix here
-fc_unordered = 
+fc_path = [root_path 'examples/sample_func_conn.mat']; % path to fc
+fc_struct = load(fc_path);
+fc_unordered = fc_struct.fc;
 
 % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
 func_conn_unordered = double(fc_unordered);
 
 %% Load network atlas
-net_atlas = NetworkAtlas('# Path to network atlas here #');
+net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat']; % path to network atlas
+net_atlas = NetworkAtlas(net_atlas_path);
 
 %% OR load network atlas + FC and remove undesired networks (Optional)
-prev_net_atlas = load('# Path to starting network atlas here #');
-nets_to_remove = [1,2,3, etc. Indexes of whichever networks you wish to remove];
-[new_net_atlas, func_conn_unordered] = removeNetworks(prev_net_atlas, nets_to_remove, func_conn_unordered);
-net_atlas = NetworkAtlas(new_net_atlas);
+%prev_net_atlas = load('# Path to starting network atlas here #');
+%nets_to_remove = [1,2,3, etc. Indexes of whichever networks you wish to remove];
+%[new_net_atlas, func_conn_unordered] = removeNetworks(prev_net_atlas, nets_to_remove, func_conn_unordered);
+%net_atlas = NetworkAtlas(new_net_atlas);
 
 %% Transform R-values to Z-scores
 % If this condition isn't true, it cannot be R values
@@ -49,7 +52,10 @@ input_struct.func_conn = TriMatrix(func_conn_unordered(net_atlas.ROI_order, net_
 
 %% Load behavior
 %load your behavioral vector here
-input_struct.behavior = 
+bx_path = [root_path 'examples/sample_behavior.mat']; % path to bx
+bx_struct = load(bx_path);
+bx = bx_struct.Bx;
+input_struct.behavior = bx(:, 10).Variables;
 % Example of setting group names and associated values, when using the
 % 2-group Welch's T as your edge-level test
 %input_struct.group1_name = 'F';
@@ -59,6 +65,8 @@ input_struct.behavior =
 
 %% Other params
 input_struct.prob_max = 0.05;
+input_struct.permute_method = nla.permutemethods.BehaviorVec();
+
 
 net_input_struct = genBaseNetInputs();
 net_input_struct.prob_max = 0.05;
@@ -87,7 +95,7 @@ gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
 drawnow();
 
 %% Run tests
-edge_result = tests.runEdgeTest(input_struct, false);
+edge_result = tests.runEdgeTest(input_struct);
 net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false);
 
 % Run test pool, permuting data n times
