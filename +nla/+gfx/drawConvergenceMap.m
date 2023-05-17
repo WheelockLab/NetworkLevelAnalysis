@@ -20,7 +20,10 @@ function drawConvergenceMap(edge_input_struct, input_struct, net_atlas, sig_coun
     
     %% Trimatrix plot
     function brainFigsButtonClickedCallback(net1, net2)
-        gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2);
+        f = waitbar(0.05, sprintf('Generating %s - %s net-pair brain plot', net_atlas.nets(net1).name, net_atlas.nets(net2).name));
+        gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, false);
+        waitbar(0.95);
+        close(f)
     end
     gfx.drawMatrixOrg(fig, 0, bottom_text_height, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, 0, num_tests, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, color_map, false, true, @brainFigsButtonClickedCallback);
 
