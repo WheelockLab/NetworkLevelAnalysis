@@ -3,7 +3,7 @@ classdef TestPool < nla.DeepCopyable
     %   TODO write this
     
     properties
-        edge_test = nla.edge.test.Pearson()
+        edge_test = false
         net_tests = {}
         data_queue = false
     end
@@ -11,7 +11,14 @@ classdef TestPool < nla.DeepCopyable
     methods
         
         function obj = TestPool()
-            
+            import nla.* % required due to matlab package system quirks
+            % this MUST be instantiated here it cannot be done in the
+            % properties field because NLA cannot be imported when setting
+            % things in the properties field, hence, NLA specific values
+            % cannot be assigned unless you want it to break if they use
+            % this toolbox anywhere outside of the NetworkLevelAnalysis
+            % folder.
+            obj.edge_test = nla.edge.test.Pearson();
         end
         
         function result = runPerm(obj, input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)

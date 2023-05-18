@@ -8,18 +8,17 @@ tests = TestPool();
 tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
 
 % Example: Changing the edge-level test
-% tests.edge_test = edge.test.Spearman(0.05);
-% tests.edge_test = edge.test.SpearmanEstimator(0.05);
-% tests.edge_test = edge.test.Pearson(0.05);
-% tests.edge_test = edge.test.Kendall(0.05);
-% tests.edge_test = edge.test.KendallEstimator(0.05); %TODO unfinished don't use
-% tests.edge_test = edge.test.WelchT(0.05); % requires boolean 'in/outgroup' vector to be passed in as behavior
+% tests.edge_test = edge.test.Spearman();
+% tests.edge_test = edge.test.SpearmanEstimator();
+% tests.edge_test = edge.test.Pearson();
+% tests.edge_test = edge.test.Kendall();
+% tests.edge_test = edge.test.WelchT(); % requires boolean 'in/outgroup' vector to be passed in as behavior
 
 % Example: Appending another net-level test
-% tests.net_tests{end + 1} = net.test.ChiSquared(0.05);
+% tests.net_tests{end + 1} = net.test.ChiSquared();
 
 % Example: Using a certain pool of net-level tests
-% tests.net_tests = {net.test.ChiSquared(0.05) net.test.HyperGeo(0.05)};
+% tests.net_tests = {net.test.ChiSquared() net.test.HyperGeo()};
 
 %% Load functional connectivity matrix
 % load your FC matrix here
@@ -64,9 +63,9 @@ input_struct.behavior = bx(:, 10).Variables;
 %input_struct.group2_val = 1;
 
 %% Other params
+input_struct.net_atlas = net_atlas;
 input_struct.prob_max = 0.05;
 input_struct.permute_method = nla.permutemethods.BehaviorVec();
-
 
 net_input_struct = genBaseNetInputs();
 net_input_struct.prob_max = 0.05;
