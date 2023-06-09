@@ -1,7 +1,9 @@
 function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels, edge_result, net1, net2, sig_based)
     import nla.* % required due to matlab package system quirks
     
-    color_fc = true;
+    fc_exists = isfield(edge_input_struct, 'func_conn');
+    
+    color_fc = fc_exists;
     
     %% Display figures 
     fig = gfx.createFigure(1550, 750);
@@ -23,8 +25,13 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     function [coeff1, coeff2, fc1, fc2] = get_coeffs(n1, n2)
         coeff1 = edge_result.coeff.get(n1, n2);
         coeff2 = edge_result.coeff.get(n2, n1);
-        fc1 = mean(edge_input_struct.func_conn.get(n1, n2), 2);
-        fc2 = mean(edge_input_struct.func_conn.get(n2, n1), 2);
+        if fc_exists
+            fc1 = mean(edge_input_struct.func_conn.get(n1, n2), 2);
+            fc2 = mean(edge_input_struct.func_conn.get(n2, n1), 2);
+        else
+            fc1 = false;
+            fc2 = false;
+        end
         
         if sig_based
             prob_sig1 = edge_result.prob_sig.get(n1, n2);
@@ -98,10 +105,18 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
                 b = b_indexes(b_idx);
                 if a < b
                     val = edge_result.coeff.get(b, a);
-                    fc_val = mean(edge_input_struct.func_conn.get(b, a));
+                    if fc_exists
+                        fc_val = mean(edge_input_struct.func_conn.get(b, a));
+                    else
+                        fc_val = false;
+                    end
                 else
                     val = edge_result.coeff.get(a, b);
-                    fc_val = mean(edge_input_struct.func_conn.get(a, b));
+                    if fc_exists
+                        fc_val = mean(edge_input_struct.func_conn.get(a, b));
+                    else
+                        fc_val = false;
+                    end
                 end
                 if ~isempty(val)
                     col = valsToColor(val, fc_val, color_map, color_map_p, color_map_n, color_fc, llimit, ulimit);
