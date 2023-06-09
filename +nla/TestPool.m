@@ -1,6 +1,5 @@
 classdef TestPool < nla.DeepCopyable
-    %TESTPOOL Pool of tests to be run
-    %   TODO write this
+    %TESTPOOL Pool of edge and net tests to be run
     
     properties
         edge_test = false

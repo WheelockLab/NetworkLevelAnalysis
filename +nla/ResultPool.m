@@ -1,6 +1,5 @@
 classdef ResultPool
-    %RESULTPOOL Summary of this class goes here
-    %   TODO Detailed explanation goes here
+    %RESULTPOOL Pool of results (observed, permuted, edge and net level)
     
     properties
         net_atlas
