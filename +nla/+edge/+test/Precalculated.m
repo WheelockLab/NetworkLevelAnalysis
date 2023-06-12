@@ -39,7 +39,7 @@ classdef Precalculated < nla.edge.BaseTest
             % Precalculated edge-level test doesn't constrain p-value to
             % 0-1 because some people use "p-values" that are not actually
             % p-values and exceed this range.
-            inputs = {inputField.Number('prob_max', 'Edge-level P threshold <', 0, 0.05, Inf), inputField.NetworkAtlasPreCalcData()};
+            inputs = {inputField.Number('prob_max', 'Edge-level P threshold <', 0, 0.05, 1), inputField.NetworkAtlasPreCalcData()};
         end
     end
 end
