@@ -1,5 +1,5 @@
 classdef EdgeChordPlotMethod
     enumeration
-        PROB, COEFF
+        PROB, COEFF, COEFF_SPLIT
     end
 end

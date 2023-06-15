@@ -124,12 +124,11 @@ classdef BasePermResult < nla.TestResult
             ax_width = 750;
             trimat_width = 500;
             bottom_text_height = 250;
-
-            fig = gfx.createFigure(ax_width + trimat_width, ax_width);
-            fig.Renderer = 'painters';
-
+            
             %% Chord plot
             if chord_type == nla.PlotType.CHORD
+                fig = gfx.createFigure(ax_width + trimat_width, ax_width);
+                
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width, ax_width]);
                 gfx.hideAxes(ax);
                 
@@ -148,27 +147,41 @@ classdef BasePermResult < nla.TestResult
                 end
                 gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_type, chord_type);
             else
-                ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width - 50, ax_width - 50]);
-                gfx.hideAxes(ax);
-                ax.Visible = true; % to show title
+                if isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF
+                    edge_plot_type = gfx.EdgeChordPlotMethod.COEFF;
+                elseif isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                    edge_plot_type = gfx.EdgeChordPlotMethod.COEFF_SPLIT;
+                else
+                    edge_plot_type = gfx.EdgeChordPlotMethod.PROB;
+                end
                 
                 vals_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
-                if isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF
-                    edge_coeff_plot = true;
+                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF
                     cm_edge = turbo(1000);
-                    vals_clipped.v = edge_result.coeff.v;
+                    %vals_clipped.v = edge_result.coeff.v;
+                    vals_clipped.v = sign(edge_result.coeff.v) .* 10 .^ abs(edge_result.coeff.v);
                     sig_type = gfx.SigType.ABS_INCREASING;
-                    coeff_min = edge_result.coeff_range(1);
-                    coeff_max = edge_result.coeff_range(2);
+                    coeff_min = edge_result.coeff_range(1) .* 10;
+                    coeff_max = edge_result.coeff_range(2) .* 10;
+                    insig = 0;
+                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                    cm_edge = turbo(1000);
+                    vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
+                    vals_clipped_pos.v = 10 .^ edge_result.coeff.v;
+                    vals_clipped_pos.v(edge_result.coeff.v < 0) = 0;
+                    vals_clipped.v = -10 .^ (-1 .* edge_result.coeff.v);
+                    vals_clipped.v(edge_result.coeff.v > 0) = 0;
+                    sig_type = gfx.SigType.ABS_INCREASING;
+                    coeff_min = edge_result.coeff_range(1) .* 10;
+                    coeff_max = edge_result.coeff_range(2) .* 10;
                     insig = 0;
                 else
-                    edge_coeff_plot = false;
                     cm_edge_base = parula(1000);
                     cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 256) .* 1000), :));
-                    vals_clipped.v = nla.helpers.normClipped(edge_result.prob.v, 0, edge_result.prob_max);
+                    vals_clipped.v = edge_result.prob.v;
                     sig_type = gfx.SigType.DECREASING;
                     coeff_min = 0;
-                    coeff_max = 1;
+                    coeff_max = edge_result.prob_max;
                     insig = 1;
                 end
                 
@@ -177,17 +190,44 @@ classdef BasePermResult < nla.TestResult
                     for x = 1:y
                         if ~plot_sig.get(y, x)
                             vals_clipped.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, insig);
+                            if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                                vals_clipped_pos.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, insig);
+                            end
                         end
                     end
                 end
                 
-                gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                    fig = gfx.createFigure((ax_width * 2) + trimat_width - 100, ax_width);
+                else
+                    fig = gfx.createFigure(ax_width + trimat_width, ax_width);
+                end
                 
-                if edge_coeff_plot
-                    setTitle(ax, sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width - 50, ax_width - 50]);
+                gfx.hideAxes(ax);
+                ax.Visible = true; % to show title
+                
+                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                    % plot positive chord
+                    gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                    setTitle(ax, sprintf("Positive edge-level correlation (10^{coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                    
+                    % make new axes for other chord plot, shifted right
+                    ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width + ax_width - 100, 0, ax_width - 50, ax_width - 50]);
+                    gfx.hideAxes(ax);
+                    ax.Visible = true; % to show title
+                end
+
+                gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+
+                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF
+                    setTitle(ax, sprintf("Edge-level correlation (sgn(coeff) \\cdot 10^{\\midcoeff\\mid})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                    setTitle(ax, sprintf("Negative edge-level correlation (-10^{-coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
                 else
                     setTitle(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
                 end
+                
                 colormap(ax, cm_edge);
                 cb = colorbar(ax);
                 cb.Units = 'pixels';
@@ -201,11 +241,13 @@ classdef BasePermResult < nla.TestResult
                 % tick labels
                 labels = {};
                 for i = ticks
-                    labels{i + 1} = sprintf("%.2g", (i * (edge_result.prob_max / num_ticks)));
+                    labels{i + 1} = sprintf("%.2g", coeff_min + (i * ((coeff_max - coeff_min) / num_ticks)));
                 end
                 cb.TickLabels = labels;
             end
 
+            fig.Renderer = 'painters';
+            
             %% Trimatrix plot
             function brainFigsButtonClickedCallback(net1, net2)
                 f = waitbar(0.05, sprintf('Generating %s - %s net-pair brain plot', net_atlas.nets(net1).name, net_atlas.nets(net2).name));
