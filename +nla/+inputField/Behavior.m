@@ -161,7 +161,7 @@ classdef Behavior < nla.inputField.InputField
             obj.update();
         end
         
-        function input_struct = store(obj, input_struct)
+        function [input_struct, error] = store(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             input_struct.behavior_filename = obj.behavior_filename;
             input_struct.behavior_full = obj.behavior_full;
@@ -170,6 +170,7 @@ classdef Behavior < nla.inputField.InputField
             input_struct.covariates = obj.covariates;
             input_struct.covariates_idx = obj.covariates_idx;
             input_struct.partial_variance = obj.select_partial_variance.Value;
+            error = false;
         end
     end
     

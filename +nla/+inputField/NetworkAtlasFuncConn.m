@@ -162,12 +162,13 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             obj.update();
         end
         
-        function input_struct = store(obj, input_struct)
+        function [input_struct, error] = store(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             input_struct.net_atlas = obj.net_atlas;
             input_struct.func_conn_unordered = obj.func_conn_unordered;
             input_struct.func_conn = obj.func_conn;
             input_struct.surface_parcels = obj.checkbox_surface_parcels.Value;
+            error = false;
         end
     end
     

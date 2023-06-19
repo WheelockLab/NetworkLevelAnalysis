@@ -12,14 +12,6 @@ classdef Precalculated < nla.edge.result.Base
             
             % Superclass constructor
             obj@nla.edge.result.Base(size, prob_max);
-            
-            if nargin ~= 0
-                obj.coeff_range = [-2 2];
-            end
-        end
-        
-        function output(obj, net_atlas, flags)
-             output@nla.edge.result.Base(obj, net_atlas, flags, 'Edge-level Significance (z(P) >= 2)');
         end
     end
 end

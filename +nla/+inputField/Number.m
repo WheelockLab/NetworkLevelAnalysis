@@ -70,9 +70,10 @@ classdef Number < nla.inputField.InputField
             end
         end
         
-        function input_struct = store(obj, input_struct)
+        function [input_struct, error] = store(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             input_struct.(obj.name) = obj.field.Value;
+            error = false;
         end
     end
 end
