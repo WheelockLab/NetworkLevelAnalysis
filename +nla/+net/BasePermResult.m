@@ -155,14 +155,14 @@ classdef BasePermResult < nla.TestResult
                     edge_plot_type = gfx.EdgeChordPlotMethod.PROB;
                 end
                 
+                coeff_min = 1.5 * -10 ^ abs(edge_result.coeff_range(1));
+                coeff_max = 1.5 * 10 ^ abs(edge_result.coeff_range(2));
+                
                 vals_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
                 if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF
                     cm_edge = turbo(1000);
-                    %vals_clipped.v = edge_result.coeff.v;
                     vals_clipped.v = sign(edge_result.coeff.v) .* 10 .^ abs(edge_result.coeff.v);
                     sig_type = gfx.SigType.ABS_INCREASING;
-                    coeff_min = edge_result.coeff_range(1) .* 10;
-                    coeff_max = edge_result.coeff_range(2) .* 10;
                     insig = 0;
                 elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
                     cm_edge = turbo(1000);
@@ -172,8 +172,6 @@ classdef BasePermResult < nla.TestResult
                     vals_clipped.v = -10 .^ (-1 .* edge_result.coeff.v);
                     vals_clipped.v(edge_result.coeff.v > 0) = 0;
                     sig_type = gfx.SigType.ABS_INCREASING;
-                    coeff_min = edge_result.coeff_range(1) .* 10;
-                    coeff_max = edge_result.coeff_range(2) .* 10;
                     insig = 0;
                 else
                     cm_edge_base = parula(1000);
