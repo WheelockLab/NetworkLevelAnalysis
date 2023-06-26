@@ -47,4 +47,12 @@ classdef BaseSigResult < nla.net.BaseResult
             end
         end
     end
+    
+    methods (Access = protected)
+        function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
+            edge_result_thresh = copy(edge_result);
+            edge_result_thresh.coeff.v(edge_result_thresh.prob_sig.v == 0) = 0;
+            genChordPlotFig@nla.net.BaseResult(obj, edge_input_struct, input_struct, net_atlas, edge_result_thresh, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
+        end
+    end
 end
