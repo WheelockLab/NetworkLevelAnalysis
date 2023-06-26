@@ -25,14 +25,12 @@ function checkHeadMotion(fig, input_struct, motion)
     llimit = -0.3;
     ulimit = 0.3;
     
-    trimat_fig = gfx.createFigure(900, 900);
-    [width, height] = gfx.drawMatrixOrg(trimat_fig, 0, 0, "FC-motion correlation (Pearson's r)", r, llimit, ulimit, input_struct.net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
-    trimat_fig.Position(3) = width;
-    trimat_fig.Position(4) = height;
-    
-    gen_fig = gfx.createFigure(900, 900);
+    fig = gfx.createFigure(1800, 900);
+    [width, height] = gfx.drawMatrixOrg(fig, 0, 0, "FC-motion correlation (Pearson's r)", r, llimit, ulimit, input_struct.net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
+    fig.Position(3) = width * 2;
+    fig.Position(4) = height;
 
-    ax = subplot('Position', [0.575, 0.540, 0.40, 0.40]);
+    ax = subplot('Position', [0.780, 0.540, 0.20, 0.40]);
     setTitle(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
     gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.DORSAL, false, gfx.BrainColorMode.NONE);
     
@@ -69,13 +67,13 @@ function checkHeadMotion(fig, input_struct, motion)
     caxis(ax, [0, 1]);
     
     %% Distribution of corr
-    ax = subplot('Position', [0.075, 0.075, 0.375, 0.425]);
+    ax = subplot('Position', [0.525, 0.075, 0.1875, 0.425]);
     setTitle(ax, "FC-Motion Correlation Histogram");
     histogram(ax, r_vec, 'EdgeColor', 'black', 'FaceColor', 'black');
     xlabel(ax, 'FC-Motion Correlation (Pearson r)');
     
     %% Heatmap of corr/distance
-    ax = subplot('Position', [0.525, 0.075, 0.45, 0.425]);
+    ax = subplot('Position', [0.755, 0.075, 0.225, 0.425]);
     setTitle(ax, "FC-Motion Correlation vs. ROI Distance");
     [values, centers] = hist3([distances.v, r_vec'], [50, 50]);
     imagesc(ax, centers{:}, values');
@@ -96,7 +94,7 @@ function checkHeadMotion(fig, input_struct, motion)
     med_abs_corr = median(abs(r.v));
     fc_motion_distance_corr = corr(r.v, distances.v);
     
-    ax = subplot('Position', [0.075, 0.95, 0.375, 0.40]);
+    ax = subplot('Position', [0.525, 0.95, 0.1875, 0.40]);
     gfx.hideAxes(ax);
     text(ax, 0, 0, sprintf("Percent of significant edges: %0.2f%%\nMedian absolute correlation: %0.2f\nFC-motion-distance correlation: %0.2f", percent_sig, med_abs_corr, fc_motion_distance_corr), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     
