@@ -92,7 +92,7 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
                         obj.matrix_ordered = TriMatrix(input_struct.net_atlas.numROIs - 1);
                         obj.matrix_ordered.v = obj.matrix;
                     else
-                        obj.matrix_ordered = obj.matrix;
+                        obj.matrix_ordered = TriMatrix(obj.matrix);
                     end
                     
                     input_struct.(obj.name) = obj.matrix_ordered;
