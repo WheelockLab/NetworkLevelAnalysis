@@ -69,7 +69,7 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
             if nargin >= 2 && isnumeric(varargin{nargin})
                 obj.diag_offset = varargin{nargin};
             end
-                
+            
             if isscalar(varargin{1})
                 obj.size = uint32(varargin{1});
                 

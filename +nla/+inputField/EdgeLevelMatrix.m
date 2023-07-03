@@ -89,10 +89,11 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
                 desired_dims = obj.substituteDims(obj.dimensions, input_struct.net_atlas.numROIs, nla.helpers.triNum(input_struct.net_atlas.numROIs - 1), input_struct.perm_count);
                 if numel(dims) == numel(desired_dims) && all(dims == desired_dims)
                     if obj.dimensions(1) == inputField.DimensionType.NROIPAIRS
-                        obj.matrix_ordered = TriMatrix(input_struct.net_atlas.numROIs - 1);
+                        obj.matrix_ordered = TriMatrix(input_struct.net_atlas.numROIs);
                         obj.matrix_ordered.v = obj.matrix;
                     else
-                        obj.matrix_ordered = TriMatrix(obj.matrix);
+                        obj.matrix_ordered = TriMatrix(input_struct.net_atlas.numROIs);
+                        obj.matrix_ordered.v = obj.matrix;
                     end
                     
                     input_struct.(obj.name) = obj.matrix_ordered;
@@ -100,7 +101,7 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
                     error = sprintf('Matrix does not match network atlas/permutation dimensions (should be %s, is %s)!', join(string(desired_dims), "x"), join(string(dims), "x"));
                 end
             else
-                error = 'Something has gone badly wrong with inputField.EdgeLevelMatrix, please report this on Github';
+                error = 'Something has gone badly wrong with inputField.EdgeLevelMatrix, please report this on the NLA Github or contact an author';
             end
         end
         
