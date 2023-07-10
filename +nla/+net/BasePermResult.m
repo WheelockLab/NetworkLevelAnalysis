@@ -167,6 +167,7 @@ classdef BasePermResult < nla.TestResult
                     vals_clipped.v = sign(edge_result.coeff.v) .* 10 .^ abs(edge_result.coeff.v);
                     sig_type = gfx.SigType.ABS_INCREASING;
                     insig = 0;
+                    title_main = sprintf("Edge-level correlation (sgn(coeff) \\cdot 10^{\\midcoeff\\mid})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
                     cm_edge = turbo(1000);
                     vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
@@ -176,6 +177,7 @@ classdef BasePermResult < nla.TestResult
                     vals_clipped.v(edge_result.coeff.v > 0) = 0;
                     sig_type = gfx.SigType.ABS_INCREASING;
                     insig = 0;
+                    title_main = sprintf("Negative edge-level correlation (-10^{-coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE
                     cm_edge = turbo(1000);
                     vals_clipped.v = edge_result.coeff.v;
@@ -183,6 +185,7 @@ classdef BasePermResult < nla.TestResult
                     coeff_min = edge_result.coeff_range(1);
                     coeff_max = edge_result.coeff_range(2);
                     insig = 0;
+                    title_main = sprintf("Edge-level correlation coefficient (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 else
                     cm_edge_base = parula(1000);
                     cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 256) .* 1000), :));
@@ -191,6 +194,7 @@ classdef BasePermResult < nla.TestResult
                     coeff_min = 0;
                     coeff_max = edge_result.prob_max;
                     insig = 1;
+                    title_main = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 end
                 
                 % threshold out insignificant networks
@@ -227,14 +231,7 @@ classdef BasePermResult < nla.TestResult
                 end
 
                 gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
-
-                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF
-                    setTitle(ax, sprintf("Edge-level correlation (sgn(coeff) \\cdot 10^{\\midcoeff\\mid})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
-                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
-                    setTitle(ax, sprintf("Negative edge-level correlation (-10^{-coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
-                else
-                    setTitle(ax, sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
-                end
+                setTitle(ax, title_main);
                 
                 colormap(ax, cm_edge);
                 cb = colorbar(ax);
