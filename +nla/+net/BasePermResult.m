@@ -151,6 +151,8 @@ classdef BasePermResult < nla.TestResult
                     edge_plot_type = gfx.EdgeChordPlotMethod.COEFF;
                 elseif isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF_SPLIT
                     edge_plot_type = gfx.EdgeChordPlotMethod.COEFF_SPLIT;
+                elseif isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF_BASE
+                    edge_plot_type = gfx.EdgeChordPlotMethod.COEFF_BASE;
                 else
                     edge_plot_type = gfx.EdgeChordPlotMethod.PROB;
                 end
@@ -173,6 +175,13 @@ classdef BasePermResult < nla.TestResult
                     vals_clipped.v = -10 .^ (-1 .* edge_result.coeff.v);
                     vals_clipped.v(edge_result.coeff.v > 0) = 0;
                     sig_type = gfx.SigType.ABS_INCREASING;
+                    insig = 0;
+                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE
+                    cm_edge = turbo(1000);
+                    vals_clipped.v = edge_result.coeff.v;
+                    sig_type = gfx.SigType.ABS_INCREASING;
+                    coeff_min = edge_result.coeff_range(1);
+                    coeff_max = edge_result.coeff_range(2);
                     insig = 0;
                 else
                     cm_edge_base = parula(1000);
