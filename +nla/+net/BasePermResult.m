@@ -155,8 +155,9 @@ classdef BasePermResult < nla.TestResult
                     edge_plot_type = gfx.EdgeChordPlotMethod.PROB;
                 end
                 
-                coeff_min = 1.5 * -10 ^ abs(edge_result.coeff_range(1));
-                coeff_max = 1.5 * 10 ^ abs(edge_result.coeff_range(2));
+                max_coeff = max(abs(min(edge_result.coeff.v)), max(edge_result.coeff.v));
+                coeff_min = -10 ^ max_coeff;
+                coeff_max = 10 ^ max_coeff;
                 
                 vals_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
                 if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF

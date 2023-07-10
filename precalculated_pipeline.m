@@ -8,6 +8,13 @@ tests = TestPool();
 tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
 tests.edge_test = edge.test.Precalculated();
 
+% Example: Appending another net-level test
+% tests.net_tests{end + 1} = net.test.ChiSquared();
+
+% Example: Using a certain pool of net-level tests
+% tests.net_tests = {net.test.ChiSquared() net.test.HyperGeo()};
+
+
 %% Load network atlas
 net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat']; % path to network atlas
 net_atlas = NetworkAtlas(net_atlas_path);
