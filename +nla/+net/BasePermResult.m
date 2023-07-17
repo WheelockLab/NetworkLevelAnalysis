@@ -147,15 +147,13 @@ classdef BasePermResult < nla.TestResult
                 end
                 gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_type, chord_type);
             else
-                if isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF
-                    edge_plot_type = gfx.EdgeChordPlotMethod.COEFF;
-                elseif isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF_SPLIT
-                    edge_plot_type = gfx.EdgeChordPlotMethod.COEFF_SPLIT;
-                elseif isfield(input_struct, 'edge_chord_plot_method') && input_struct.edge_chord_plot_method == gfx.EdgeChordPlotMethod.COEFF_BASE
-                    edge_plot_type = gfx.EdgeChordPlotMethod.COEFF_BASE;
+                if isfield(input_struct, 'edge_chord_plot_method')
+                    edge_plot_type = input_struct.edge_chord_plot_method;
                 else
                     edge_plot_type = gfx.EdgeChordPlotMethod.PROB;
                 end
+                
+                split_plot = (edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT || edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT);
                 
                 max_coeff = max(abs(min(edge_result.coeff.v)), max(edge_result.coeff.v));
                 coeff_min = -10 ^ max_coeff;
@@ -178,6 +176,20 @@ classdef BasePermResult < nla.TestResult
                     sig_type = gfx.SigType.ABS_INCREASING;
                     insig = 0;
                     title_main = sprintf("Negative edge-level correlation (-10^{-coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_pos_main = sprintf("Positive edge-level correlation (10^{coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT
+                    cm_edge = turbo(1000);
+                    vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
+                    vals_clipped_pos.v = edge_result.coeff.v;
+                    vals_clipped_pos.v(edge_result.coeff.v < 0) = 0;
+                    vals_clipped.v = edge_result.coeff.v;
+                    vals_clipped.v(edge_result.coeff.v > 0) = 0;
+                    sig_type = gfx.SigType.ABS_INCREASING;
+                    coeff_min = edge_result.coeff_range(1);
+                    coeff_max = edge_result.coeff_range(2);
+                    insig = 0;
+                    title_main = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_pos_main = sprintf("Positive edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE
                     cm_edge = turbo(1000);
                     vals_clipped.v = edge_result.coeff.v;
@@ -202,14 +214,14 @@ classdef BasePermResult < nla.TestResult
                     for x = 1:y
                         if ~plot_sig.get(y, x)
                             vals_clipped.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, insig);
-                            if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                            if split_plot
                                 vals_clipped_pos.set(net_atlas.nets(y).indexes, net_atlas.nets(x).indexes, insig);
                             end
                         end
                     end
                 end
                 
-                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                if split_plot
                     fig = gfx.createFigure((ax_width * 2) + trimat_width - 100, ax_width);
                 else
                     fig = gfx.createFigure(ax_width + trimat_width, ax_width);
@@ -219,10 +231,10 @@ classdef BasePermResult < nla.TestResult
                 gfx.hideAxes(ax);
                 ax.Visible = true; % to show title
                 
-                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
+                if split_plot
                     % plot positive chord
                     gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
-                    setTitle(ax, sprintf("Positive edge-level correlation (10^{coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max));
+                    setTitle(ax, title_pos_main);
                     
                     % make new axes for other chord plot, shifted right
                     ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width + ax_width - 100, 0, ax_width - 50, ax_width - 50]);
