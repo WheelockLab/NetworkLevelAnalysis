@@ -1,4 +1,11 @@
 function drawCortex(ax, anat, ctx, mesh_alpha, view_pos, color_l, color_r)
+    %DRAWROISONCORTEX Draw ROIs on cortex mesh
+    %   net_atlas: relevant NetworkAtlas object
+    %   anat: struct containing various inflation values of cortex vertices
+    %   ctx: MeshType object determining what mesh inflation value to use
+    %   mesh_alpha: transparency of cortex mesh, 0-1
+    %   view_pos: ViewPos enumeration value, which direction to view cortex
+
     import nla.* % required due to matlab package system quirks
     %% Default values
     if ~exist('color_l','var'), color_l = repmat(0.5, [size(anat.hemi_l.nodes, 1), 3]); end

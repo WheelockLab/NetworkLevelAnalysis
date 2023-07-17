@@ -1,4 +1,10 @@
 function [mesh_l, mesh_r] = anatToMesh(anat, ctx, view_pos)
+    %ANATTOMESH generate cortex hemisphere mesh from anatomy
+    %   anat: anatomy struct, contained in cortex mesh files
+    %   ctx: MeshType value, what inflation level of mesh to use
+    %   view_pos: ViewPos value, which standard view to use
+    %   mesh_l: mesh of left hemisphere of brain
+    %   mesh_r: mesh of right hemisphere of brain
     import nla.* % required due to matlab package system quirks
     %% Choose inflation
     switch ctx

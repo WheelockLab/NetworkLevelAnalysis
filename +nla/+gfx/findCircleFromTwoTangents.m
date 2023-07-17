@@ -2,7 +2,12 @@ function [origin, rad_origin, radius] = findCircleFromTwoTangents(a, b, rad_a, r
     %FINDCIRCLEWITHTWOTANGENTS Find the origin and radius of a circle,
     % given two tangent points and slopes
     % Points and slopes MUST be ordered clockwise from the perspective of
-    % the circle you are trying to locate
+    % the circle you are trying to locate (cannot be ambiguous on this)
+    %   a: x-y coordinate, tangent point a
+    %   b: x-y coordinate, tangent point b
+    %   rad_a: angle from circle origin to tangent point a
+    %   rad_b: angle from circle origin to tangent point b
+    
     import nla.* % required due to matlab package system quirks
     
     origin(1) = gfx.findOriginXFromTwoTangents(a, b, rad_a, rad_b);

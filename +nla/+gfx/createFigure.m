@@ -1,5 +1,8 @@
 function fig = createFigure(w, h)
-    %CREATEFIGURE Create and return a figure
+    %CREATEFIGURE Create and return a figure, with appropriate title,
+    %toolbar, etc. settings.
+    %   w: width in pixels
+    %   h: height in pixels
     import nla.* % required due to matlab package system quirks
     fig = figure('Color', 'w', 'Resize', 'off', 'Name', 'NLA Figure', 'NumberTitle','off');
     %fig.Icon = [findRootPath() 'thumb.png'];

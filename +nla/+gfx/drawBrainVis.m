@@ -1,4 +1,19 @@
 function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels, edge_result, net1, net2, sig_based)
+    %DRAWBRAINVIS Display correlations between given networks on brain
+    %   edge_input_struct: edge-level input struct
+    %   input_struct: net-level input struct
+    %   net_atlas: relevant NetworkAtlas object
+    %   ctx: MeshType object, brain mesh inflation value
+    %   mesh_alpha: transparency of cortex mesh
+    %   ROI_radius: radius of spheres to display ROI centroids as
+    %   surface_parcels: Boolean value, whether to display surface parcels
+    %       (if supported by network atlas) instead of ROI centroids
+    %   edge_result: edge-level result object
+    %   net1: Network to view correlations between
+    %   net2: Network to view correlations between
+    %   sig_based: whether the net-level test is based on p-values
+    %       thresholded by significance (for example, Chi2, HG)
+
     import nla.* % required due to matlab package system quirks
     
     fc_exists = isfield(edge_input_struct, 'func_conn');

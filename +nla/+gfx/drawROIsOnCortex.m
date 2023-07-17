@@ -1,4 +1,18 @@
 function ROI_final_pos = drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, view_pos, surface_parcels, color_mode, color_mat)
+    %DRAWROISONCORTEX Draw ROIs on cortex mesh
+    %   net_atlas: relevant NetworkAtlas object
+    %   ctx: MeshType object determining what mesh inflation value to use
+    %   mesh_alpha: transparency of cortex mesh, 0-1
+    %   ROI_radius: Radius to display ROI centroids as
+    %   view_pos: ViewPos enumeration value, which direction to view cortex
+    %   surface_parcels: Boolean value, whether to display surface parcels
+    %       (if supported by network atlas) instead of ROI centroids
+    %   color_mode: BrainColorMode enumeration value, whether you are
+    %       providing per-network colors, per-ROI, etc.
+    %   color_mat: Nx3 array of color values, where is is number of ROIs,
+    %       networks, etc. depending on color_mode
+    %   ROI_final_pos: Nx3 matrix of positions ROIs were displayed at
+
     import nla.* % required due to matlab package system quirks
     
     %% Calculate ROI locations

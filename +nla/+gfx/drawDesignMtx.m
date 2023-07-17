@@ -1,4 +1,7 @@
 function drawDesignMtx(design_mtx, labels)
+    %DRAWDESIGNMTX Display design matrix in new figure
+    %   design_mtx: NxN design matrix
+    %   labels: Nx1 cell array, name labels of each variable
     import nla.* % required due to matlab package system quirks
     % column-wise normalize the design matrix
     design_mtx_norm = (design_mtx - min(design_mtx)) ./ (max(design_mtx) - min(design_mtx));

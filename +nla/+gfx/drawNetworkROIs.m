@@ -1,4 +1,11 @@
 function drawNetworkROIs(net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels)
+    %DRAWNETWORKROIS View ROIs on cortex mesh, colored by network, 3 views
+    %   net_atlas: relevant NetworkAtlas object
+    %   ctx: MeshType object determining what mesh inflation value to use
+    %   mesh_alpha: transparency of cortex mesh, 0-1
+    %   ROI_radius: radius of spheres to display ROI centroids as
+    %   surface_parcels: Boolean value, whether to display surface parcels
+    %       (if supported by network atlas) instead of ROI centroids
     import nla.* % required due to matlab package system quirks
     %% Display figures 
     fig = gfx.createFigure(1550, 750);

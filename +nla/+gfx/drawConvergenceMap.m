@@ -1,4 +1,15 @@
 function drawConvergenceMap(edge_input_struct, input_struct, net_atlas, sig_count_mat, num_tests, names, edge_result, color_map)
+    %DRAWCONVERGENCEMAP View convergence map (chord plot summarizing many
+    %results)
+    %   edge_input_struct: edge-level input struct
+    %   input_struct: net-level input struct
+    %   net_atlas: relevant NetworkAtlas object
+    %   sig_count_mat: NnetsxNnets TriMatrix where each element's value is
+    %       the number of tests which ranked that net-pair significant
+    %   num_tests: total number of tests performed
+    %   names: cell array of the names of each test
+    %   edge_result: edge-level result
+    %   color_map: color map of convergence map
     import nla.* % required due to matlab package system quirks
     
     ax_width = 750;

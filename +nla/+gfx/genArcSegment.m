@@ -1,7 +1,12 @@
 function points = genArcSegment(origin, angles, radius, n)
     %GENARCSEGMENT Generate n points on an arc segment of a given radius
     % from angle A to angle B around the given origin point
-
+    %   origin: x and y coordinates point the arc is centered around (the
+    %       center of the circle the arc is a segment of)
+    %   angles: angles of the start and end of the arc, in radians
+    %   radius: radius of the circle the arc is a segment of
+    %   n: number of points to generate (more = smoother)
+    
     circ_rad = @(radius,rad_ang, origin)  [radius * cos(rad_ang) + origin(1);  radius * sin(rad_ang) + origin(2)]'; % circle function for angles in radians
     if angles(1) > angles(2) && angles(1) - pi > angles(2)
         % loop around zero

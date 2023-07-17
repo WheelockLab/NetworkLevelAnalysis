@@ -18,7 +18,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     %   marked_networks: networks to mark with a symbol
     %   discrete_colorbar: whether to display the colorbar as continous or
     %   discrete.
-    %   per_net_func: button function to add to each network, for clickable
+    %   net_clicked_callback: button function to add to each network, for clickable
     %   networks.
     
     fig.Renderer = 'painters';

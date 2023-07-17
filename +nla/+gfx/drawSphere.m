@@ -1,4 +1,9 @@
 function obj = drawSphere(ax, pos, color, radius)
+    %DRAWSPHERE Draw sphere
+    %   ax: axes to draw on (currently unused)
+    %   pos: x-y-z position, center of sphere
+    %   color: r-g-b or r-g-b-a color
+    %   radius: radius of sphere
     import nla.* % required due to matlab package system quirks
     
     [x, y, z] = sphere(10);

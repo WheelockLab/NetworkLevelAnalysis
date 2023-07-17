@@ -1,4 +1,19 @@
 function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_type, coeff_min, coeff_max, representative)
+    %DRAWCHORD display chord plot
+    %   ax: axes to plot on, should be square
+    %   ax_width: width (assumed to equal height) of axes
+    %   net_atlas: respective NetworkAtlas object
+    %   sig_mat: TriMatrix of significant values, either Nroipairs or
+    %       Nnetpairs
+    %   color_map: colormap
+    %   sig_type: SigType value, representing whether values increase or
+    %       decrease with greater significance
+    %   chord_type: PlotType value, whether to show chord or chord edge
+    %       plot
+    %   coeff_min: Lower bound of values
+    %   coeff_max: Upper bound of values
+    %   representative: true to Z-order values randomly, false to display
+    %       more significant values over less significant ones
     import nla.* % required due to matlab package system quirks
     
     if ~exist('sig_type', 'var'), sig_type = gfx.SigType.INCREASING; end

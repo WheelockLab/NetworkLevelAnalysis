@@ -1,7 +1,7 @@
 function hideAxes(ax)
+    %HIDEAXES Hide axes borders and tick marks
+    %   ax: axes to modify
     import nla.* % required due to matlab package system quirks
-    % the sole purpose of this nonsense is to hide the axes border
-    % make the axes go away!!!! please!!!!
     ax.Box = 'off';
     ax.XTick = [];
     ax.YTick = [];
