@@ -155,28 +155,28 @@ classdef BasePermResult < nla.TestResult
                 
                 split_plot = (edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT || edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT);
                 
-                max_coeff = max(abs(min(edge_result.coeff.v)), max(edge_result.coeff.v));
-                coeff_min = -10 ^ max_coeff;
-                coeff_max = 10 ^ max_coeff;
+                range_limit = std(edge_result.coeff.v) * 5;
+                coeff_min = -range_limit;
+                coeff_max = range_limit;
                 
                 vals_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
                 if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF
                     cm_edge = turbo(1000);
-                    vals_clipped.v = sign(edge_result.coeff.v) .* 10 .^ abs(edge_result.coeff.v);
+                    vals_clipped.v = edge_result.coeff.v;
                     sig_type = gfx.SigType.ABS_INCREASING;
                     insig = 0;
-                    title_main = sprintf("Edge-level correlation (sgn(coeff) \\cdot 10^{\\midcoeff\\mid})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_main = sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
                     cm_edge = turbo(1000);
                     vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
-                    vals_clipped_pos.v = 10 .^ edge_result.coeff.v;
+                    vals_clipped_pos.v = edge_result.coeff.v;
                     vals_clipped_pos.v(edge_result.coeff.v < 0) = 0;
-                    vals_clipped.v = -10 .^ (-1 .* edge_result.coeff.v);
+                    vals_clipped.v = edge_result.coeff.v;
                     vals_clipped.v(edge_result.coeff.v > 0) = 0;
                     sig_type = gfx.SigType.ABS_INCREASING;
                     insig = 0;
-                    title_main = sprintf("Negative edge-level correlation (-10^{-coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
-                    title_pos_main = sprintf("Positive edge-level correlation (10^{coeff})\n(P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_main = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_pos_main = sprintf("Positive edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT
                     cm_edge = turbo(1000);
                     vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
