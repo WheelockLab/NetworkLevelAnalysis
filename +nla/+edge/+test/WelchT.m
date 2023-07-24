@@ -60,7 +60,7 @@ classdef WelchT < nla.edge.BaseTest
             
             % disable adding/modifying covariates in behavior
             behavior_handle = helpers.firstInstanceOfClass(inputs, 'nla.inputField.Behavior');
-            behavior_handle.covariates_enabled = false;
+            behavior_handle.covariates_enabled = nla.inputField.CovariatesEnabled.ONLY_FC;
             
             inputs{end + 1} = inputField.String('group1_name', 'Group 1 name:', 'Group1');
             inputs{end + 1} = inputField.Number('group1_val', 'Group 1 behavior value:', -Inf, 1, Inf);

@@ -12,7 +12,7 @@ classdef Behavior < nla.inputField.InputField
         covariates = false
         covariates_idx = false
         cols_selected = false
-        covariates_enabled = true
+        covariates_enabled
     end
     
     properties (Access = protected)
@@ -30,6 +30,7 @@ classdef Behavior < nla.inputField.InputField
     methods
         function obj = Behavior()
             import nla.* % required due to matlab package system quirks
+            obj.covariates_enabled = nla.inputField.CovariatesEnabled.ALL;
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
@@ -97,10 +98,9 @@ classdef Behavior < nla.inputField.InputField
             
             select_partial_variance_w = 100;
             obj.select_partial_variance = uidropdown(parent);
-            obj.select_partial_variance.Items = {'None', 'FC + BX', 'Only BX', 'Only FC'};
-            obj.select_partial_variance.ItemsData = [PartialVarianceType.NONE, PartialVarianceType.FCBX, PartialVarianceType.ONLY_BX, PartialVarianceType.ONLY_FC];
+            obj.genPartialVarianceOpts();
             obj.select_partial_variance.Position = [x + select_partial_variance_label_w + label_gap, y - h, select_partial_variance_w, inputField.LABEL_H];
-            obj.select_partial_variance.Value = 0;
+            obj.select_partial_variance.Value = PartialVarianceType.NONE;
             w7 = x + select_partial_variance_label_w + label_gap + select_partial_variance_w;
             
             w = max([w, w2, w3 + label_gap + w4 + label_gap + w5 + label_gap + w6, w7]);
@@ -144,18 +144,26 @@ classdef Behavior < nla.inputField.InputField
             obj.loadField(input_struct, 'behavior');
             obj.loadField(input_struct, 'behavior_idx');
             
-            if obj.covariates_enabled
-                obj.loadField(input_struct, 'covariates');
-                obj.loadField(input_struct, 'covariates_idx');
-            else
+            if obj.covariates_enabled == nla.inputField.CovariatesEnabled.NONE
                 obj.covariates = false;
                 obj.covariates_idx = false;
+            else
+                obj.loadField(input_struct, 'covariates');
+                obj.loadField(input_struct, 'covariates_idx');
             end
             
-            if isfield(input_struct, 'partial_variance') && obj.covariates_enabled
-                obj.select_partial_variance.Value = input_struct.partial_variance;
+            if isfield(input_struct, 'partial_variance')
+                if obj.covariates_enabled == inputField.CovariatesEnabled.ALL
+                    obj.select_partial_variance.Value = input_struct.partial_variance;
+                elseif obj.covariates_enabled == inputField.CovariatesEnabled.ONLY_FC
+                    if input_struct.partial_variance == PartialVarianceType.NONE
+                        obj.select_partial_variance.Value = PartialVarianceType.NONE;
+                    else
+                        obj.select_partial_variance.Value = PartialVarianceType.ONLY_FC;
+                    end
+                end
             else
-                obj.select_partial_variance.Value = false;
+                obj.select_partial_variance.Value = PartialVarianceType.NONE;
             end
             
             obj.update();
@@ -276,6 +284,20 @@ classdef Behavior < nla.inputField.InputField
             end
         end
         
+        function genPartialVarianceOpts(obj)
+            import nla.* % required due to matlab package system quirks
+            if obj.covariates_enabled == inputField.CovariatesEnabled.ALL
+                obj.select_partial_variance.Items = {'None', 'FC + BX', 'Only BX', 'Only FC'};
+                obj.select_partial_variance.ItemsData = [PartialVarianceType.NONE, PartialVarianceType.FCBX, PartialVarianceType.ONLY_BX, PartialVarianceType.ONLY_FC];
+            elseif obj.covariates_enabled == inputField.CovariatesEnabled.ONLY_FC
+                obj.select_partial_variance.Items = {'None', 'Only FC'};
+                obj.select_partial_variance.ItemsData = [PartialVarianceType.NONE, PartialVarianceType.ONLY_FC];
+            else
+                obj.select_partial_variance.Items = {'None'};
+                obj.select_partial_variance.ItemsData = [PartialVarianceType.NONE];
+            end
+        end
+        
         function cellSelectedCallback(obj, src, event)
             obj.cols_selected = unique(event.Indices(:, 2));
         end
@@ -366,14 +388,17 @@ classdef Behavior < nla.inputField.InputField
                 obj.table.Enable = 'on';
                 obj.button_set_bx.Enable = true;
                 
-                obj.button_add_cov.Enable = obj.covariates_enabled;
-                obj.button_sub_cov.Enable = obj.covariates_enabled;
-                obj.button_view_design_mtx.Enable = obj.covariates_enabled;
+                enable_cov = (obj.covariates_enabled ~= inputField.CovariatesEnabled.NONE);
+                obj.button_add_cov.Enable = enable_cov;
+                obj.button_sub_cov.Enable = enable_cov;
+                obj.button_view_design_mtx.Enable = enable_cov;
+                
+                obj.genPartialVarianceOpts();
                 
                 obj.select_partial_variance.Enable = ~islogical(obj.covariates_idx);
                 obj.select_partial_variance_label.Enable = ~islogical(obj.covariates_idx);
                 if islogical(obj.covariates_idx)
-                    obj.select_partial_variance.Value = 0;
+                    obj.select_partial_variance.Value = false;
                 end
             end
         end
