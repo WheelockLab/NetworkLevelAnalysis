@@ -312,7 +312,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
         leg.Units = 'pixels';
         legend_width = leg.Position(3);
         legend_height = leg.Position(4);
-        leg.Position = [plot_w - offset_x - legend_width - legend_offset, plot_h - legend_height - offset_y, legend_width, legend_height];
+        leg.Position = [axes_loc_x + plot_w - legend_width - offset_x - legend_offset, axes_loc_y + plot_h - legend_height - offset_y, legend_width, legend_height];
     end
     
     %% Name/title
