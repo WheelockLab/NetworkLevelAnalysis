@@ -295,15 +295,13 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     %% Legend
     if draw_legend
         % legend entries
-        hold(ax, 'on');
         legend_entries = [];
         for i = 1:num_nets
-            legend_entry = bar(NaN);
+            legend_entry = bar(ax, NaN);
             legend_entry.FaceColor = networks(i).color;
             legend_entry.DisplayName = networks(i).name;
             legend_entries(end+1) = legend_entry;
         end
-        hold(ax, 'off');
         
         % legend
         leg = legend(ax, legend_entries);
