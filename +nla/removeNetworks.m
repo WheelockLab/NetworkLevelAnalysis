@@ -1,10 +1,10 @@
 function [atlas_out, fc_out] = removeNetworks(atlas_in, nets, name, fc_in)
-%REMOVENETWORKS Remove given networks from a network atlas
-% atlas_in: Input network atlas
-% nets: Networks to remove
-% name: Name of modified atlas
-% (Optional) fc_in: Functional connectivity to remove given networks from
-% as well
+    %REMOVENETWORKS Remove given networks from a network atlas
+    %	atlas_in: Input network atlas
+    %	nets: Networks to remove
+    %	name: Name of modified atlas
+    %	(Optional) fc_in: Functional connectivity to remove given networks from
+    %       as well
     net_mask = true(numel(atlas_in.net_names), 1);
     net_mask(nets) = false;
     

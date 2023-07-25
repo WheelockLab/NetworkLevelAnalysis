@@ -5,7 +5,7 @@ root_path = findRootPath();
 
 %% Create a pool of tests
 tests = TestPool();
-tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
+tests.net_tests = genTests('net.test');
 tests.edge_test = edge.test.Precalculated();
 
 % Example: Appending another net-level test
@@ -13,7 +13,6 @@ tests.edge_test = edge.test.Precalculated();
 
 % Example: Using a certain pool of net-level tests
 % tests.net_tests = {net.test.ChiSquared() net.test.HyperGeo()};
-
 
 %% Load network atlas
 net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat']; % path to network atlas
@@ -53,7 +52,7 @@ input_struct.net_atlas = net_atlas;
 input_struct.prob_max = 0.05;
 input_struct.permute_method = nla.permutemethods.None();
 
-net_input_struct = genBaseNetInputs();
+net_input_struct = net.genBaseInputs();
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;
@@ -67,4 +66,11 @@ net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false)
 results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, num_perms);
 
 %% Visualize results
+% Warning: Will produce a large amount of figures. You are advised to use
+% the GUI to visualize results, or to use the output calls of individual
+% result objects.
 results.output();
+
+%% Save results
+% Should be able to visualize this result file by loading it into the GUI
+save('myresults.mat', 'results');

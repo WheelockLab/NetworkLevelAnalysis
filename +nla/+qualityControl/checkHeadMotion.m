@@ -31,7 +31,7 @@ function checkHeadMotion(fig, input_struct, motion)
     fig.Position(4) = height;
 
     ax = subplot('Position', [0.780, 0.540, 0.20, 0.40]);
-    setTitle(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
+    gfx.setTitle(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
     gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.DORSAL, false, gfx.BrainColorMode.NONE);
     
     for col = 1:input_struct.net_atlas.numROIs()
@@ -68,13 +68,13 @@ function checkHeadMotion(fig, input_struct, motion)
     
     %% Distribution of corr
     ax = subplot('Position', [0.525, 0.075, 0.1875, 0.425]);
-    setTitle(ax, "FC-Motion Correlation Histogram");
+    gfx.setTitle(ax, "FC-Motion Correlation Histogram");
     histogram(ax, r_vec, 'EdgeColor', 'black', 'FaceColor', 'black');
     xlabel(ax, 'FC-Motion Correlation (Pearson r)');
     
     %% Heatmap of corr/distance
     ax = subplot('Position', [0.755, 0.075, 0.225, 0.425]);
-    setTitle(ax, "FC-Motion Correlation vs. ROI Distance");
+    gfx.setTitle(ax, "FC-Motion Correlation vs. ROI Distance");
     [values, centers] = hist3([distances.v, r_vec'], [50, 50]);
     imagesc(ax, centers{:}, values');
     xlabel(ax, 'Euclidian Distance');

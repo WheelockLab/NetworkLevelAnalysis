@@ -5,7 +5,7 @@ root_path = findRootPath();
 
 %% Create a pool of tests
 tests = TestPool();
-tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
+tests.net_tests = genTests('net.test');
 
 % Example: Changing the edge-level test
 % tests.edge_test = edge.test.Spearman();
@@ -22,7 +22,7 @@ tests.net_tests = genTests([root_path '+nla/+net/+test'], 'nla.net.test.');
 
 %% Load functional connectivity matrix
 % load your FC matrix here
-fc_path = [root_path 'examples/sample_func_conn.mat']; % path to fc
+fc_path = [root_path 'examples/fc_and_behavior/sample_func_conn.mat']; % path to fc
 fc_struct = load(fc_path);
 fc_unordered = fc_struct.fc;
 
@@ -51,7 +51,7 @@ input_struct.func_conn = TriMatrix(func_conn_unordered(net_atlas.ROI_order, net_
 
 %% Load behavior
 %load your behavioral vector here
-bx_path = [root_path 'examples/sample_behavior.mat']; % path to bx
+bx_path = [root_path 'examples/fc_and_behavior/sample_behavior.mat']; % path to bx
 bx_struct = load(bx_path);
 bx = bx_struct.Bx;
 input_struct.behavior = bx(:, 10).Variables;
@@ -67,7 +67,7 @@ input_struct.net_atlas = net_atlas;
 input_struct.prob_max = 0.05;
 input_struct.permute_method = nla.permutemethods.BehaviorVec();
 
-net_input_struct = genBaseNetInputs();
+net_input_struct = net.genBaseInputs();
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;
@@ -101,4 +101,11 @@ net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false)
 results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 100);
 
 %% Visualize results
+% Warning: Will produce a large amount of figures. You are advised to use
+% the GUI to visualize results, or to use the output calls of individual
+% result objects.
 results.output();
+
+%% Save results
+% Should be able to visualize this result file by loading it into the GUI
+save('myresults.mat', 'results');

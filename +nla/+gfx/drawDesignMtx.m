@@ -29,7 +29,7 @@ function drawDesignMtx(design_mtx, labels)
     
     ax = subplot('Position', [16/24, 4/12, 7/24, 7/12]);
     imagesc(ax, corr_mat);
-    setTitle(ax, "Colinearity (r-values)");
+    gfx.setTitle(ax, "Colinearity (r-values)");
     xlabel(' ');
     set(ax, 'XTick', 1:num_covariates, 'XTickLabel', labels);
     set(ax, 'YTick', 1:num_covariates, 'YTickLabel', labels);

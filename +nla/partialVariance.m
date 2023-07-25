@@ -1,4 +1,15 @@
 function [func_conn_residual, behavior_residual] = partialVariance(func_conn, behavior, covariates, type)
+    %PARTIALVARIANCE Perform partial variance, removing specified
+    %   covariates and returning residuals
+    %   func_conn: NroisxNroisxNsubs functional connectivity matrix
+    %   behavior: Nsubsx1 behavioral score vector
+    %   covariates: NsubsxNcovs covariate vectors
+    %   type: PartialVarianceType enumeration value specifying whether to
+    %       factor covariates from fc, behavior, or both
+    %   func_conn_residual: residual of functional connectivity, if
+    %       factoring covariates from it
+    %   behavior_residual: residual of behavioral scores, if factoring
+    %       covariates from them
     import nla.* % required due to matlab package system quirks
     %% Control for Covariates %%
     % covariates are cov1, cov2... covN assumed to be column vectors

@@ -234,7 +234,7 @@ classdef BasePermResult < nla.TestResult
                 if split_plot
                     % plot positive chord
                     gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
-                    setTitle(ax, title_pos_main);
+                    gfx.setTitle(ax, title_pos_main);
                     
                     % make new axes for other chord plot, shifted right
                     ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width + ax_width - 100, 0, ax_width - 50, ax_width - 50]);
@@ -243,7 +243,7 @@ classdef BasePermResult < nla.TestResult
                 end
 
                 gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
-                setTitle(ax, title_main);
+                gfx.setTitle(ax, title_main);
                 
                 colormap(ax, cm_edge);
                 cb = colorbar(ax);
@@ -326,8 +326,8 @@ classdef BasePermResult < nla.TestResult
             xlabel(ax, 'Number of ROI pairs within network pair')
             ylabel(ax, y_label)
             [r, p] = corr(net_size.v, p_val);
-            setTitle(ax, title_label);
-            setTitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r), true);
+            gfx.setTitle(ax, title_label);
+            gfx.setTitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r), true);
             lims = ylim(ax);
             ylim(ax, [0 lims(2)]);
         end
