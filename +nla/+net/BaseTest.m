@@ -17,6 +17,7 @@ classdef BaseTest < nla.Test
     
     methods (Static)
         function inputs = requiredInputs()
+            % Inputs that must be provided to run the test
             import nla.* % required due to matlab package system quirks
             inputs = {inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end

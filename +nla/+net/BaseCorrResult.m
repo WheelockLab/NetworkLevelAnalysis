@@ -7,6 +7,17 @@ classdef BaseCorrResult < nla.net.BaseResult
         within_np_d
     end
     
+    methods (Static)
+        function inputs = tweakableInputs()
+            % Inputs that can be tweaked post-run (ie: are simple
+            % thresholds etc. for summary statistics, or generally can be
+            % modified without requiring re-permutation)
+            import nla.* % required due to matlab package system quirks
+            inputs = tweakableInputs@nla.net.BasePermResult();
+            inputs{end + 1} = inputField.Number('d_max', "Net-level Cohen's D threshold >", 0, 0.5, 1);
+        end
+    end
+    
     methods
         function obj = BaseCorrResult(size)
             import nla.* % required due to matlab package system quirks

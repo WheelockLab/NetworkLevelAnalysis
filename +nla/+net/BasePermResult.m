@@ -54,6 +54,16 @@ classdef BasePermResult < nla.TestResult
         end
     end
     
+    methods (Static)
+        function inputs = tweakableInputs()
+            % Inputs that can be tweaked post-run (ie: are simple
+            % thresholds etc. for summary statistics, or generally can be
+            % modified without requiring re-permutation)
+            import nla.* % required due to matlab package system quirks
+            inputs = {inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+        end
+    end
+    
     methods (Access = protected)
         function [cm, plot_mat, plot_max, name_label, sig_increasing] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, name_formatted, plot_name, divide_by_netpairs, method)
             import nla.* % required due to matlab package system quirks
