@@ -27,10 +27,8 @@ classdef WelchT < nla.net.BaseCorrTest
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
                     
-                    %TODO welchT is broken for the net level test. strange!
-                    %[p_val, t_val, ~] = welchT(coeff_net, edge_result.coeff.v);
-                    [~, p_val, ~, stats] = ttest2(coeff_net, edge_result.coeff.v, 'Vartype', 'unequal');
-                    t_val = stats.tstat;
+                    [p_val, t_val, ~] = welchT(coeff_net, edge_result.coeff.v);
+
                     prob.set(row, col, p_val);
                     t.set(row, col, t_val);
                     

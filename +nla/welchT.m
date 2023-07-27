@@ -30,7 +30,7 @@ function [p_vec, t_vec, dof_vec] = welchT(x1, x2)
     dof_vec(~isfinite(dof_vec)) = 0;
 
     %% P-values: 2-tailed p-value. to 1st approx, halve if want 1-tailed.
-    p_vec = (1 - tcdf(abs(t_vec), dof_vec)) .* 2; 
+    p_vec = (tcdf(-abs(t_vec), dof_vec)) .* 2; 
     p_vec(~isfinite(p_vec)) = 0;
 end
 
