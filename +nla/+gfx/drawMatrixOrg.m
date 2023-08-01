@@ -54,8 +54,15 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
         network_matrix = true;
     end
     
+    % size of input matrix
     mat_size = size(matrix, 1);
-    label_size = 13; % thickness of network label
+    % size of matrix as displayed - only number of indexes in included nets
+    disp_mat_size = 0;
+    for i = 1:numel(networks)
+        disp_mat_size = disp_mat_size + networks(i).numROIs();
+    end
+    % thickness of network label
+    label_size = 13;
     if fig_size == gfx.FigSize.LARGE
         label_size = 20;
     end
@@ -86,7 +93,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     legend_offset = 5;
     
     %% Image dimensions
-    image_h = (mat_size * element_size) + num_nets + label_size + 2;
+    image_h = (disp_mat_size * element_size) + num_nets + label_size + 2;
     image_w = image_h;
     if ~network_matrix
         image_w = image_w - 1;
@@ -257,7 +264,8 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     
     %% draw diagonal line on edge-level triangular matrices
     if mat_type == gfx.MatrixType.TRIMATRIX && ~network_matrix
-        gfx.drawLine(ax, [x_starting_pos - 2, x_pos - 1], [y_starting_pos - 3 + element_size, y_pos - 2]);
+        gfx.drawLine(ax, [x_starting_pos - 1, x_pos - 1], [y_starting_pos - 3 + element_size, y_pos - 2], 'w');
+        gfx.drawLine(ax, [x_starting_pos - 2, x_pos - 1], [y_starting_pos - 3 + element_size, y_pos - 1]);
     end
     
     %% Colorbar
