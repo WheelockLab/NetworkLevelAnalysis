@@ -54,19 +54,25 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
         network_matrix = true;
     end
     
+    num_nets = numel(networks);
+    
     % size of input matrix
     mat_size = size(matrix, 1);
     % size of matrix as displayed - only number of indexes in included nets
     disp_mat_size = 0;
-    for i = 1:numel(networks)
-        disp_mat_size = disp_mat_size + networks(i).numROIs();
+    if network_matrix
+        disp_mat_size = num_nets;
+    else
+        for i = 1:numel(networks)
+            disp_mat_size = disp_mat_size + networks(i).numROIs();
+        end
     end
+    
     % thickness of network label
     label_size = 13;
     if fig_size == gfx.FigSize.LARGE
         label_size = 20;
     end
-    num_nets = numel(networks);
     
     %% Scale of elements
     element_size = 1;
