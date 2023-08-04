@@ -65,26 +65,40 @@ classdef BasePermResult < nla.TestResult
     end
     
     methods (Access = protected)
-        function [cm, plot_mat, plot_max, name_label, sig_increasing] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, name_formatted, plot_name, divide_by_netpairs, method)
+        function [cm, plot_mat, plot_max, name_label, sig_increasing, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, name_formatted, plot_name, fdr_correction, method)
             import nla.* % required due to matlab package system quirks
 
-            if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
-                plot_name = sprintf("%s (-log_1_0(P))", plot_name);
+            % if no filter is provided on which net-pairs should be
+            % significant, create a mask of all true values
+            if ~exist('plot_sig_filter', 'var') || islogical(plot_sig_filter)
+                plot_sig_filter = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+                plot_sig_filter.v = true(numel(plot_sig_filter.v));
             end
-
-            n_net_pairs = net_atlas.numNetPairs();
-            if divide_by_netpairs
-                p_max = input_struct.prob_max / n_net_pairs;
+            
+            if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
+                plot_name = sprintf('%s (-log_1_0(P))', plot_name);
+            end
+            
+            if fdr_correction == net.FDRCorrection.DIVIDE_BY_NET_PAIRS
+                p_max = input_struct.prob_max / net_atlas.numNetPairs();
+                p_breakdown_label = sprintf('%g/%d net-pairs/%d tests', p_max * net_atlas.numNetPairs() * input_struct.behavior_count, net_atlas.numNetPairs(), input_struct.behavior_count);
+            elseif fdr_correction == net.FDRCorrection.BH
+                [~, p_max] = lib.fdr_bh(plot_prob.v, input_struct.prob_max, 'pdep');
+                p_breakdown_label = sprintf('FDR_{BH}(%g/%d tests)', input_struct.prob_max * input_struct.behavior_count, input_struct.behavior_count);
+            elseif fdr_correction == net.FDRCorrection.BY
+                [~, p_max] = lib.fdr_bh(plot_prob.v, input_struct.prob_max, 'dep');
+                p_breakdown_label = sprintf('FDR_{BY}(%g/%d tests)', input_struct.prob_max * input_struct.behavior_count, input_struct.behavior_count);
             else
                 p_max = input_struct.prob_max;
+                p_breakdown_label = sprintf('%g/%d tests', p_max * input_struct.behavior_count, input_struct.behavior_count);
             end
-
-            if divide_by_netpairs
-                name_label = sprintf("%s %s\nP < %.2g (%g/%d tests/%d net-pairs)", name_formatted, plot_name, p_max, p_max * input_struct.behavior_count * n_net_pairs, input_struct.behavior_count, n_net_pairs);
-            else
-                name_label = sprintf("%s %s\nP < %.2g (%g/%d tests)", name_formatted, plot_name, p_max, p_max * input_struct.behavior_count, input_struct.behavior_count);
-            end    
-
+            
+            name_label = sprintf('%s %s\nP < %.2g (%s)', name_formatted, plot_name, p_max, p_breakdown_label);
+            
+            % which networks to mark as significant
+            plot_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+            plot_sig.v = (plot_prob.v < p_max) & plot_sig_filter.v;
+            
             discrete_colors_count = 1000;
 
             % scale values very slightly for display so numbers just below
@@ -122,9 +136,9 @@ classdef BasePermResult < nla.TestResult
             end
         end
         
-        function [w, h] = plotProb(obj, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig, plot_name, divide_by_netpairs, method)
+        function [w, h] = plotProb(obj, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method)
             import nla.* % required due to matlab package system quirks
-            [cm, plot_mat, plot_max, name_label, ~] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, obj.name_formatted, plot_name, divide_by_netpairs, method);
+            [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
             [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig);
         end
         
@@ -294,9 +308,9 @@ classdef BasePermResult < nla.TestResult
             text(text_ax, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
         
-        function plotChord(obj, edge_input_struct, input_struct, net_atlas, plot_prob, plot_sig, plot_name, divide_by_netpairs, method, edge_result, chord_type)
+        function plotChord(obj, edge_input_struct, input_struct, net_atlas, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result, chord_type)
             import nla.* % required due to matlab package system quirks
-            [cm, plot_mat, plot_max, name_label, sig_increasing] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, obj.name_formatted, plot_name, divide_by_netpairs, method);
+            [cm, plot_mat, plot_max, name_label, sig_increasing, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
             genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type);
         end
         

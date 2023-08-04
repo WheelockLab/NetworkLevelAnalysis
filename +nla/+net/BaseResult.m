@@ -27,9 +27,6 @@ classdef BaseResult < nla.net.BasePermResult
             import nla.* % required due to matlab package system quirks
             if obj.perm_count > 0
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    perm_prob_ew_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-                    perm_prob_ew_sig.v = obj.perm_prob_ew.v < input_struct.prob_max;
-                    
                     if flags.plot_type == nla.PlotType.FIGURE
                         fig = gfx.createFigure(1000, 900);
 
@@ -60,16 +57,13 @@ classdef BaseResult < nla.net.BasePermResult
                         obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
 
                         %% Matrix with significant networks marked
-                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN);
+                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.FDRCorrection.NONE, nla.Method.FULL_CONN);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, perm_prob_ew_sig, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), false, nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.FDRCorrection.NONE, nla.Method.FULL_CONN, edge_result, flags.plot_type);
                     end
                 end
             else
                 if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
-                    prob_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-                    prob_sig.v = obj.prob.v < input_struct.prob_max / net_atlas.numNetPairs();
-                        
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Non-permuted
                         fig = gfx.createFigure(500, 900);
@@ -78,9 +72,9 @@ classdef BaseResult < nla.net.BasePermResult
                         obj.plotProbVsNetSize(net_atlas, subplot(2,1,2));
 
                         %% Matrix with significant networks marked
-                        obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED);
+                        obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), flags.fdr_correction, nla.Method.NONPERMUTED);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.prob, prob_sig, sprintf('Non-permuted Method\nNon-permuted Significance'), true, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), flags.fdr_correction, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
                     end
                 end
             end
