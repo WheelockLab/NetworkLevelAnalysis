@@ -1,4 +1,4 @@
-classdef BehaviorVec < nla.permutemethods.AbstractPermute
+classdef BehaviorVec < nla.permutationMethods.AbstractPermute
     
     methods
         

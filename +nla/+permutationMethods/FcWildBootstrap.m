@@ -1,4 +1,4 @@
-classdef FcWildBootstrap < nla.permutemethods.AbstractPermute
+classdef FcWildBootstrap < nla.permutationMethods.AbstractPermute
     
     methods
         

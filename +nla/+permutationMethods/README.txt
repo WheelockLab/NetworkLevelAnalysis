@@ -1,4 +1,4 @@
-README for adding new methods to this permutemethods class
+README for adding new methods to this permutationMethods class
 
 The goal of these objects is to implement a 'permute' method that takes an input struct and runs one random permutation on it.
 
