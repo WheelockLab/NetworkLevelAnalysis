@@ -79,19 +79,8 @@ classdef BasePermResult < nla.TestResult
                 plot_name = sprintf('%s (-log_1_0(P))', plot_name);
             end
             
-            if fdr_correction == net.FDRCorrection.DIVIDE_BY_NET_PAIRS
-                p_max = input_struct.prob_max / net_atlas.numNetPairs();
-                p_breakdown_label = sprintf('%g/%d net-pairs/%d tests', p_max * net_atlas.numNetPairs() * input_struct.behavior_count, net_atlas.numNetPairs(), input_struct.behavior_count);
-            elseif fdr_correction == net.FDRCorrection.BH
-                [~, p_max] = lib.fdr_bh(plot_prob.v, input_struct.prob_max, 'pdep');
-                p_breakdown_label = sprintf('FDR_{BH}(%g/%d tests)', input_struct.prob_max * input_struct.behavior_count, input_struct.behavior_count);
-            elseif fdr_correction == net.FDRCorrection.BY
-                [~, p_max] = lib.fdr_bh(plot_prob.v, input_struct.prob_max, 'dep');
-                p_breakdown_label = sprintf('FDR_{BY}(%g/%d tests)', input_struct.prob_max * input_struct.behavior_count, input_struct.behavior_count);
-            else
-                p_max = input_struct.prob_max;
-                p_breakdown_label = sprintf('%g/%d tests', p_max * input_struct.behavior_count, input_struct.behavior_count);
-            end
+            p_max = fdr_correction.correct(net_atlas, input_struct, plot_prob);
+            p_breakdown_label = fdr_correction.createLabel(net_atlas, input_struct, plot_prob);
             
             name_label = sprintf('%s %s\nP < %.2g (%s)', name_formatted, plot_name, p_max, p_breakdown_label);
             

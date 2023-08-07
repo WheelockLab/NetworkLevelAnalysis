@@ -80,12 +80,12 @@ classdef CohenD < nla.net.BasePermResult
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
                     num_tests = num_tests + 1;
                     sig_count_mat.v = sig_count_mat.v + (obj.d.v >= input_struct.d_max);
-                    names = [names sprintf("Full Connectome Observed %s", obj.name)];
+                    names = [names sprintf("Full Connectome Observed %s (D > %g)", obj.name, input_struct.d_max)];
                 end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
                     num_tests = num_tests + 1;
                     sig_count_mat.v = sig_count_mat.v + (obj.within_np_d.v >= input_struct.d_max);
-                    names = [names sprintf("Within Net-Pair %s", obj.name)];
+                    names = [names sprintf("Within Net-Pair %s (D > %g)", obj.name, input_struct.d_max)];
                 end
             end
         end

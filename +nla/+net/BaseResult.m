@@ -57,9 +57,9 @@ classdef BaseResult < nla.net.BasePermResult
                         obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
 
                         %% Matrix with significant networks marked
-                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.FDRCorrection.NONE, nla.Method.FULL_CONN);
+                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.correctFDR.None(), nla.Method.FULL_CONN);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.FDRCorrection.NONE, nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.correctFDR.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
                     end
                 end
             else
@@ -72,9 +72,9 @@ classdef BaseResult < nla.net.BasePermResult
                         obj.plotProbVsNetSize(net_atlas, subplot(2,1,2));
 
                         %% Matrix with significant networks marked
-                        obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), flags.fdr_correction, nla.Method.NONPERMUTED);
+                        obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), input_struct.fdr_correction, nla.Method.NONPERMUTED);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), flags.fdr_correction, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), input_struct.fdr_correction, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
                     end
                 end
             end
@@ -89,14 +89,22 @@ classdef BaseResult < nla.net.BasePermResult
             if obj.perm_count > 0
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
                     num_tests = num_tests + 1;
-                    sig_count_mat.v = sig_count_mat.v + (obj.perm_prob_ew.v < input_struct.prob_max);
-                    names = [names sprintf("Full Connectome %s", obj.name)];
+                    
+                    p_max = net.correctFDR.None.correct(net_atlas, input_struct, obj.perm_prob_ew);
+                    p_breakdown_label = net.correctFDR.None.createLabel(net_atlas, input_struct, obj.perm_prob_ew);
+                    
+                    sig_count_mat.v = sig_count_mat.v + (obj.perm_prob_ew.v < p_max);
+                    names = [names sprintf("Full Connectome %s P < %.2g (%s)", obj.name, p_max, p_breakdown_label)];
                 end
             else
                 if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
                     num_tests = num_tests + 1;
-                    sig_count_mat.v = sig_count_mat.v + (obj.prob.v < input_struct.prob_max / net_atlas.numNetPairs());
-                    names = [names sprintf("Non-Permuted %s", obj.name)];
+                    
+                    p_max = input_struct.fdr_correction.correct(net_atlas, input_struct, obj.prob);
+                    p_breakdown_label = input_struct.fdr_correction.createLabel(net_atlas, input_struct, obj.prob);
+                    
+                    sig_count_mat.v = sig_count_mat.v + (obj.prob.v < p_max);
+                    names = [names sprintf("Non-Permuted %s P < %.2g (%s)", obj.name, p_max, p_breakdown_label)];
                 end
             end
         end
