@@ -48,9 +48,9 @@ classdef CohenD < nla.net.BasePermResult
                         obj.plotValsVsNetSize(net_atlas, subplot(2,1,2), obj.d, "Full Connectome Observed Cohen's D vs. Net-Pair Size", "Cohen's D", "Cohen's D effect sizes");
 
                         %% Matrix plot
-                        gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), d_sig);
+                        gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], d_sig);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, d_sig, obj.d, 1, parula(256), name_label, true, flags.plot_type);
+                        obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, d_sig, obj.d, input_struct.d_max, [1,1,1;parula(256)], name_label, true, flags.plot_type);
                     end
                 end
                 
@@ -62,9 +62,9 @@ classdef CohenD < nla.net.BasePermResult
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Within Net-Pair statistics (withinNP)
                         fig = gfx.createFigure();
-                        [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, 0, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, parula(256), within_np_d_sig);
+                        [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], within_np_d_sig);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, within_np_d_sig, obj.within_np_d, 1, parula(256), name_label, true, flags.plot_type);
+                        obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, within_np_d_sig, obj.within_np_d, input_struct.d_max, [1,1,1;parula(256)], name_label, true, flags.plot_type);
                     end
                 end
             end

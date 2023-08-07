@@ -138,6 +138,12 @@ classdef BasePermResult < nla.TestResult
             trimat_width = 500;
             bottom_text_height = 250;
             
+            if sig_increasing
+                coeff_bounds = [plot_max, 1];
+            else
+                coeff_bounds = [0, plot_max];
+            end
+            
             %% Chord plot
             if chord_type == nla.PlotType.CHORD
                 fig = gfx.createFigure(ax_width + trimat_width, ax_width);
@@ -146,7 +152,12 @@ classdef BasePermResult < nla.TestResult
                 gfx.hideAxes(ax);
                 
                 plot_mat_norm = TriMatrix(net_atlas.numNets(), TriMatrixDiag.KEEP_DIAGONAL);
-                plot_mat_norm.v = max(0, min(plot_mat.v ./ plot_max, 1));
+                
+                if sig_increasing
+                    plot_mat_norm.v = max(plot_max, min(plot_mat.v, 1));
+                else
+                    plot_mat_norm.v = max(0, min(plot_mat.v ./ plot_max, 1));
+                end
                 
                 if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
                     thresh = -log10(input_struct.prob_max);
@@ -158,7 +169,7 @@ classdef BasePermResult < nla.TestResult
                 else
                     sig_type = gfx.SigType.DECREASING;
                 end
-                gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_type, chord_type);
+                gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
             else
                 if isfield(input_struct, 'edge_chord_plot_method')
                     edge_plot_type = input_struct.edge_chord_plot_method;
@@ -285,7 +296,7 @@ classdef BasePermResult < nla.TestResult
                 waitbar(0.95);
                 close(f)
             end
-            gfx.drawMatrixOrg(fig, 25, bottom_text_height, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            gfx.drawMatrixOrg(fig, 25, bottom_text_height, name_label, plot_mat, coeff_bounds(1), coeff_bounds(2), net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
             
             %% Plot names
             text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
