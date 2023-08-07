@@ -50,7 +50,7 @@ num_perms = size(input_struct.precalc_perm_p.v, 2);
 %% Other params
 input_struct.net_atlas = net_atlas;
 input_struct.prob_max = 0.05;
-input_struct.permute_method = nla.permutationMethods.None();
+input_struct.permute_method = nla.edge.permutationMethods.None();
 
 net_input_struct = net.genBaseInputs();
 net_input_struct.prob_max = 0.05;
