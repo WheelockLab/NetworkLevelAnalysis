@@ -48,11 +48,11 @@ classdef BaseCorrResult < nla.net.BaseResult
 
                         obj.plotWithinNetPairProbVsNetSize(net_atlas, subplot(2,2,3));
 
-                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), net.correctFDR.None(), nla.Method.WITHIN_NET_PAIR);
+                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR);
                         
-                        obj.plotProb(input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_d_sig, name_label, net.correctFDR.None(), nla.Method.WITHIN_NET_PAIR);
+                        obj.plotProb(input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, within_np_d_sig, name_label, net.correctFDR.None(), nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
                     end
                 end
             end
@@ -65,8 +65,8 @@ classdef BaseCorrResult < nla.net.BaseResult
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
                     num_tests = num_tests + 1;
                     
-                    p_max = net.correctFDR.None.correct(net_atlas, input_struct, obj.within_np_prob);
-                    p_breakdown_label = net.correctFDR.None.createLabel(net_atlas, input_struct, obj.within_np_prob);
+                    p_max = input_struct.fdr_correction.correct(net_atlas, input_struct, obj.within_np_prob);
+                    p_breakdown_label = input_struct.fdr_correction.createLabel(net_atlas, input_struct, obj.within_np_prob);
                     
                     sig_count_mat.v = sig_count_mat.v + (obj.within_np_prob.v < p_max) & (obj.within_np_d.v >= input_struct.d_max);
                     names = [names sprintf("Within Net-Pair %s P < %.2g (D > %g) (%s)", obj.name, p_max, input_struct.d_max, p_breakdown_label)];
