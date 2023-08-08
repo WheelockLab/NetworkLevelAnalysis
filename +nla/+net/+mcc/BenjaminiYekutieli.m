@@ -1,4 +1,4 @@
-classdef BenjaminiYekutieli < nla.net.correctFDR.Base
+classdef BenjaminiYekutieli < nla.net.mcc.Base
     properties (Constant)
         name = "Benjamini-Yekutieli"
     end

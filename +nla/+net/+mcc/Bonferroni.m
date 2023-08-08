@@ -1,4 +1,4 @@
-classdef Bonferroni < nla.net.correctFDR.Base
+classdef Bonferroni < nla.net.mcc.Base
     properties (Constant)
         name = "Bonferroni"
     end
