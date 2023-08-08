@@ -138,7 +138,7 @@ classdef BasePermResult < nla.TestResult
             trimat_width = 500;
             bottom_text_height = 250;
             
-            if sig_increasing
+            if sig_increasing && plot_max < 1
                 coeff_bounds = [plot_max, 1];
             else
                 coeff_bounds = [0, plot_max];
@@ -151,14 +151,6 @@ classdef BasePermResult < nla.TestResult
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width, ax_width]);
                 gfx.hideAxes(ax);
                 
-                plot_mat_norm = TriMatrix(net_atlas.numNets(), TriMatrixDiag.KEEP_DIAGONAL);
-                
-                if sig_increasing
-                    plot_mat_norm.v = max(plot_max, min(plot_mat.v, 1));
-                else
-                    plot_mat_norm.v = max(0, min(plot_mat.v ./ plot_max, 1));
-                end
-                
                 if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
                     thresh = -log10(input_struct.prob_max);
                     plot_mat_norm.v(plot_mat.v < thresh) = 0;
@@ -169,7 +161,7 @@ classdef BasePermResult < nla.TestResult
                 else
                     sig_type = gfx.SigType.DECREASING;
                 end
-                gfx.drawChord(ax, 500, net_atlas, plot_mat_norm, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
+                gfx.drawChord(ax, 500, net_atlas, plot_mat, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
             else
                 if isfield(input_struct, 'edge_chord_plot_method')
                     edge_plot_type = input_struct.edge_chord_plot_method;
