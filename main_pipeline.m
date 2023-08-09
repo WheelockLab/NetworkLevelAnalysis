@@ -11,7 +11,7 @@ tests.net_tests = genTests('net.test');
 % tests.edge_test = edge.test.Spearman();
 % tests.edge_test = edge.test.SpearmanEstimator();
 % tests.edge_test = edge.test.Pearson();
-% tests.edge_test = edge.test.Kendall();
+% tests.edge_test = edge.test.KendallB();
 % tests.edge_test = edge.test.WelchT(); % requires boolean 'in/outgroup' vector to be passed in as behavior
 
 % Example: Appending another net-level test
