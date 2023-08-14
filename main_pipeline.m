@@ -108,4 +108,4 @@ results.output();
 
 %% Save results
 % Should be able to visualize this result file by loading it into the GUI
-save('myresults.mat', 'results');
+results.to_file('myresults.mat');
