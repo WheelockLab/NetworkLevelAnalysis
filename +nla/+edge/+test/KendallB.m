@@ -13,7 +13,8 @@ classdef KendallB < nla.edge.BaseTest
         end
         
         function result = run(obj, input_struct)
-            [tau_vec, p_vec] = corr(input_struct.behavior, input_struct.func_conn.v', 'type', 'Kendall');
+            import nla.* % required due to matlab package system quirks
+            [tau_vec, p_vec] = mex.run('kendallTauB', input_struct.behavior, input_struct.func_conn.v');
             result = obj.composeResult(tau_vec', p_vec', input_struct.prob_max);
         end
     end
