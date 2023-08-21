@@ -1,6 +1,5 @@
 classdef KendallB < nla.edge.BaseTest
     %KENDALL Edge-level Kendall's tau
-    %   Very slow
     properties (Constant)
         name = "Kendall's tau-b"
         coeff_name = "Kendall's tau-b"
