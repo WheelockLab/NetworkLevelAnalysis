@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 
+
 // 2-tuple struct for sorting paired values
 struct Vec2 {
     double x;
@@ -145,7 +146,7 @@ static void delete(struct Node *node) {
 }
 
 // find node corresponding to val, set to 1, and return count
-int countAndZero(struct Node *node, double val) {
+int countAndReset(struct Node *node, double val) {
     if (!node) {
         return 0;
     }
@@ -155,9 +156,9 @@ int countAndZero(struct Node *node, double val) {
         return tmp;
     }
     if (val > node->val) {
-        return countAndZero(node->right, val);
+        return countAndReset(node->right, val);
     } else {
-        return countAndZero(node->left, val);
+        return countAndReset(node->left, val);
     }
 }
 
@@ -170,7 +171,7 @@ int min(int x, int y) {
 }
 
 static void kendallTauB(const double x[], const double y[], double *tau_ptr, double *p_ptr, const int num_subs) {
-    /* kendallTauB: Implementation of fast Kendall tau-b algorithm, as
+    /* kendallTauB: Loosely based on fast Kendall tau-b algorithm, as
      * described in http://dx.doi.org/10.1007/BF02736122.
      *  x: array of values to correlate
      *  y: array of values to correlate
@@ -232,13 +233,13 @@ static void kendallTauB(const double x[], const double y[], double *tau_ptr, dou
     // summations for calculating p (destructive effect on trees)
     int vt = 0, vu = 0, v2x = 0, v2y = 0;
     for (int i = 0; i < num_subs; ++i) {
-        int count_x = countAndZero(tree_x, tuples[i].x);
+        int count_x = countAndReset(tree_x, tuples[i].x);
         if (count_x > 1) {
             int count_x2 = count_x * (count_x - 1);
             vt += count_x2 * (2 * count_x + 5);
             v2x += count_x2 * (count_x - 2);
         }
-        int count_y = countAndZero(tree_y, tuples[i].y);
+        int count_y = countAndReset(tree_y, tuples[i].y);
         if (count_y > 1) {
             int count_y2 = count_y * (count_y - 1);
             vu += count_y2 * (2 * count_y + 5);
@@ -257,7 +258,7 @@ static void kendallTauB(const double x[], const double y[], double *tau_ptr, dou
     long double k = concordant - discordant;
     // if memory was passed for tau, output it
     if (tau_ptr) {
-        *tau_ptr = k / sqrt((num_pairs - tied_x) * (num_pairs - tied_y));
+        *tau_ptr = k / sqrt((long double)((num_pairs - tied_x) * (num_pairs - tied_y)));
     }
     // if memory was passed for p-value, output it
     if (p_ptr) {
