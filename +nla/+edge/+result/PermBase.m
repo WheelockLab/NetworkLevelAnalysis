@@ -18,6 +18,10 @@ classdef PermBase < handle
             
         end
         
+        function output(obj, net_atlas, flags, prob_label)
+            % placeholder in case a subclass needs it
+        end
+        
         % merge results from a different PermBase object into this one
         function merge(obj, results)
             for j = 1:numel(results)                
