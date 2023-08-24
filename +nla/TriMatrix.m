@@ -21,8 +21,18 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
             import nla.* % required due to matlab package system quirks
             full_dims = size(obj.v);
             dims = full_dims(2:end);
-            if isempty(dims)
-                dims = 1;
+        end
+        
+        function count = numElementDims(obj)
+            dims = size(obj.v);
+            if numel(dims) == 2
+                if dims(2) == 1
+                    count = 0; % scalar
+                else
+                    count = 1;
+                end
+            else
+                count = ndims(obj.v);
             end
         end
         
@@ -117,17 +127,15 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
         end
         
         function newTriMatrix = makeCopyFromSubset(obj, colsToCopy)
-            
             %Make properly sized triMatrix with empty values
+            import nla.* % required due to matlab package system quirks
             newTriMatrix = nla.TriMatrix(obj.size, obj.diag_offset);
-            
             newTriMatrix.v = obj.v(:,colsToCopy);
-            
         end
         
         function returned = get(obj, row, col)
-            import nla.* % required due to matlab package system quirks
             % Return the elements at the given indices. The vector of
+            import nla.* % required due to matlab package system quirks
             indexes = obj.index(row, col);
             returned = obj.v(indexes, :);
             returned = squeeze(reshape(returned, [size(indexes, 1), obj.elementDims()]));
@@ -135,11 +143,21 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
         
         function set(obj, row, col, value)
             import nla.* % required due to matlab package system quirks
-            % Set the element at the index to the given value. The vector of
-            % colons is a matlab thing which allows values/elements to be
-            % multidimensional, ex: setting one matrix in a TriMatrix of matrices
-            element_dimslice = repmat({':'}, 1, ndims(obj.v) - 1);
-            obj.v(obj.index(row, col), element_dimslice{:}) = value;
+            % Set the element at the index to the given value.
+            % N-dimensional indexing is relatively slow so we handle common
+            % cases specially
+            num_dims = obj.numElementDims();
+            if num_dims == 0
+                obj.v(obj.index(row, col)) = value; % scalar elements
+            elseif num_dims == 1
+                obj.v(obj.index(row, col), :) = value; % vector elements
+            elseif num_dims == 2
+                obj.v(obj.index(row, col), :) = value; % matrix elements
+            else
+                % n-dimensional elements
+                element_dimslice = repmat({':'}, 1, ndims(obj.v) - 1);
+                obj.v(obj.index(row, col), element_dimslice{:}) = value;
+            end
         end
         
         function returned = asMatrix(obj)
@@ -159,11 +177,6 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
             
             % Reshape the matrix to the correct dimensions
             returned = reshape(returned, [obj.size, obj.size, obj.elementDims()]);
-            
-            % crop off top row which is empty as we removed the upper triangle and diagonal
-            %returned = returned(2:end, :, :, :);
-            % actually, leave it, as it means repeatedly making TriMatrices
-            % from asMatrix outputs doesn't change the contents
         end
         
         function num = numElements(obj)
