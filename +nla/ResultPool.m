@@ -9,12 +9,11 @@ classdef ResultPool
         net_results
         perm_edge_result
         perm_net_results
-        perm_seed
         version
     end
     
     methods
-        function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results, perm_seed)
+        function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results)
             import nla.* % required due to matlab package system quirks
             obj.input_struct = input_struct;
             obj.net_input_struct = net_input_struct;
@@ -23,7 +22,6 @@ classdef ResultPool
             obj.perm_edge_result = perm_edge_result;
             obj.net_results = net_results;
             obj.perm_net_results = perm_net_results;
-            obj.perm_seed = perm_seed;
             obj.version = VERSION;
         end
         

@@ -20,17 +20,12 @@ classdef Precalculated < nla.edge.BaseTest
                 p_vec = input_struct.precalc_perm_p.v(:, input_struct.iteration);
             end
             
-            fcEdges = length(r_vec);
-            fcSquareEdgeSize = (1 + sqrt(1 + 8*fcEdges)) / 2;
-            
-            result = nla.edge.result.Precalculated(fcSquareEdgeSize, input_struct.prob_max);
-            result.name = obj.name;
-            result.coeff_name = obj.coeff_name;
-            result.coeff_range = [input_struct.coeff_min, input_struct.coeff_max];
-            result.coeff.v = r_vec;
-            result.prob.v = ~p_vec; % p_vec is significance, invert it to get "p-value" (constrained 0-1, decreasing significance)
+            result = nla.edge.result.Precalculated(input_struct.net_atlas.numROIs(), input_struct.prob_max);
+            % p_vec is significance, invert it to get "p-value" (constrained 0-1, decreasing significance)
+            obj.setResultFields(result, r_vec, ~p_vec, input_struct.prob_max);
             result.prob_sig.v = p_vec;
             result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
+            result.coeff_range = [input_struct.coeff_min, input_struct.coeff_max];
         end
     end
     

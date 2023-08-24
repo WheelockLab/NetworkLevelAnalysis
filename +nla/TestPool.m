@@ -21,29 +21,23 @@ classdef TestPool < nla.DeepCopyable
         end
         
         function result = runPerm(obj, input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
-            
+            if ~exist('perm_seed', 'var')
+                perm_seed = false;
+            end
+            edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
+            net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, net_results_nonperm, edge_results_perm, edge_result_nonperm);
+            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
+        end
+        
+        function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
             % Optional perm_seed parameter for replicating runs. If not
             % passed in, is set from current date/time and thus will
             % produce different results, assuming you don't run it twice at
             % the same time
-            if ~exist('perm_seed', 'var')
+            if ~exist('perm_seed', 'var') || islogical(perm_seed)
                 rng(posixtime(datetime()));
                 perm_seed = randi(intmax('uint32'), 'uint32');
             end
-            
-                        
-            edge_level_result = obj.runPermutedEdgeTest(input_struct, num_perms, perm_seed);
-            
-            net_level_results = obj.runNetTestsOnPermutedEdgeResults(...
-                                        net_input_struct, net_atlas, net_results_nonperm, edge_level_result, edge_result_nonperm);
-            
-            
-            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_level_result, net_level_results, perm_seed);
-            
-        end
-        
-        
-        function permEdgeResults = runPermutedEdgeTest(obj, input_struct, num_perms, perm_seed)
             
             % get current parallel pool or start a new one
             p = gcp;
@@ -57,29 +51,26 @@ classdef TestPool < nla.DeepCopyable
                 blocks = uint32(linspace(1, num_perms + 1, num_procs + 1));
             end
             
-            allEdgeResProcBlocks = cell(1, num_procs);
+            edge_result_blocks = cell(1, num_procs);
             parfor proc = 1:num_procs
-                
                 % it may be possible to wrap these up into a reduction w/ custom func(merge)
                 % and eliminate the chunk merging step
-                thisProcEdgeResults = obj.runEdgePermSingleProc(input_struct, blocks(proc), blocks(proc+1), perm_seed);
-                allEdgeResProcBlocks{proc} = thisProcEdgeResults;
-                
+                edge_result = obj.runEdgeTestPermBlock(input_struct, blocks(proc), blocks(proc+1), perm_seed);
+                edge_result_blocks{proc} = edge_result;
             end
 
             % merge edge level result chunks
-            permEdgeResults = allEdgeResProcBlocks{1}.copy();
+            edge_result_perm = edge_result_blocks{1}.copy();
             if num_procs > 1
-                permEdgeResults.merge(allEdgeResProcBlocks(2:end));
+                edge_result_perm.merge(edge_result_blocks(2:end));
             end
-            
+            edge_result_perm.perm_seed = perm_seed;
         end
         
-        function net_level_results = runNetTestsOnPermutedEdgeResults(obj, net_input_struct, net_atlas, net_results_nonperm, perm_edge_results, edge_result_nonperm)
+        function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, net_results_nonperm, perm_edge_results, edge_result_nonperm)
             % get current parallel pool or start a new one
             p = gcp;
             num_procs = p.NumWorkers;
-            
             num_perms = perm_edge_results.perm_count;
             
             % blocks of iteration to be handled by each process
@@ -90,8 +81,7 @@ classdef TestPool < nla.DeepCopyable
                 blocks = uint32(linspace(1, double(num_perms + 1), num_procs + 1));
             end
             
-            %split permuted edge results into blocks for each worker to
-            %process
+            % split permuted edge results into a 'block' for each worker
             allEdgeResBlocks = cell(num_procs, 1);
             for proc = 1:num_procs
                 thisBlockIdxs = blocks(proc):(blocks(proc+1)-1);
@@ -103,7 +93,7 @@ classdef TestPool < nla.DeepCopyable
                 for i = 1:numNetTests(obj)
                     net_result_block{i} = copy(net_results_nonperm{i});
                 end
-                obj.runNetTestsOnPermEdgeProcBlock(net_input_struct, net_atlas, net_result_block, allEdgeResBlocks{proc}, blocks(proc), blocks(proc+1));
+                obj.runNetTestsPermBlock(net_input_struct, net_atlas, net_result_block, allEdgeResBlocks{proc}, blocks(proc), blocks(proc+1));
                 net_result_blocks{proc} = net_result_block;
             end
             
@@ -117,13 +107,11 @@ classdef TestPool < nla.DeepCopyable
                 net_level_results{test_index} = cur_test_net_results{1};
                 net_level_results{test_index}.merge(net_input_struct, edge_result_nonperm, perm_edge_results, net_atlas, {cur_test_net_results{2:end}});
             end
-            
-            
         end
         
-        function edgePermRes = runEdgePermSingleProc(obj, input_struct, block_start, block_end, perm_seed)
-                        
-            edgePermRes = nla.edge.result.PermBase();
+        function edge_result_perm = runEdgeTestPermBlock(obj, input_struct, block_start, block_end, perm_seed)
+            % set permutation method
+            edge_result_perm = nla.edge.result.PermBase();
             
             for iteration = block_start:block_end - 1
                 % set RNG per-iteration based on the random seed and
@@ -133,8 +121,9 @@ classdef TestPool < nla.DeepCopyable
                 rng(bitxor(perm_seed, iteration));
                 permuted_input = input_struct.permute_method.permute(input_struct);
                 permuted_input.iteration = iteration;
-                thisEdgeRes = obj.runEdgeTest(permuted_input);
-                edgePermRes.addSingleEdgeResult(thisEdgeRes);
+                
+                single_edge_result = obj.runEdgeTest(permuted_input);
+                edge_result_perm.addSingleEdgeResult(single_edge_result);
                 
                 if ~islogical(obj.data_queue)
                     send(obj.data_queue, iteration);
@@ -142,8 +131,7 @@ classdef TestPool < nla.DeepCopyable
             end
         end
         
-        function previous_net_results = runNetTestsOnPermEdgeProcBlock(obj, net_input_struct, net_atlas, previous_net_results, perm_edge_results, block_start, block_end)
-            
+        function previous_net_results = runNetTestsPermBlock(obj, net_input_struct, net_atlas, previous_net_results, perm_edge_results, block_start, block_end)
             for iteration_within_block = 1:perm_edge_results.perm_count
                 previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
                 net_input_struct.iteration = block_start + iteration_within_block - 1;
@@ -152,7 +140,6 @@ classdef TestPool < nla.DeepCopyable
                     send(obj.data_queue, iteration_within_block);
                 end
             end
-            
         end
                 
         
@@ -176,8 +163,6 @@ classdef TestPool < nla.DeepCopyable
                 net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas, previous_result);
             end
         end
-
-        
         
         function val = numNetTests(obj)
             val = numel(obj.net_tests);

@@ -13,7 +13,7 @@ classdef WelchT < nla.edge.BaseTest
             obj@nla.edge.BaseTest();
         end
         
-        function result = run(obj, input_struct, previous_result)
+        function result = run(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             % This function calculates the t-test between 2 sets of data using the
             % Welch method that does not assume equal mean or variance or samples. The
@@ -36,19 +36,12 @@ classdef WelchT < nla.edge.BaseTest
             % Non-permuted
             group_names = {input_struct.group1_name, input_struct.group2_name};
             result = nla.edge.result.WelchT(input_struct.func_conn.size, input_struct.prob_max, group_names);
-            
-            result.name = obj.name;
-            result.coeff_name = obj.coeff_name;
-            
-            % Transpose to column vectors, and return
-            result.prob.v = p_vec;
-            result.coeff.v = t_vec;
+            obj.setResultFields(result, t_vec, p_vec, input_struct.prob_max);
             result.dof.v = dof_vec;
-            % result.prob_sig.v = (result.prob.v < obj.prob_max);
+            
             % Have to divide by 2 to get 2 tailed probability
             t_sig = tinv(1 - (input_struct.prob_max / 2), total_size - 2);
-            result.prob_sig.v = (abs(t_vec) > t_sig);            
-            
+            result.prob_sig.v = (abs(t_vec) > t_sig);
             result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
         end
     end

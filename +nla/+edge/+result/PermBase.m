@@ -6,24 +6,20 @@ classdef PermBase < handle
         coeff = []
         prob = []
         prob_sig = []
+        perm_seed
     end
     
     properties (Access = protected)
-        
         lastResultIdx = 0;
-        
     end
     
     methods
-        
         function obj = PermBase()
             
         end
         
         % merge results from a different PermBase object into this one
         function merge(obj, results)
-            
-            
             for j = 1:numel(results)                
                 obj.coeff.v = [obj.coeff.v,results{j}.coeff.v];
                 obj.prob.v = [obj.prob.v, results{j}.prob.v];
@@ -36,7 +32,6 @@ classdef PermBase < handle
         end
         
         function addSingleEdgeResult(obj, edgeResult)
-            
             obj.perm_count = obj.perm_count + 1;
             
             %If this is first result, initialize our trimatrices from that
@@ -56,11 +51,9 @@ classdef PermBase < handle
             obj.avg_prob_sig(idxToAdd) = sum(edgeResult.prob_sig.v) ./ numel(edgeResult.prob_sig.v);
             
             obj.lastResultIdx = obj.lastResultIdx + 1;
-            
         end
         
         function preallocForNPermutations(obj, numExpectedPermutations)
-            
             currNumResults = size(obj.coeff.v,2);
             
             emptyColsToAdd = numExpectedPermutations - currNumResults;
@@ -71,11 +64,9 @@ classdef PermBase < handle
                 obj.prob.v = [obj.prob.v, zeros(elemsPerCol, emptyColsToAdd)];
                 obj.prob_sig.v = [obj.prob_sig.v, zeros(elemsPerCol, emptyColsToAdd)];
             end
-            
         end
         
         function copyObj = copy(obj)
-            
             copyObj = nla.edge.result.PermBase();
             
             copyObj.avg_prob_sig = obj.avg_prob_sig;
@@ -100,18 +91,6 @@ classdef PermBase < handle
             result_subset.coeff.v = obj.coeff.v(:,indices);
             result_subset.prob.v = obj.prob.v(:,indices);
             result_subset.prob_sig.v = obj.prob_sig.v(:,indices);
-            
         end
-        
-        function output(obj, net_atlas, flags)
-            %nla.edge.result.Base wants permuted edge results to
-            %support an 'output' function, but currently does nothing.
-            %
-            %Determine if this function is a placeholder for future
-            %functionality, or can be deleted
-            
-        end
-        
     end
-    
 end
