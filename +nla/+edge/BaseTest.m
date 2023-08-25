@@ -12,12 +12,12 @@ classdef BaseTest < nla.Test
     end
     
     methods (Access = protected)
-        function result = composeResult(obj, rho_vec, p_vec, prob_max)
-            result = nla.edge.result.Base(nla.helpers.triNumInv(rho_vec), prob_max);
-            obj.setResultFields(result, obj, rho_vec, p_vec, prob_max);
+        function result = composeResult(obj, net_atlas, rho_vec, p_vec, prob_max)
+            result = nla.edge.result.Base(net_atlas.numROIs(), prob_max);
+            obj.setResultFields(net_atlas, result, rho_vec, p_vec, prob_max);
         end
         
-        function result = setResultFields(obj, result, rho_vec, p_vec, prob_max)
+        function result = setResultFields(obj, net_atlas, result, rho_vec, p_vec, prob_max)
             result.name = obj.name;
             result.coeff_name = obj.coeff_name;
             result.coeff.v = rho_vec;

@@ -36,7 +36,7 @@ classdef WelchT < nla.edge.BaseTest
             % Non-permuted
             group_names = {input_struct.group1_name, input_struct.group2_name};
             result = nla.edge.result.WelchT(input_struct.func_conn.size, input_struct.prob_max, group_names);
-            obj.setResultFields(result, t_vec, p_vec, input_struct.prob_max);
+            obj.setResultFields(input_struct.net_atlas, result, t_vec, p_vec, input_struct.prob_max);
             result.dof.v = dof_vec;
             
             % Have to divide by 2 to get 2 tailed probability

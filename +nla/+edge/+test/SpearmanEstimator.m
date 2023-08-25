@@ -78,7 +78,7 @@ classdef SpearmanEstimator < nla.edge.BaseTest
             ok = (abs(rho_vec) < 1);
             t(ok) = rho_vec(ok) .* sqrt((n - 2) ./ (1 - rho_vec(ok) .^ 2));
             
-            result = obj.composeResult(fisherR2Z(rho_vec), (2 * tcdf(-abs(t), n - 2)), input_struct.prob_max);
+            result = obj.composeResult(input_struct.net_atlas, fisherR2Z(rho_vec), (2 * tcdf(-abs(t), n - 2)), input_struct.prob_max);
         end
     end
 end

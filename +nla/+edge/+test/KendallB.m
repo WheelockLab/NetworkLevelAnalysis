@@ -14,7 +14,7 @@ classdef KendallB < nla.edge.BaseTest
         function result = run(obj, input_struct)
             import nla.* % required due to matlab package system quirks
             [tau_vec, p_vec] = mex.run('kendallTauB', input_struct.behavior, input_struct.func_conn.v');
-            result = obj.composeResult(tau_vec', p_vec', input_struct.prob_max);
+            result = obj.composeResult(input_struct.net_atlas, tau_vec', p_vec', input_struct.prob_max);
         end
     end
 end

@@ -22,7 +22,7 @@ classdef Precalculated < nla.edge.BaseTest
             
             result = nla.edge.result.Precalculated(input_struct.net_atlas.numROIs(), input_struct.prob_max);
             % p_vec is significance, invert it to get "p-value" (constrained 0-1, decreasing significance)
-            obj.setResultFields(result, r_vec, ~p_vec, input_struct.prob_max);
+            obj.setResultFields(input_struct.net_atlas, result, r_vec, ~p_vec, input_struct.prob_max);
             result.prob_sig.v = p_vec;
             result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
             result.coeff_range = [input_struct.coeff_min, input_struct.coeff_max];
