@@ -28,14 +28,7 @@ classdef CohenD < nla.net.BaseCorrTest
             
             % if a previous result is passed in, add on to it
             if previous_result ~= false
-                result = previous_result;
-                
-                result.perm_rank.v = result.perm_rank.v + uint64(d.v >= result.d.v - ACCURACY_MARGIN);
-                
-                for i = 1:net_atlas.numNetPairs()
-                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(d.v >= result.d.v(i) - ACCURACY_MARGIN));
-                end
-                result.perm_count = result.perm_count + 1;
+                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.d, false, d, false, false, false, false, false);
             else
                 result = net.result.CohenD(num_nets);
                 result.d = d;

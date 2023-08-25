@@ -45,33 +45,7 @@ classdef WelchT < nla.net.BaseCorrTest
             
             % if a previous result is passed in, add on to it
             if previous_result ~= false
-                result = previous_result;
-                
-                % rank either test statistic or p-values
-                if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                    sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v) - ACCURACY_MARGIN;
-                    ss_sig_gt_nonpermuted = abs(ss_t.v) >= abs(result.ss_t.v) - ACCURACY_MARGIN;
-                else
-                    sig_gt_nonpermuted = prob.v <= result.prob.v + ACCURACY_MARGIN;
-                    ss_sig_gt_nonpermuted = ss_prob.v <= result.ss_prob.v + ACCURACY_MARGIN;
-                end
-                result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
-                result.within_np_rank.v = result.within_np_rank.v + uint64(ss_sig_gt_nonpermuted);
-                
-                for i = 1:net_atlas.numNetPairs()
-                    % Similar to the previous ranking, but experiment-wide
-                    % Code is subtly different from previous usage, 
-                    % refactor with care.
-                    if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                        sig_gt_nonpermuted = abs(t.v) >= abs(result.t.v(i)) - ACCURACY_MARGIN;
-                    else
-                        sig_gt_nonpermuted = prob.v <= result.prob.v(i) + ACCURACY_MARGIN;
-                    end
-                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(sig_gt_nonpermuted));
-                end
-                
-                result.perm_prob_hist = result.perm_prob_hist + uint32(histcounts(prob.v, HistBin.EDGES)');
-                result.perm_count = result.perm_count + 1;
+                result = obj.rank(net_atlas, previous_result, input_struct, @helpers.abs_ge, previous_result.t, previous_result.prob, t, prob, previous_result.ss_t, previous_result.ss_prob, ss_t, ss_prob);
             else
                 result = net.result.WelchT(num_nets);
                 result.prob = prob;

@@ -49,39 +49,9 @@ classdef ChiSquared < nla.net.BaseSigTest
             prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             prob.v = chi2cdf(chi2.v, 1, 'upper');
             
-            % If a previous non-permuted result is passed in, this is a
-            % permutation.
+            % If a previous non-permuted result is passed in, add on to it
             if previous_result ~= false
-                result = previous_result;
-                
-                % Sum the number of permutations which produce a Chi stat
-                % equal to or greater than the non-permuted Chi stat.
-                % We will later divide this by the total number of
-                % permutations to calculate the p value.
-                % Fisher, R.A. (1935) The Design of Experiments, New York: Hafner
-                if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                    sig_gt_nonpermuted = chi2.v >= result.chi2.v - ACCURACY_MARGIN;
-                else
-                    sig_gt_nonpermuted = prob.v <= result.prob.v + ACCURACY_MARGIN;
-                end
-                result.perm_rank.v = result.perm_rank.v + uint64(sig_gt_nonpermuted);
-                result.within_np_rank.v = result.within_np_rank.v + uint64(sig_gt_nonpermuted);
-                
-                for i = 1:net_atlas.numNetPairs()
-                    % Similar to the previous ranking, but experiment-wide
-                    % (ranking a network's Chi stat among all permutations
-                    % of all networks). Code is subtly different from
-                    % previous usage, refactor with care.
-                    if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
-                        sig_gt_nonpermuted = chi2.v >= result.chi2.v(i) - ACCURACY_MARGIN;
-                    else
-                        sig_gt_nonpermuted = prob.v <= result.prob.v(i) + ACCURACY_MARGIN;
-                    end
-                    result.perm_rank_ew.v(i) = result.perm_rank_ew.v(i) + sum(uint64(sig_gt_nonpermuted));
-                end
-                
-                result.perm_prob_hist = result.perm_prob_hist + uint32(histcounts(prob.v, HistBin.EDGES)');
-                result.perm_count = result.perm_count + 1;
+                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.chi2, previous_result.prob, chi2, prob, previous_result.chi2, previous_result.prob, chi2, prob);
             else
                 result = net.result.ChiSquared(num_nets);
                 result.chi2 = chi2;
