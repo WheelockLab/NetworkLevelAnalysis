@@ -119,22 +119,18 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
             for b_idx = 1:numel(b_indexes)
                 b = b_indexes(b_idx);
                 if a < b
-                    val = edge_result.coeff.get(b, a);
-                    if fc_exists
-                        fc_val = mean(edge_input_struct.func_conn.get(b, a));
-                    else
-                        fc_val = false;
-                    end
+                    n1 = b;
+                    n2 = a;
                 else
-                    val = edge_result.coeff.get(a, b);
-                    if fc_exists
-                        fc_val = mean(edge_input_struct.func_conn.get(a, b));
-                    else
-                        fc_val = false;
-                    end
+                    n1 = a;
+                    n2 = b;
                 end
+                
+                [val, ~, fc_vals, ~] = get_coeffs(n1, n2);
+                fc_val = mean(fc_vals);
+                
                 if ~isempty(val)
-                    col = valsToColor(val, fc_val, color_map, color_map_p, color_map_n, color_fc, llimit, ulimit);
+                    col = valsToColor(val, fc_val, color_map, color_map_p, color_map_n, color_fc && fc_exists, llimit, ulimit);
                     col = [reshape(col, [1, 3]), 0.5];
                     p = plot3([ROI_pos(a, 1), ROI_pos(b, 1)], [ROI_pos(a, 2), ROI_pos(b, 2)], [ROI_pos(a, 3), ROI_pos(b, 3)], 'Color', col, 'LineWidth', 5);
                     p.Annotation.LegendInformation.IconDisplayStyle = 'off';
