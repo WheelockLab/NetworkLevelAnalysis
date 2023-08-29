@@ -155,7 +155,8 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             for y_iter = 1:num_nets
                 for x_iter = 1:y_iter
                     net_coords = net_dims(x_iter, y_iter, :);
-                    if coords(1) >= net_coords(1) && coords(1) <= net_coords(2) && coords(2) >= net_coords(3) && coords(2) <= net_coords(4)
+                    click_padding = 1;
+                    if (coords(1) >= net_coords(1) - click_padding) && (coords(1) <= net_coords(2) + click_padding) && (coords(2) >= net_coords(3) - click_padding) && (coords(2) <= net_coords(4) + click_padding)
                         % call callback using clicked network
                         net_clicked_callback(y_iter, x_iter);
                     end
@@ -163,7 +164,14 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             end
         end
     end
-    image_display.ButtonDownFcn = @clickedCallback;
+
+    function addCallback(x)
+        if ~isequal(net_clicked_callback, false)
+            x.ButtonDownFcn = @clickedCallback;
+        end
+    end
+
+    addCallback(image_display);
     
     % Set limits of axes
     ax.XLim = [0 image_display.XData(2)];
@@ -226,9 +234,12 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             if ~isequal(marked_networks, false) && (marked_networks(y,x) == true)
                 cx = x_pos + (chunk_w / 2);
                 cy = y_pos + (chunk_h / 2);
-                
                 hold(ax, 'on');
-                plot(ax, cx, cy, 'x', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
+                marker_h = plot(ax, cx, cy, 'x', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
+                
+                if ~isequal(net_clicked_callback, false)
+                    marker_h.ButtonDownFcn = @clickedCallback;
+                end
             end
             
             % store network bounds for later use
@@ -237,13 +248,13 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             end
             
             % draw lines left of and below each chunk
-            gfx.drawLine(ax, [x_pos - 1, x_pos - 1], [y_pos, y_pos + chunk_h + 1]);
-            gfx.drawLine(ax, [x_pos - 2, x_pos + chunk_w - 1], [y_pos + chunk_h, y_pos + chunk_h]);
+            addCallback(gfx.drawLine(ax, [x_pos - 1, x_pos - 1], [y_pos, y_pos + chunk_h + 1]));
+            addCallback(gfx.drawLine(ax, [x_pos - 2, x_pos + chunk_w - 1], [y_pos + chunk_h, y_pos + chunk_h]));
             
             % draw on-diagonal boundary lines for network matrices
             if x == x_max && mat_type == gfx.MatrixType.TRIMATRIX && network_matrix
-                gfx.drawLine(ax, [x_pos + chunk_w, x_pos + chunk_w], [y_pos - 1, y_pos + chunk_h + 1]);
-                gfx.drawLine(ax, [x_pos - 2, x_pos + chunk_w], [y_pos - 1, y_pos - 1]);
+                addCallback(gfx.drawLine(ax, [x_pos + chunk_w, x_pos + chunk_w], [y_pos - 1, y_pos + chunk_h + 1]));
+                addCallback(gfx.drawLine(ax, [x_pos - 2, x_pos + chunk_w], [y_pos - 1, y_pos - 1]));
             end
             
             % draw bottom labels
@@ -255,9 +266,9 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
                 
                 image_display.CData(top:bot, left:right, :) = gfx.colorChunk(networks(x).color, label_size + 1, chunk_w + 1);
                 
-                gfx.drawLine(ax, [left - 1, left - 1], [top, bot]);
-                gfx.drawLine(ax, [right, right], [top, bot]);
-                gfx.drawLine(ax, [left - 1, right], [bot, bot]);
+                addCallback(gfx.drawLine(ax, [left - 1, left - 1], [top, bot]));
+                addCallback(gfx.drawLine(ax, [right, right], [top, bot]));
+                addCallback(gfx.drawLine(ax, [left - 1, right], [bot, bot]));
             end
             
             x_pos = x_pos + chunk_w + 1;

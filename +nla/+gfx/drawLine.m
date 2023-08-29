@@ -1,4 +1,4 @@
-function drawLine(ax, x, y, col)
+function h = drawLine(ax, x, y, col)
     %DRAWLINE Draw line segment between two points
     %   ax: axes to draw on
     %   x: x-y position of beginning point
@@ -6,6 +6,6 @@ function drawLine(ax, x, y, col)
     %   col: optional color
     if ~exist('col', 'var'), col = 'k'; end
     hold(ax, 'on');
-    plot(ax, x, y, 'Color', col);
+    h = plot(ax, x, y, 'Color', col);
 end
 
