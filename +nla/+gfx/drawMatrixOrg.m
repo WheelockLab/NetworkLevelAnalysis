@@ -25,7 +25,6 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     
     %% Parameters    
     if ~exist('color_map', 'var'), color_map = turbo(256); end
-    color_scale = size(color_map, 1);
     if ~exist('marked_networks', 'var'), marked_networks = false; end
     if ~exist('discrete_colorbar', 'var'), discrete_colorbar = false; end
     if ~exist('net_clicked_callback', 'var'), net_clicked_callback = false; end
@@ -219,8 +218,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             
             % fill chunk of image
             chunk_raw = matrix(y_ind, x_ind);
-            chunk_indexed = int32(helpers.normClipped(chunk_raw, llimit, ulimit) * color_scale);
-            chunk = ind2rgb(chunk_indexed, color_map);
+            chunk = gfx.valToColor(chunk_raw, llimit, ulimit, color_map);
             
             chunk(isnan(chunk_raw)) = NaN; % duplicate NaNs removed by colormapping process
             

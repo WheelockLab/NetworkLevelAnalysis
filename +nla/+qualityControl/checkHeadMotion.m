@@ -40,8 +40,7 @@ function checkHeadMotion(fig, input_struct, motion)
                 pos1 = input_struct.net_atlas.ROIs(row).pos;
                 pos2 = input_struct.net_atlas.ROIs(col).pos;
                 
-                edge_val_indexed = int32(helpers.normClipped(r.get(row, col), llimit, ulimit) * color_scale);
-                edge_color = ind2rgb(edge_val_indexed, color_map);
+                edge_color = gfx.valToColor(r.get(row, col), llimit, ulimit, color_map);
                 
                 p = plot3([pos1(1), pos2(1)], [pos1(2), pos2(2)], [pos1(3), pos2(3)], 'Color', edge_color, 'LineWidth', 2);
                 p.Annotation.LegendInformation.IconDisplayStyle = 'off';

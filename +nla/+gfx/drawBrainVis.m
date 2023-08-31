@@ -82,21 +82,16 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
 
     function cols = valsToColor(ROI_vals, fc_vals, color_map, color_map_p, color_map_n, color_fc, llimit, ulimit)
         if color_fc
-            ROI_vals_indexed_p = int32(helpers.normClipped(fc_vals, -0.5, 0.5) * size(color_map_p, 1));
-            ROI_vals_indexed_n = int32(helpers.normClipped(fc_vals, -0.5, 0.5) * size(color_map_n, 1));
-            cols_p = ind2rgb(ROI_vals_indexed_p, color_map_p);
-            cols_n = ind2rgb(ROI_vals_indexed_n, color_map_n);
+            cols_p = gfx.valToColor(fc_vals, -0.5, 0.5, color_map_p);
+            cols_n = gfx.valToColor(fc_vals, -0.5, 0.5, color_map_n);
             cols(ROI_vals > 0, :) = cols_p(ROI_vals > 0, :);
             cols(ROI_vals <= 0, :) = cols_n(ROI_vals <= 0, :);
         else
-            color_scale = size(color_map, 1);
-            ROI_vals_indexed = int32(helpers.normClipped(ROI_vals, llimit, ulimit) * color_scale);
-            cols = ind2rgb(ROI_vals_indexed, color_map);
+            cols = gfx.valToColor(ROI_vals, llimit, ulimit, color_map);
         end
     end
     
     % map colors to limits
-
     color_mat = valsToColor(ROI_vals, fc_vals, color_map, color_map_p, color_map_n, color_fc, llimit, ulimit);
     color_mat(isnan(ROI_vals), :) = 0.50;
     

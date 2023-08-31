@@ -163,8 +163,7 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_
         if ~isnan(sig_mat.v(i)) && ((sig_type == gfx.SigType.INCREASING && sig_mat.v(i) > coeff_min) || (sig_type == gfx.SigType.DECREASING && sig_mat.v(i) < coeff_max) || (sig_type == gfx.SigType.ABS_INCREASING && abs(sig_mat.v(i)) > 0))
             %% color
             sig = sig_mat.v(i);
-            c_val = nla.helpers.normClipped(sig, coeff_min, coeff_max);
-            np_color = color_map(floor(c_val * (size(color_map, 1) - 1)) + 1, :);
+            np_color = gfx.valToColor(sig, coeff_min, coeff_max, color_map);
             
             if representative
                 np_alpha = 0.5;

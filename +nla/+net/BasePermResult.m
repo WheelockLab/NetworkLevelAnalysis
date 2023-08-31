@@ -72,7 +72,7 @@ classdef BasePermResult < nla.TestResult
             % significant, create a mask of all true values
             if ~exist('plot_sig_filter', 'var') || islogical(plot_sig_filter)
                 plot_sig_filter = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-                plot_sig_filter.v = true(numel(plot_sig_filter.v));
+                plot_sig_filter.v = true(numel(plot_sig_filter.v), 1);
             end
             
             if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
@@ -151,17 +151,20 @@ classdef BasePermResult < nla.TestResult
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width, ax_width]);
                 gfx.hideAxes(ax);
                 
-                if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
-                    thresh = -log10(input_struct.prob_max);
-                    plot_mat_norm.v(plot_mat.v < thresh) = 0;
-                end
-                
                 if sig_increasing
                     sig_type = gfx.SigType.INCREASING;
+                    insignificant = coeff_bounds(1);
                 else
                     sig_type = gfx.SigType.DECREASING;
+                    insignificant = coeff_bounds(2);
                 end
-                gfx.drawChord(ax, 500, net_atlas, plot_mat, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
+                
+                % threshold out insignificant network pairs for all chord
+                % plots
+                plot_mat2 = copy(plot_mat);
+                plot_mat2.v(~plot_sig.v) = insignificant;
+                
+                gfx.drawChord(ax, 500, net_atlas, plot_mat2, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
             else
                 if isfield(input_struct, 'edge_chord_plot_method')
                     edge_plot_type = input_struct.edge_chord_plot_method;
