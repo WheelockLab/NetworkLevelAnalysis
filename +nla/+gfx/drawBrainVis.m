@@ -22,7 +22,13 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     
     %% Display figures 
     fig = gfx.createFigure(1550, 750);
-    fig.Name = sprintf('Brain Visualization: Average of edge-level correlations between nets in [%s - %s] Network Pair', net_atlas.nets(net1).name, net_atlas.nets(net2).name);
+    figure_title = sprintf('Brain Visualization: Average of edge-level correlations between nets in [%s - %s] Network Pair', net_atlas.nets(net1).name, net_atlas.nets(net2).name);
+    
+    if sig_based
+        figure_title = [figure_title sprintf(' (Edge-level P < %.2g)', edge_input_struct.prob_max)];
+    end
+    
+    fig.Name = figure_title;
     
     llimit = edge_result.coeff_range(1);
     ulimit = edge_result.coeff_range(2);
