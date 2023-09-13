@@ -100,9 +100,14 @@ classdef BasePermResult < nla.TestResult
                 if min_log < -40
                     min_log = -40;
                 end
-                cm_base = parula(discrete_colors_count);
-                cm = flip(cm_base(ceil(logspace(min_log, 0, discrete_colors_count) .* discrete_colors_count), :));
-                cm = [cm; [1 1 1]];
+                % relevant for BH/BY correction
+                if p_max == 0
+                    cm = [1 1 1];
+                else
+                    cm_base = parula(discrete_colors_count);
+                    cm = flip(cm_base(ceil(logspace(min_log, 0, discrete_colors_count) .* discrete_colors_count), :));
+                    cm = [cm; [1 1 1]];
+                end
                 plot_mat = plot_prob_sc;
                 plot_max = p_max;
                 sig_increasing = false;
@@ -117,8 +122,13 @@ classdef BasePermResult < nla.TestResult
                 end
                 sig_increasing = true;
             else
-                cm = flip(parula(discrete_colors_count));
-                cm = [cm; [1 1 1]];
+                % relevant for BH/BY correction
+                if p_max == 0
+                    cm = [1 1 1];
+                else
+                    cm = flip(parula(discrete_colors_count));
+                    cm = [cm; [1 1 1]];
+                end
                 plot_mat = plot_prob_sc;
                 plot_max = p_max;
                 sig_increasing = false;
