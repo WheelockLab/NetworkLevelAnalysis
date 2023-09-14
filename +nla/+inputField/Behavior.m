@@ -31,6 +31,14 @@ classdef Behavior < nla.inputField.InputField
         function obj = Behavior()
             import nla.* % required due to matlab package system quirks
             obj.covariates_enabled = nla.inputField.CovariatesEnabled.ALL;
+            obj.resetSelectedCol();
+        end
+        
+        function resetSelectedCol(obj)
+            obj.behavior_idx = false;
+            obj.covariates = false;
+            obj.covariates_idx = false;
+            obj.cols_selected = false;
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
@@ -232,9 +240,8 @@ classdef Behavior < nla.inputField.InputField
                     obj.behavior_full = behavior_file;
                     obj.behavior_filename = file;
 
-                    % zero these since we loaded a new behavior_full
-                    obj.behavior = false;
-                    obj.covariates = false;
+                    % reset selected since we loaded a new behavior_full
+                    obj.resetSelectedCol();
 
                     close(prog);
                     % check for unusual values in behavior
