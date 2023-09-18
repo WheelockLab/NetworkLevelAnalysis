@@ -4,13 +4,8 @@ classdef CohenD < nla.net.BaseCorrTest
         name = "Cohen's D"
     end
     
-    methods
-        function obj = CohenD()
-            import nla.* % required due to matlab package system quirks
-            obj@nla.net.BaseCorrTest();
-        end
-        
-        function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
+    methods (Static)
+        function [d, within_np_d] = effectSizes(edge_result, net_atlas)
             import nla.* % required due to matlab package system quirks
             num_nets = net_atlas.numNets();
             d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
@@ -21,10 +16,24 @@ classdef CohenD < nla.net.BaseCorrTest
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
                     d_val = abs((mean(coeff_net) - mean(edge_result.coeff.v)) / sqrt(((std(coeff_net) .^ 2) + (std(edge_result.coeff.v) .^ 2)) / 2));
                     d.set(row, col, d_val);
-                    within_np_d_val = net.ssCohensD(coeff_net, edge_result.coeff.v);
+                    within_np_d_val = net.ssCohenD(coeff_net, edge_result.coeff.v);
                     within_np_d.set(row, col, within_np_d_val);
                 end
             end
+        end
+    end
+    
+    methods
+        function obj = CohenD()
+            import nla.* % required due to matlab package system quirks
+            obj@nla.net.BaseCorrTest();
+        end
+        
+        function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
+            import nla.* % required due to matlab package system quirks
+            num_nets = net_atlas.numNets();
+            
+            [d, within_np_d] = net.test.CohenD.effectSizes(edge_result, net_atlas);
             
             % if a previous result is passed in, add on to it
             if previous_result ~= false

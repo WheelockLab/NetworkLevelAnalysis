@@ -49,21 +49,6 @@ classdef BaseSigResult < nla.net.BaseResult
                 end
             end
         end
-        
-        function [num_tests, sig_count_mat, names] = getSigMat(obj, input_struct, net_atlas, flags)
-            import nla.* % required due to matlab package system quirks
-            [num_tests, sig_count_mat, names] = getSigMat@nla.net.BaseResult(obj, input_struct, net_atlas, flags);
-            if obj.perm_count > 0
-                if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.perm_prob_ew, net.mcc.None, "Full Connectome");
-                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
-                end
-                if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
-                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.within_np_prob, input_struct.fdr_correction, "Within Net-Pair");
-                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
-                end
-            end
-        end
     end
     
     methods (Access = protected)

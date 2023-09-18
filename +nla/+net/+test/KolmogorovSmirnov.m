@@ -21,8 +21,6 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
             ss_prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             ss_ks = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             
-            within_np_d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
-            
             for row = 1:num_nets
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
@@ -34,10 +32,6 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
                     [~, ss_val, ss_ks_val, ~] = kstest(coeff_net);
                     ss_prob.set(row, col, ss_val);
                     ss_ks.set(row, col, ss_ks_val);
-                    
-                    % Cohen's D, needed in within net-pair figures
-                    within_np_d_val = net.ssCohensD(coeff_net, edge_result.coeff.v);
-                    within_np_d.set(row, col, within_np_d_val);
                 end
             end
             
@@ -50,7 +44,6 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
                 result.ks = ks;
                 result.ss_prob = ss_prob;
                 result.ss_ks = ss_ks;
-                result.within_np_d = within_np_d;
             end
         end
     end

@@ -21,8 +21,6 @@ classdef WelchT < nla.net.BaseCorrTest
             ss_prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             ss_t = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             
-            within_np_d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
-            
             for row = 1:num_nets
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
@@ -36,10 +34,6 @@ classdef WelchT < nla.net.BaseCorrTest
                     ss_t_val = ss_stats.tstat;
                     ss_prob.set(row, col, ss_val);
                     ss_t.set(row, col, ss_t_val);
-                    
-                    % Cohen's D, needed in within net-pair figures
-                    within_np_d_val = net.ssCohensD(coeff_net, edge_result.coeff.v);
-                    within_np_d.set(row, col, within_np_d_val);
                 end
             end
             
@@ -52,7 +46,6 @@ classdef WelchT < nla.net.BaseCorrTest
                 result.t = t;
                 result.ss_prob = ss_prob;
                 result.ss_t = ss_t;
-                result.within_np_d = within_np_d;
             end
         end
     end

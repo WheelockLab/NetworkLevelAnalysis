@@ -22,8 +22,6 @@ classdef Wilcoxon < nla.net.BaseCorrTest
             ss_prob = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             ss_w = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
             
-            within_np_d = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
-            
             for row = 1:num_nets
                 for col = 1:row
                     coeff_net = edge_result.coeff.get(net_atlas.nets(row).indexes, net_atlas.nets(col).indexes);
@@ -39,10 +37,6 @@ classdef Wilcoxon < nla.net.BaseCorrTest
                     ss_w_val = ss_stats.signedrank;
                     ss_prob.set(row, col, ss_val);
                     ss_w.set(row, col, ss_w_val);
-                    
-                    % Cohen's D, needed in within net-pair figures
-                    within_np_d_val = net.ssCohensD(coeff_net, edge_result.coeff.v);
-                    within_np_d.set(row, col, within_np_d_val);
                 end
             end
             
@@ -56,7 +50,6 @@ classdef Wilcoxon < nla.net.BaseCorrTest
                 result.z = z;
                 result.ss_prob = ss_prob;
                 result.ss_w = ss_w;
-                result.within_np_d = within_np_d;
             end
         end
     end

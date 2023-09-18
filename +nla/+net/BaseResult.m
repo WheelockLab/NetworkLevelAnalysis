@@ -54,6 +54,15 @@ classdef BaseResult < nla.net.BasePermResult
                     [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.prob, input_struct.fdr_correction, "Non-Permuted");
                     [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
                 end
+            else
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.perm_prob_ew, net.mcc.None, "Full Connectome");
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
+                end
+                if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.within_np_prob, input_struct.fdr_correction, "Within Net-Pair");
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
+                end
             end
         end
         

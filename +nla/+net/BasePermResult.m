@@ -229,7 +229,7 @@ classdef BasePermResult < nla.TestResult
                     title_main = sprintf("Edge-level correlation coefficient (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
                 else
                     cm_edge_base = parula(1000);
-                    cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 256) .* 1000), :));
+                    cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 1000) .* 1000), :));
                     vals_clipped.v = edge_result.prob.v;
                     sig_type = gfx.SigType.DECREASING;
                     coeff_min = 0;
