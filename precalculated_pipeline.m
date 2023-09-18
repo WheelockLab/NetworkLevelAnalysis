@@ -19,6 +19,8 @@ net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_15nets_2
 net_atlas = NetworkAtlas(net_atlas_path);
 
 %% Load precalculated data
+% !!WARNING!! precalc_obs_p and precalc_perm_p should be thresholded and
+% binarized p-values, ie: logical values, true if significant, false if not
 % Coefficient range
 % !!WARNING!! This should specify the range of the coefficient you are
 % using. It is set to -2, 2 as that is the range of the beta weights used
