@@ -164,6 +164,7 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_
             %% color
             sig = sig_mat.v(i);
             np_color = gfx.valToColor(sig, coeff_min, coeff_max, color_map);
+            np_color = np_color(:); % flatten color matrix to vector
             
             if representative
                 np_alpha = 0.5;
@@ -227,7 +228,7 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_
                 arc = gfx.genArcSegmentHandlePoorlyDefined(arc_origin, arc_origin_rad, arc_radius, r1_center, r2_center, 50);
                 
                 pg = plot(ax, arc(:,1), arc(:,2), 'LineWidth', 2);
-                pg.Color = [np_color np_alpha];
+                pg.Color = [np_color; np_alpha];
             end
         end
     end
