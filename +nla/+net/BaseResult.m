@@ -25,44 +25,7 @@ classdef BaseResult < nla.net.BasePermResult
         
         function output(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags)
             import nla.* % required due to matlab package system quirks
-            if obj.perm_count > 0
-                if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    if flags.plot_type == nla.PlotType.FIGURE
-                        fig = gfx.createFigure(1000, 900);
-
-                        %% Histogram of probabilities, with thresholds marked
-                        empirical_fdr = zeros(HistBin.SIZE);
-                        empirical_fdr = cumsum(double(obj.perm_prob_hist) ./ sum(obj.perm_prob_hist));
-                        [~, min_idx]= min(abs(input_struct.prob_max - empirical_fdr));
-                        prob_max_ew = HistBin.EDGES(min_idx);
-                        if (empirical_fdr(min_idx) > input_struct.prob_max) && min_idx > 1
-                            prob_max_ew = HistBin.EDGES(min_idx - 1);
-                        end
-                        
-                        ax = subplot(2,2,2);
-                        loglog(HistBin.EDGES(2:end), empirical_fdr, 'k');
-                        hold('on');
-                        loglog(obj.prob.v, obj.perm_prob_ew.v, 'ok');
-                        axis([min(obj.prob.v), 1, min(obj.perm_prob_ew.v), 1])            
-                        loglog(ax.XLim, [input_struct.prob_max, input_struct.prob_max], 'b');
-                        loglog([prob_max_ew, prob_max_ew], ax.YLim, 'r');
-
-                        name_label = sprintf("%s P-values", obj.name_formatted);
-                        gfx.setTitle(ax, name_label);
-                        xlabel('Asymptotic');
-                        ylabel('Permutation-based P-value');
-
-                        %% Check that network-pair size is not a confound
-                        obj.plotProbVsNetSize(net_atlas, subplot(2,2,3));
-                        obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
-
-                        %% Matrix with significant networks marked
-                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN);
-                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
-                    end
-                end
-            else
+            if obj.perm_count == 0
                 if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Non-permuted
@@ -86,25 +49,10 @@ classdef BaseResult < nla.net.BasePermResult
             sig_count_mat = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
             names = [];
             
-            if obj.perm_count > 0
-                if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    num_tests = num_tests + 1;
-                    
-                    p_max = net.mcc.None.correct(net_atlas, input_struct, obj.perm_prob_ew);
-                    p_breakdown_label = net.mcc.None.createLabel(net_atlas, input_struct, obj.perm_prob_ew);
-                    
-                    sig_count_mat.v = sig_count_mat.v + (obj.perm_prob_ew.v < p_max);
-                    names = [names sprintf("Full Connectome %s P < %.2g (%s)", obj.name, p_max, p_breakdown_label)];
-                end
-            else
+            if obj.perm_count == 0
                 if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
-                    num_tests = num_tests + 1;
-                    
-                    p_max = input_struct.fdr_correction.correct(net_atlas, input_struct, obj.prob);
-                    p_breakdown_label = input_struct.fdr_correction.createLabel(net_atlas, input_struct, obj.prob);
-                    
-                    sig_count_mat.v = sig_count_mat.v + (obj.prob.v < p_max);
-                    names = [names sprintf("Non-Permuted %s P < %.2g (%s)", obj.name, p_max, p_breakdown_label)];
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.prob, input_struct.fdr_correction, "Non-Permuted");
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
                 end
             end
         end
@@ -122,6 +70,46 @@ classdef BaseResult < nla.net.BasePermResult
     end
     
     methods (Access = protected)
+        function [num_tests, sig_count_mat, names] = appendSigMat(obj, num_tests, sig_count_mat, names, sig, name)
+            num_tests = num_tests + 1;
+            sig_count_mat.v = sig_count_mat.v + sig.v;
+            names = [names name];
+        end
+        
+        function [sig, name] = singleSigMat(obj, net_atlas, input_struct, prob, mcc_method, title_prepend)
+            import nla.* % required due to matlab package system quirks
+            p_max = mcc_method.correct(net_atlas, input_struct, prob);
+            p_breakdown_label = mcc_method.createLabel(net_atlas, input_struct, prob);
+            
+            sig = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            sig.v = (prob.v < p_max);
+            
+            name = sprintf("%s %s P < %.2g (%s)", title_prepend, obj.name, p_max, p_breakdown_label);
+        end
+        
+        function plotProbHist(obj, ax, prob_max)
+            import nla.* % required due to matlab package system quirks
+            empirical_fdr = zeros(HistBin.SIZE);
+            empirical_fdr = cumsum(double(obj.perm_prob_hist) ./ sum(obj.perm_prob_hist));
+            [~, min_idx]= min(abs(prob_max - empirical_fdr));
+            prob_max_ew = HistBin.EDGES(min_idx);
+            if (empirical_fdr(min_idx) > prob_max) && min_idx > 1
+                prob_max_ew = HistBin.EDGES(min_idx - 1);
+            end
+            
+            loglog(ax, HistBin.EDGES(2:end), empirical_fdr, 'k');
+            hold('on');
+            loglog(ax, obj.prob.v, obj.perm_prob_ew.v, 'ok');
+            axis([min(obj.prob.v), 1, min(obj.perm_prob_ew.v), 1])            
+            loglog(ax, ax.XLim, [prob_max, prob_max], 'b');
+            loglog(ax, [prob_max_ew, prob_max_ew], ax.YLim, 'r');
+
+            name_label = sprintf("%s P-values", obj.name_formatted);
+            gfx.setTitle(ax, name_label);
+            xlabel(ax, 'Asymptotic');
+            ylabel(ax, 'Permutation-based P-value');
+        end
+        
         function plotProbVsNetSize(obj, net_atlas, ax)
             import nla.* % required due to matlab package system quirks
             net_size = obj.getNetSizes(net_atlas);

@@ -20,6 +20,23 @@ classdef BaseSigResult < nla.net.BaseResult
             output@nla.net.BaseResult(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags);
             
             if obj.perm_count > 0
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    if flags.plot_type == nla.PlotType.FIGURE
+                        fig = gfx.createFigure(1000, 900);
+
+                        %% Histogram of probabilities, with thresholds marked
+                        obj.plotProbHist(subplot(2,2,2), input_struct.prob_max);
+
+                        %% Check that network-pair size is not a confound
+                        obj.plotProbVsNetSize(net_atlas, subplot(2,2,3));
+                        obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
+
+                        %% Matrix with significant networks marked
+                        obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN);
+                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                    end
+                end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Within Net-Pair statistics (withinNP)
@@ -37,14 +54,13 @@ classdef BaseSigResult < nla.net.BaseResult
             import nla.* % required due to matlab package system quirks
             [num_tests, sig_count_mat, names] = getSigMat@nla.net.BaseResult(obj, input_struct, net_atlas, flags);
             if obj.perm_count > 0
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.perm_prob_ew, net.mcc.None, "Full Connectome");
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
+                end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
-                    num_tests = num_tests + 1;
-                    
-                    p_max = input_struct.fdr_correction.correct(net_atlas, input_struct, obj.within_np_prob);
-                    p_breakdown_label = input_struct.fdr_correction.createLabel(net_atlas, input_struct, obj.within_np_prob);
-                    
-                    sig_count_mat.v = sig_count_mat.v + (obj.within_np_prob.v < p_max);
-                    names = [names sprintf("Within Net-Pair %s P < %.2g (%s)", obj.name, p_max, p_breakdown_label)];
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.within_np_prob, input_struct.fdr_correction, "Within Net-Pair");
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
                 end
             end
         end

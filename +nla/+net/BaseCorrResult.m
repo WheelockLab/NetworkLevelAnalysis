@@ -37,6 +37,28 @@ classdef BaseCorrResult < nla.net.BaseResult
             output@nla.net.BaseResult(obj, edge_input_struct, input_struct, net_atlas, edge_result, flags);
             
             if obj.perm_count > 0
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    within_np_d_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+                    within_np_d_sig.v = (obj.within_np_d.v >= input_struct.d_max);
+                    name_label = sprintf('Full Connectome Method\nNetwork vs. Connectome Significance (D > %g)', input_struct.d_max);
+                    if flags.plot_type == nla.PlotType.FIGURE
+                        fig = gfx.createFigure(1200, 900);
+
+                        %% Histogram of probabilities, with thresholds markedx
+                        obj.plotProbHist(subplot(2,3,4), input_struct.prob_max);
+
+                        %% Check that network-pair size is not a confound
+                        obj.plotProbVsNetSize(net_atlas, subplot(2,3,5));
+                        obj.plotPermProbVsNetSize(net_atlas, subplot(2,3,6));
+
+                        %% Matrix with significant networks marked
+                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 75, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN);
+                        obj.plotProb(input_struct, net_atlas, fig, w + 50, 425, obj.perm_prob_ew, within_np_d_sig, name_label, net.mcc.None(), nla.Method.FULL_CONN);
+                    elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                        %obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, name_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, within_np_d_sig, name_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                    end
+                end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
                     within_np_d_sig = TriMatrix(net_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
                     within_np_d_sig.v = (obj.within_np_d.v >= input_struct.d_max);
@@ -62,14 +84,17 @@ classdef BaseCorrResult < nla.net.BaseResult
             import nla.* % required due to matlab package system quirks
             [num_tests, sig_count_mat, names] = getSigMat@nla.net.BaseResult(obj, input_struct, net_atlas, flags);
             if obj.perm_count > 0
+                if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.perm_prob_ew, net.mcc.None, "Full Connectome");
+                    sig.v = sig.v & (obj.within_np_d.v >= input_struct.d_max);
+                    name = sprintf("%s (D > %g)", name, input_struct.d_max);
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
+                end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
-                    num_tests = num_tests + 1;
-                    
-                    p_max = input_struct.fdr_correction.correct(net_atlas, input_struct, obj.within_np_prob);
-                    p_breakdown_label = input_struct.fdr_correction.createLabel(net_atlas, input_struct, obj.within_np_prob);
-                    
-                    sig_count_mat.v = sig_count_mat.v + (obj.within_np_prob.v < p_max) & (obj.within_np_d.v >= input_struct.d_max);
-                    names = [names sprintf("Within Net-Pair %s P < %.2g (D > %g) (%s)", obj.name, p_max, input_struct.d_max, p_breakdown_label)];
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.within_np_prob, input_struct.fdr_correction, "Within Net-Pair");
+                    sig.v = sig.v & (obj.within_np_d.v >= input_struct.d_max);
+                    name = sprintf("%s (D > %g)", name, input_struct.d_max);
+                    [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
                 end
             end
         end
