@@ -34,7 +34,7 @@ classdef Precalculated < nla.edge.BaseTest
             import nla.* % required due to matlab package system quirks
             npairs_x_nperms = [inputField.DimensionType.NROIPAIRS, inputField.DimensionType.NPERMS];
             npairs_x_1 = [inputField.DimensionType.NROIPAIRS, 1];
-            inputs = {inputField.NumberWithoutDefault('coeff_min', 'Coeff minimum', -Inf, Inf), inputField.NumberWithoutDefault('coeff_max', 'Coeff maximum', -Inf, Inf), inputField.NetworkAtlas(), inputField.EdgeLevelMatrix('precalc_obs_p', 'Precalculated observed p', npairs_x_1), inputField.EdgeLevelMatrix('precalc_obs_coeff', 'Precalculated observed coeff', npairs_x_1), inputField.EdgeLevelMatrix('precalc_perm_p', 'Precalculated permuted p', npairs_x_nperms), inputField.EdgeLevelMatrix('precalc_perm_coeff', 'Precalculated permuted coeff', npairs_x_nperms)};
+            inputs = {inputField.NumberWithoutDefault('coeff_min', 'Coeff minimum', -Inf, Inf), inputField.NumberWithoutDefault('coeff_max', 'Coeff maximum', -Inf, Inf), inputField.NetworkAtlas(), inputField.EdgeLevelMatrix('precalc_obs_p', 'Precalculated observed significance (thresholded p-value)', npairs_x_1), inputField.EdgeLevelMatrix('precalc_obs_coeff', 'Precalculated observed coeff', npairs_x_1), inputField.EdgeLevelMatrix('precalc_perm_p', 'Precalculated permuted significance (thresholded p-value)', npairs_x_nperms), inputField.EdgeLevelMatrix('precalc_perm_coeff', 'Precalculated permuted coeff', npairs_x_nperms)};
         end
     end
 end
