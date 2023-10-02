@@ -155,7 +155,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
             ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, pos, surface_parcels, gfx.BrainColorMode.NONE);
             drawEdges(ROI_final_pos, ax, net_atlas, net1, net2, color_map, color_map_p, color_map_n, color_fc, fc_exists, llimit, ulimit, edge_input_struct, edge_result, sig_based);
         else
-            ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, gfx.ViewPos.LAT, surface_parcels, gfx.BrainColorMode.COLOR_ROIS, color_mat);
+            ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, pos, surface_parcels, gfx.BrainColorMode.COLOR_ROIS, color_mat);
         end
         
         if show_ROI_centroids
@@ -164,8 +164,8 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
 
     if surface_parcels && ~islogical(net_atlas.parcels)
-        onePlot(subplot('Position',[.45,0.505,.53,.45]), gfx.ViewPos.LAT, gfx.BrainColorMode.COLOR_ROIS);
-        onePlot(subplot('Position',[.45,0.055,.53,.45]), gfx.ViewPos.MED, gfx.BrainColorMode.COLOR_ROIS);
+        onePlot(subplot('Position',[.45,0.505,.53,.45]), gfx.ViewPos.LAT, gfx.BrainColorMode.COLOR_ROIS, color_mat);
+        onePlot(subplot('Position',[.45,0.055,.53,.45]), gfx.ViewPos.MED, gfx.BrainColorMode.COLOR_ROIS, color_mat);
     else
         onePlot(subplot('Position',[.45,0.505,.26,.45]), gfx.ViewPos.BACK, gfx.BrainColorMode.NONE);
         onePlot(subplot('Position',[.73,0.505,.26,.45]), gfx.ViewPos.FRONT, gfx.BrainColorMode.NONE);
@@ -180,7 +180,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
     
     if surface_parcels && ~islogical(net_atlas.parcels)
-        onePlot(ax, gfx.ViewPos.DORSAL, gfx.BrainColorMode.COLOR_ROIS);
+        onePlot(ax, gfx.ViewPos.DORSAL, gfx.BrainColorMode.COLOR_ROIS, color_mat);
     else
         onePlot(ax, gfx.ViewPos.DORSAL, gfx.BrainColorMode.NONE);
     end
