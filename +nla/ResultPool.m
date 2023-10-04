@@ -10,6 +10,8 @@ classdef ResultPool
         perm_edge_result
         perm_net_results
         version
+        commit
+        commit_short
     end
     
     methods
@@ -23,6 +25,8 @@ classdef ResultPool
             obj.net_results = net_results;
             obj.perm_net_results = perm_net_results;
             obj.version = VERSION;
+            obj.commit = helpers.git.commitString(true);
+            obj.commit_short = helpers.git.commitString();
         end
         
         function output(obj)

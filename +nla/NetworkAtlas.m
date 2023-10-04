@@ -78,7 +78,7 @@ classdef NetworkAtlas < nla.DeepCopyable
             
             %% Cortex anatomy
             try
-                obj.anat = CortexAnatomy(sprintf('support_files/meshes/%s.mat', obj.space));
+                obj.anat = CortexAnatomy(sprintf('%ssupport_files/meshes/%s.mat', findRootPath(), obj.space));
             catch
                 error("Could not load cortex anatomy - you may have forgotten to set the 'space' field in your Network Atlas")
             end
