@@ -59,8 +59,8 @@ classdef BaseCorrResult < nla.net.BaseResult
                         obj.plotPermProbVsNetSize(net_atlas, subplot(2,3,6));
 
                         %% Matrix with significant networks marked
-                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 75, 425, obj.perm_prob_ew, false, name_label, net.mcc.None(), nla.Method.FULL_CONN);
-                        obj.plotProb(input_struct, net_atlas, fig, w + 50, 425, obj.perm_prob_ew, d_sig, name_label_thresh, net.mcc.None(), nla.Method.FULL_CONN);
+                        [w, ~] = obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 75, 425, obj.perm_prob_ew, false, name_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, w + 50, 425, obj.perm_prob_ew, d_sig, name_label_thresh, net.mcc.None(), nla.Method.FULL_CONN, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         d_thresh = false;
                         chord_label = name_label;
@@ -81,10 +81,8 @@ classdef BaseCorrResult < nla.net.BaseResult
                         fig = gfx.createFigure(1000, 900);
 
                         obj.plotWithinNetPairProbVsNetSize(net_atlas, subplot(2,2,3));
-
-                        [w, ~] = obj.plotProb(input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR);
-                        
-                        obj.plotProb(input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR);
+                        [w, ~] = obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
                     end

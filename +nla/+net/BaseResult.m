@@ -35,7 +35,7 @@ classdef BaseResult < nla.net.BasePermResult
                         obj.plotProbVsNetSize(net_atlas, subplot(2,1,2));
 
                         %% Matrix with significant networks marked
-                        obj.plotProb(input_struct, net_atlas, fig, 0, 425, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), input_struct.fdr_correction, nla.Method.NONPERMUTED);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 0, 425, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), input_struct.fdr_correction, nla.Method.NONPERMUTED, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.prob, false, sprintf('Non-permuted Method\nNon-permuted Significance'), input_struct.fdr_correction, nla.Method.NONPERMUTED, edge_result, flags.plot_type);
                     end

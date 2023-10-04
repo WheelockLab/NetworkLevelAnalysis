@@ -135,10 +135,20 @@ classdef BasePermResult < nla.TestResult
             end
         end
         
-        function [w, h] = plotProb(obj, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method)
+        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result)
             import nla.* % required due to matlab package system quirks
+            
+            %% callback function
+            function brainFigsButtonClickedCallback(net1, net2)
+                f = waitbar(0.05, sprintf('Generating %s - %s net-pair brain plot', net_atlas.nets(net1).name, net_atlas.nets(net2).name));
+                gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
+                waitbar(0.95);
+                close(f)
+            end
+            
+            %% trimatrix plot
             [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
-            [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig);
+            [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
         end
         
         function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
