@@ -149,7 +149,6 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             % get point clicked
             coords = get(ax, 'CurrentPoint'); 
             coords = coords(1,1:2);
-            
             % find network membership
             for y_iter = 1:num_nets
                 for x_iter = 1:y_iter

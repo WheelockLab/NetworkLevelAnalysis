@@ -1,4 +1,5 @@
 import nla.*
+import nla.gfx.matrix.*
 
 %% Get path to NLA
 root_path = findRootPath();
@@ -85,27 +86,30 @@ clear fc_unordered fc_struct bx
 fc_avg = copy(input_struct.func_conn);
 fc_avg.v = mean(fc_avg.v, 2);
 fig_l = gfx.createFigure(100, 100);
-[fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average', fc_avg, -0.3, 0.3, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
-drawnow();
+isa(fc_avg, 'TriMatrix')
+% [fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average', fc_avg, -0.3, 0.3, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
+obj = MatrixPlot(fc_avg, net_atlas.nets, fig_l, 0, 0, -.3, .3, 'test', nla.gfx.FigSize.LARGE);
+obj.displayImage()
+% drawnow();
 
 %% Visualize network/ROI locations
-gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
+% gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
 %gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 1, 4, true);
-drawnow();
+% drawnow();
 
 %% Run tests
-edge_result = tests.runEdgeTest(input_struct);
-net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false);
+% edge_result = tests.runEdgeTest(input_struct);
+% net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false);
 
 % Run test pool, permuting data n times
-results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 100);
+% results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 100);
 
 %% Visualize results
 % Warning: Will produce a large amount of figures. You are advised to use
 % the GUI to visualize results, or to use the output calls of individual
 % result objects.
-results.output();
+% results.output();
 
 %% Save results
 % Should be able to visualize this result file by loading it into the GUI
-results.to_file('myresults.mat');
+% results.to_file('myresults.mat');
