@@ -285,9 +285,9 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     %% Colorbar
     if draw_colorbar
         if discrete_colorbar
-            num_ticks = double(ulimit - llimit);
+            num_ticks = double(ulimit - llimit)
             disp_color_map = color_map(floor((size(color_map,1) - 1) * [0:num_ticks] ./ num_ticks) + 1, :);
-            disp_color_map = repelem(disp_color_map, 2, 1);
+            disp_color_map = repelem(disp_color_map, 2, 1)
             disp_color_map = disp_color_map(2:((num_ticks + 1) * 2 - 1), :);
             colormap(ax, disp_color_map);
         else

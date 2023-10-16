@@ -17,13 +17,14 @@ classdef MatrixPlot < handle
         draw_colorbar = true
         color_map = turbo(256) % default color map
         marked_networks = false % networks to mark with a symbol
-        discrete_colorbar = true % colorbar as discrete (or continuous)
+        discrete_colorbar = false % colorbar as discrete (or continuous)
         network_clicked_callback = true % button to add to network to click for callback
         figure_size = nla.gfx.FigSize.SMALL
         figure_margins = nla.gfx.FigMargins.WHITESPACE
         network_dimensions = []
         axes = false
         image_display = false
+        color_bar = false
         matrix_type = nla.gfx.MatrixType.MATRIX
     end
 
@@ -44,6 +45,7 @@ classdef MatrixPlot < handle
     methods
 
         function obj = MatrixPlot(matrix, networks, figure, x_position, y_position, lower_limit, upper_limit, name, figure_size)
+            import nla.gfx.createFigure
             if nargin > 0
                 if isequal(class(matrix), 'nla.TriMatrix') 
                     if ~isnumeric(matrix.v)
@@ -69,6 +71,7 @@ classdef MatrixPlot < handle
         end
 
         function displayImage(obj)
+            import nla.gfx.matrix.Legend nla.gfx.matrix.Colorbar
             % dependent props we're calling only once instead of many
             dimensions = obj.image_dimensions;
             number_of_networks = obj.number_networks;
@@ -92,6 +95,24 @@ classdef MatrixPlot < handle
 
             % Makes NaNs transparent
             obj.image_display.AlphaData = ~isnan(obj.image_display.CData(:,:,1));
+            
+            if obj.draw_legend
+                obj.createLegend();
+            end
+
+            if obj.draw_colorbar
+                obj.createColorbar();
+            end
+
+            obj.figure.Position = [obj.figure.Position(1), obj.figure.Position(2), dimensions("image_width"), dimensions("image_height")];
+            % Title plot and center title
+            if ~isempty(obj.name)
+                plot_title = title(obj.axes, ' ');
+                text(obj.axes, dimensions("plot_width") / 2 , dimensions("offset_y") / 2, obj.name, 'FontName', plot_title.FontName, 'FontSize', 14, 'FontWeight', plot_title.FontWeight, 'HorizontalAlignment', 'center');
+            end
+
+            obj.fixRenderBugs();
+
             refreshdata(obj.figure)
         end
 
@@ -107,7 +128,6 @@ classdef MatrixPlot < handle
         function value = get.image_dimensions(obj)
             % thickness of network label
             label_size = 13;
-
             if obj.figure_size == nla.gfx.FigSize.LARGE
                 label_size = 20;
             end
@@ -117,7 +137,6 @@ classdef MatrixPlot < handle
             if obj.network_matrix
                 display_matrix_size = obj.number_networks;
             else
-
                 for x = 1:numel(obj.networks)
                     display_matrix_size = display_matrix_size + obj.networks(x).numROIs();
                 end
@@ -166,7 +185,6 @@ classdef MatrixPlot < handle
     methods (Static)
 
         function clickCallback(~, ~, obj)
-
             if ~isequal(obj.network_clicked_callback, false)
                 % get point clicked
                 coordinates = get(obj.axes, 'CurrentPoint');
@@ -174,30 +192,23 @@ classdef MatrixPlot < handle
 
                 % find network membership
                 for y_iterator = 1:obj.number_networks
-
                     for x_iterator = 1:y_iterator
                         net_coordinates = obj.network_dimensions(x_iterator, y_iterator, :);
                         click_padding = 1;
-
                         if (coordinates(1) >= net_coordinates(1) - click_padding) && ...
                                 (coordinates(1) <= net_coordinates(2) + click_padding) ...
                                 && (coordinates(2) >= net_coordinates(3) - click_padding) ...
                                 && (coordinates(2) <= net_coordinates(4) + click_padding)
                             obj.network_clicked_callback(y_iterator, x_iterator);
                         end
-
                     end
-
                 end
-
             end
-
         end
 
     end
 
     methods (Access = protected)
-
         function element_size = elementSize(obj)
             element_size = 1;
 
@@ -206,15 +217,11 @@ classdef MatrixPlot < handle
                 if obj.figure_size == nla.gfx.FigSize.LARGE
                     element_size = floor(500 / obj.number_networks); 
                 end
-
             else
-
                 if obj.figure_size == nla.gfx.FigSize.LARGE
-
                     if size(obj.as_matrix, 1) <= 500
                         element_size = 2;
                     end
-
                 end
 
             end
@@ -326,7 +333,6 @@ classdef MatrixPlot < handle
         function plotSignificanceMark(obj, chunk_width, chunk_height, axes, position_x, position_y)
             cell_x = position_x + (chunk_width / 2);
             cell_y = position_y + (chunk_height / 2);
-            hold(axes, 'on');
             marker = plot(axes, cell_x, cell_y, 'x', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
 
             if ~isequal(obj.network_clicked_callback, false)
@@ -350,7 +356,69 @@ classdef MatrixPlot < handle
             obj.addCallback(drawLine(obj.axes, [left - 1, right], [bottom, bottom]));
         end
 
+        function fixRenderBugs(obj)
+            import nla.gfx.hideAxes
+            hideAxes(obj.axes);
+            obj.axes.DataAspectRatio = [1, 1, 1];
+            obj.axes.Toolbar.Visible = 'off';
+            disableDefaultInteractivity(obj.axes);
+            if ~obj.network_matrix
+                set(obj.axes, 'units', 'pixels');
+                axes_position = get(obj.axes, 'position');
+                set(obj.axes, 'xlim', [0, axes_position(3)]);
+                set(obj.axes, 'ylim', [0, axes_position(4)]);
+            end
+        end
+
+        function createLegend(obj)
+            entries = [];
+            for network = 1:obj.number_networks
+                entry = bar(obj.axes, NaN);
+                entry.FaceColor = obj.networks(network).color;
+                entry.DisplayName = obj.networks(network).name;
+                entries = [entries entry];
+            end
+
+            display_legend = legend(obj.axes, entries);
+
+            dimensions = obj.image_dimensions;
+            display_legend.Units = 'pixels';
+            display_legend_width = display_legend.Position(3);
+            display_legend_height = display_legend.Position(4);
+            display_legend.Position = [obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
+                obj.y_position + dimensions("plot_height") - display_legend_height - dimensions("offset_y"),...
+                display_legend_width, display_legend_height];
+        end
+
+        function createColorbar(obj)
+            if obj.discrete_colorbar
+                number_of_ticks = double(obj.upper_limit - obj.lower_limit);
+                display_colormap = obj.color_map(floor((size(obj.color_map, 1) - 1) * [0:number_of_ticks] ./ number_of_ticks) + 1, :);
+                display_colormap = repelem(display_colormap, 2, 1);
+                display_colormap = display_colormap(2:((number_of_ticks + 1) * 2 - 1), :);
+                colormap(obj.axes, display_colormap);
+            else
+                number_of_ticks = min(size(obj.color_map, 1) - 1, 10);
+                colormap(obj.axes, obj.color_map)
+            end
+
+            color_bar = colorbar(obj.axes);
+            
+            ticks = [0:number_of_ticks];
+            color_bar.Ticks = double(ticks) ./ number_of_ticks;
+
+            labels = {};
+            for tick = ticks
+                labels{tick + 1} = sprintf("%.2g", obj.lower_limit + (tick * ((double(obj.upper_limit - obj.lower_limit) / number_of_ticks))));
+            end
+            color_bar.TickLabels = labels;
+
+            dimensions = obj.image_dimensions;
+            color_bar.Units = 'pixels';
+            color_bar.Location = 'east';
+            color_bar.Position = [color_bar.Position(1) - dimensions("offset_x"), color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width, dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
+            caxis(obj.axes, [0, 1]);
+            obj.color_bar = color_bar;
+        end
     end
-    
-    
 end

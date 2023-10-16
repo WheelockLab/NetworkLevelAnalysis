@@ -86,11 +86,10 @@ clear fc_unordered fc_struct bx
 fc_avg = copy(input_struct.func_conn);
 fc_avg.v = mean(fc_avg.v, 2);
 fig_l = gfx.createFigure(100, 100);
-isa(fc_avg, 'TriMatrix')
 % [fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average', fc_avg, -0.3, 0.3, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
-obj = MatrixPlot(fc_avg, net_atlas.nets, fig_l, 0, 0, -.3, .3, 'test', nla.gfx.FigSize.LARGE);
+obj = MatrixPlot(fc_avg, net_atlas.nets, fig_l, 0, 0, -0.3, 0.3, 'test', nla.gfx.FigSize.LARGE);
 obj.displayImage()
-% drawnow();
+drawnow();
 
 %% Visualize network/ROI locations
 % gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
