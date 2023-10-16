@@ -1,10 +1,19 @@
-function [atlas_out, fc_out] = removeNetworks(atlas_in, nets, name, fc_in)
+function [atlas_out, fc_out] = removeNetworks(atlas_in, net_names, name, fc_in)
     %REMOVENETWORKS Remove given networks from a network atlas
     %	atlas_in: Input network atlas
-    %	nets: Networks to remove
+    %	net_names: Networks to remove
     %	name: Name of modified atlas
     %	(Optional) fc_in: Functional connectivity to remove given networks from
     %       as well
+    
+    % convert removed network names to indices
+    nets = [];
+    for i = 1:numel(atlas_in.net_names)
+        if any(strcmp(net_names, atlas_in.net_names{i}))
+            nets = [nets i];
+        end
+    end
+    
     net_mask = true(numel(atlas_in.net_names), 1);
     net_mask(nets) = false;
     
