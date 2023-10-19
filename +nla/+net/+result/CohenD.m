@@ -71,6 +71,7 @@ classdef CohenD < nla.net.BasePermResult
                         %% Within Net-Pair statistics (withinNP)
                         fig = gfx.createFigure();
                         [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], within_np_d_sig, false, @brainFigsButtonClickedCallback);
+
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, within_np_d_sig, obj.within_np_d, input_struct.d_max, [1,1,1;parula(256)], name_label, true, flags.plot_type);
                     end

@@ -135,7 +135,7 @@ classdef BasePermResult < nla.TestResult
             end
         end
         
-        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result)
+        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result, ax)
             import nla.* % required due to matlab package system quirks
             
             %% callback function
@@ -148,7 +148,11 @@ classdef BasePermResult < nla.TestResult
             
             %% trimatrix plot
             [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
-            [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+%             [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            matrix_plot = gfx.matrix.MatrixPlot(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            matrix_plot.displayImage();
+            w = matrix_plot.image_dimensions("image_width");
+            h = matrix_plot.image_dimensions("image_height");
         end
         
         function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
@@ -312,7 +316,7 @@ classdef BasePermResult < nla.TestResult
                 close(f)
             end
             gfx.drawMatrixOrg(fig, 25, bottom_text_height, name_label, plot_mat, coeff_bounds(1), coeff_bounds(2), net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
-            
+
             %% Plot names
             text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
             gfx.hideAxes(text_ax);

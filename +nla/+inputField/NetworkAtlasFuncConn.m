@@ -281,7 +281,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             fc_avg.v = mean(fc_avg.v, 2);
             fig_l = gfx.createFigure();
             [fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average (Fisher Z(R))', fc_avg, -0.3, 0.3, obj.net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
-            
+
             close(prog);
             drawnow();
         end
