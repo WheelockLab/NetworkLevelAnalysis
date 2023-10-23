@@ -37,7 +37,11 @@ function drawConvergenceMap(edge_input_struct, input_struct, net_atlas, sig_coun
         close(f)
     end
 %     gfx.drawMatrixOrg(fig, 0, bottom_text_height, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, 0, num_tests, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, color_map, false, true, @brainFigsButtonClickedCallback);
-    matrix_plot = gfx.matrix.MatrixPlot(fig, 0, bottom_text_height, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, 0, num_tests, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, color_map, false, true, @brainFigsButtonClickedCallback);
+    matrix_plot = gfx.matrix.MatrixPlot(fig, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, net_atlas.nets, gfx.FigSize.SMALL, @brainFigsButtonClickedCallback, false, gfx.FigMargins.WHITESPACE, false, true, color_map);
+    matrix_plot.y_position = bottom_text_height;
+    matrix_plot.lower_limit = 0;
+    matrix_plot.upper_limit = num_tests;
+    matrix_plot.discrete_colorbar = true;
     matrix_plot.displayImage();
 
     %% Plot names

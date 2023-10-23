@@ -9,19 +9,19 @@ classdef MatrixPlot < handle
         % data in the input matrix
         networks
         figure % figure used for plotting
-        x_position % starting x position in the figure object
-        y_position % starting y position in the figure object
-        lower_limit % lower limit to clip input matrix
-        upper_limit % upper limit to clip input matrix
+        x_position = 0 % starting x position in the figure object
+        y_position = 0 % starting y position in the figure object
+        lower_limit = -0.3 % lower limit to clip input matrix
+        upper_limit = 0.3 % upper limit to clip input matrix
         name % name of the plot
         figure_size % Size to display. Either nla.gfx.FigSize.SMALL or nla.gfx.FigSize.LARGE
-        draw_legend % Legend on/off
-        draw_colorbar % Colorbar on/off
-        color_map % Colormap to use (enter 'turbo(256)' for default)
-        marked_networks % networks to mark with a symbol
-        discrete_colorbar % colorbar as discrete. TRUE == discrete, FALSE == continuous
-        network_clicked_callback % Button function to add to each network. Used for clickable networks
-        figure_margins % Margin on figure object yes/no.
+        draw_legend = true % Legend on/off
+        draw_colorbar = true % Colorbar on/off
+        color_map = turbo(256) % Colormap to use (enter 'turbo(256)' for default)
+        marked_networks = false % networks to mark with a symbol
+        discrete_colorbar = false % colorbar as discrete. TRUE == discrete, FALSE == continuous
+        network_clicked_callback = false % Button function to add to each network. Used for clickable networks
+        figure_margins = nla.gfx.FigMargins.WHITESPACE % Margin on figure object yes/no.
         network_dimensions = [] % Dimensions of the input
         axes = false % The axes of the plot
         image_display = false % The actual displayed values
@@ -47,29 +47,33 @@ classdef MatrixPlot < handle
     end
 
     methods
-        function obj = MatrixPlot(figure, x_position, y_position, name, matrix, lower_limit, upper_limit, networks, figure_size, figure_margins, draw_legend, draw_colorbar, color_map, marked_networks, discrete_colorbar, network_clicked_callback)
+        function obj = MatrixPlot(varargin)
             % MatrixPlot constructor
             % Gives plot object as output.
             % Requires inputs in this order:
             % figure
-            % x_position
-            % y_position
             % name
             % matrix
-            % lower_limit
-            % upper_limit
             % networks
             % figure size
-            % figure_margins
-            % draw_legend
-            % draw_colorbar
-            % color_map
-            % marked_networks
-            % discrete_colorbar
-            % network_clicked_callback
+            %
+            % These arguments are optional (in this order) with defaults
+            % network_clicked_callback = false
+            % marked_networks = false
+            % figure_margins = nla.gfx.FigMargins.WHITESPACE
+            % draw_legend = true
+            % draw_colorbar = true
+            % color_map = turbo(256)
+            % lower_limit = -0.3
+            % upper_limit = 0.3
+            % x_position = 0
+            % y_position = 0
+            % discrete_colorbar = false
+
 
             import nla.gfx.createFigure
             if nargin > 0
+                matrix = varargin{3};
                 if isequal(class(matrix), 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
                     if ~isnumeric(matrix.v)
                         % If this doesn't work (ie: program errors here), your data is
@@ -80,27 +84,50 @@ classdef MatrixPlot < handle
                     obj.matrix_type = nla.gfx.MatrixType.TRIMATRIX;
                 end
                 obj.matrix = matrix;
-                obj.networks = networks;
-                obj.figure = figure;
+                obj.networks = varargin{4};
+                obj.figure = varargin{1};
                 obj.figure.Renderer = 'painters';
-                obj.x_position = x_position;
-                obj.y_position = y_position;
-                obj.lower_limit = lower_limit;
-                obj.upper_limit = upper_limit;
-                obj.name = name;
-                obj.figure_size = figure_size;
-                obj.draw_legend = draw_legend;
-                obj.draw_colorbar = draw_colorbar;
-                obj.color_map = color_map;
-                obj.marked_networks = marked_networks;
-                if ~isequal(marked_networks, false) && isequal(class(marked_networks), 'nla.TriMatrix')
-                    obj.marked_networks = marked_networks.asMatrix();
+                obj.name = varargin{2};
+                obj.figure_size = varargin{5};
+                
+                if nargin > 5
+                    obj.network_clicked_callback = varargin{6};
                 end
-                obj.discrete_colorbar = discrete_colorbar;
-                obj.network_clicked_callback = network_clicked_callback;
-                obj.figure_margins = figure_margins;
-            end
+                if nargin > 6
+                    obj.marked_networks = varargin{7};
+                    if ~isequal(varargin{7}, false) && isequal(class(varargin{7}), 'nla.TriMatrix')
+                        obj.marked_networks = varargin{7}.asMatrix();
+                    end
+                end
+                if nargin > 7
+                    obj.figure_margins = varargin{8};
+                end
+                if nargin > 8
+                    obj.draw_legend = varargin{9};
+                end
+                if nargin > 9
+                    obj.draw_colorbar = varargin{10};
+                end
+                if nargin > 10
+                    obj.color_map = varargin{11};
+                end
 
+                if nargin > 11
+                    obj.lower_limit = varargin{12};
+                end
+                if nargin > 12
+                    obj.upper_limit = varargin{13};
+                end
+                if nargin > 13
+                    obj.x_position = varargin{14};
+                end
+                if nargin > 14
+                    obj.y_position = varargin{15};
+                end
+                if nargin > 15
+                    obj.discrete_colorbar = varargin{16};
+                end
+            end
         end
 
         function displayImage(obj)
@@ -137,7 +164,7 @@ classdef MatrixPlot < handle
             if obj.draw_colorbar
                 obj.createColorbar();
             end
-
+           
             % Title plot and center title
             if ~isempty(obj.name)
                 plot_title = title(obj.axes, ' ');
@@ -215,32 +242,9 @@ classdef MatrixPlot < handle
         end
     end
 
-    methods (Static)
 
-        function clickCallback(~, ~, obj)
-            % clickCallback - Method which determines which coordinates were clicked and runs 'network_clicked_callback'
-            if ~isequal(obj.network_clicked_callback, false)
-                % get point clicked
-                coordinates = get(obj.axes, 'CurrentPoint');
-                coordinates = coordinates(1, 1:2);
 
-                % find network membership
-                for y_iterator = 1:obj.number_networks
-                    for x_iterator = 1:y_iterator
-                        net_coordinates = obj.network_dimensions(x_iterator, y_iterator, :);
-                        click_padding = 1;
-                        if (coordinates(1) >= net_coordinates(1) - click_padding) && ...
-                                (coordinates(1) <= net_coordinates(2) + click_padding) ...
-                                && (coordinates(2) >= net_coordinates(3) - click_padding) ...
-                                && (coordinates(2) <= net_coordinates(4) + click_padding)
-                            obj.network_clicked_callback(y_iterator, x_iterator);
-                        end
-                    end
-                end
-            end
-        end
-
-    end
+        
 
     methods (Access = protected)
         function element_size = elementSize(obj)
@@ -268,12 +272,34 @@ classdef MatrixPlot < handle
             obj.axes.YAxis.TickLabels = {};
         end
 
+        function clickCallback(obj, ~, ~)
+            % clickCallback - Method which determines which coordinates were clicked and runs 'network_clicked_callback'
+            if ~isequal(obj.network_clicked_callback, false)
+                % get point clicked
+                coordinates = get(obj.axes, 'CurrentPoint');
+                coordinates = coordinates(1, 1:2);
+                
+                % find network membership
+                for y_iterator = 1:obj.number_networks
+                    for x_iterator = 1:y_iterator
+                        net_coordinates = obj.network_dimensions(x_iterator, y_iterator, :);
+                        click_padding = 1;
+                        if (coordinates(1) >= net_coordinates(1) - click_padding) && ...
+                                (coordinates(1) <= net_coordinates(2) + click_padding) ...
+                                && (coordinates(2) >= net_coordinates(3) - click_padding) ...
+                                && (coordinates(2) <= net_coordinates(4) + click_padding)
+                            obj.network_clicked_callback(y_iterator, x_iterator)
+                        end
+                    end
+                end
+            end
+        end
+        
         function addCallback(obj, x)
             % addCallback - Needed to add callbacks that are clickable to parts of the plot
             if ~isequal(obj.network_clicked_callback, false)
-                x.ButtonDownFcn = {@obj.clickCallback, obj};
+                x.ButtonDownFcn = @obj.clickCallback;
             end
-
         end
 
         function obj = embiggenMatrix(obj)
@@ -336,7 +362,11 @@ classdef MatrixPlot < handle
                     if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
                         obj.plotSignificanceMark(chunk_width, chunk_height, position_x, position_y);
                     end
-
+                    
+                    if ~isequal(obj.network_clicked_callback, false)
+                        obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1, position_y, position_y + chunk_height - 1];
+                    end
+                    
                     obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1], [position_y, position_y + chunk_height + 1]));
                     obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1], [position_y + chunk_height, position_y + chunk_height]));
                     
@@ -381,7 +411,7 @@ classdef MatrixPlot < handle
             marker = plot(obj.axes, cell_x, cell_y, 'x', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
 
             if ~isequal(obj.network_clicked_callback, false)
-                marker.ButtonDownFcn = {@obj.clickCallback, obj};
+                marker.ButtonDownFcn = @obj.clickCallback;
             end
 
         end
@@ -410,11 +440,10 @@ classdef MatrixPlot < handle
             obj.axes.Toolbar.Visible = 'off';
             disableDefaultInteractivity(obj.axes);
             if ~obj.network_matrix
-                set(obj.axes, 'units', 'pixels');
-                axes_position = get(obj.axes, 'position');
-                set(obj.axes, 'xlim', [0, axes_position(3)]);
-                set(obj.axes, 'ylim', [0, axes_position(4)]);
-                get(obj.axes, 'position')
+                obj.axes.Units = 'pixels';
+                axes_position = obj.axes.Position;
+                obj.axes.XLim = [0 axes_position(3)];
+                obj.axes.YLim = [0 axes_position(4)];
             end
         end
 

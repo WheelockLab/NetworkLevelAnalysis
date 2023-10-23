@@ -149,7 +149,7 @@ classdef BasePermResult < nla.TestResult
             %% trimatrix plot
             [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
 %             [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
-            matrix_plot = gfx.matrix.MatrixPlot(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            matrix_plot = gfx.matrix.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, gfx.FigSize.SMALL, @brainFigsButtonClickedCallback, plot_sig, gfx.FigMargins.WHITESPACE, false, true, cm, 0, plot_max, x, y);
             matrix_plot.displayImage();
             w = matrix_plot.image_dimensions("image_width");
             h = matrix_plot.image_dimensions("image_height");

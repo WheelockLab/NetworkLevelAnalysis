@@ -143,6 +143,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     image_display = image(ax, image_data, 'XData', [1 ax.Position(3)], 'YData', [1 ax.Position(4)]);
     % network buttons
     net_dims = zeros(num_nets, num_nets, 4);
+    
     function clickedCallback(~, ~)
         if ~isequal(net_clicked_callback, false)
             % get point clicked
@@ -242,7 +243,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
             if ~isequal(net_clicked_callback, false)
                 net_dims(x,y,:) = [x_pos, x_pos + chunk_w - 1, y_pos, y_pos + chunk_h - 1];
             end
-            
+
             % draw lines left of and below each chunk
             addCallback(gfx.drawLine(ax, [x_pos - 1, x_pos - 1], [y_pos, y_pos + chunk_h + 1]));
             addCallback(gfx.drawLine(ax, [x_pos - 2, x_pos + chunk_w - 1], [y_pos + chunk_h, y_pos + chunk_h]));
