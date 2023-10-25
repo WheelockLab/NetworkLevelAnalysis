@@ -47,7 +47,7 @@ classdef MatrixPlot < handle
     end
 
     methods
-        function obj = MatrixPlot(varargin)
+        function obj = MatrixPlot(figure, name, matrix, networks, figure_size, varargin)
             % MatrixPlot constructor
             % Gives plot object as output.
             % Requires inputs in this order:
@@ -73,8 +73,7 @@ classdef MatrixPlot < handle
 
             import nla.gfx.createFigure
             if nargin > 0
-                matrix = varargin{3};
-                if isequal(class(matrix), 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
+                if isa(matrix, 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
                     if ~isnumeric(matrix.v)
                         % If this doesn't work (ie: program errors here), your data is
                         % not of a numeric type, and cannot be converted to a numeric
@@ -84,48 +83,48 @@ classdef MatrixPlot < handle
                     obj.matrix_type = nla.gfx.MatrixType.TRIMATRIX;
                 end
                 obj.matrix = matrix;
-                obj.networks = varargin{4};
-                obj.figure = varargin{1};
+                obj.networks = networks;
+                obj.figure = figure;
                 obj.figure.Renderer = 'painters';
-                obj.name = varargin{2};
-                obj.figure_size = varargin{5};
+                obj.name = name;
+                obj.figure_size = figure_size;
                 
                 if nargin > 5
-                    obj.network_clicked_callback = varargin{6};
+                    obj.network_clicked_callback = varargin{1};
                 end
                 if nargin > 6
-                    obj.marked_networks = varargin{7};
-                    if ~isequal(varargin{7}, false) && isequal(class(varargin{7}), 'nla.TriMatrix')
-                        obj.marked_networks = varargin{7}.asMatrix();
+                    obj.marked_networks = varargin{2};
+                    if ~isequal(varargin{2}, false) && is(varargin{2}, 'nla.TriMatrix')
+                        obj.marked_networks = varargin{2}.asMatrix();
                     end
                 end
                 if nargin > 7
-                    obj.figure_margins = varargin{8};
+                    obj.figure_margins = varargin{3};
                 end
                 if nargin > 8
-                    obj.draw_legend = varargin{9};
+                    obj.draw_legend = varargin{4};
                 end
                 if nargin > 9
-                    obj.draw_colorbar = varargin{10};
+                    obj.draw_colorbar = varargin{5};
                 end
                 if nargin > 10
-                    obj.color_map = varargin{11};
+                    obj.color_map = varargin{6};
                 end
 
                 if nargin > 11
-                    obj.lower_limit = varargin{12};
+                    obj.lower_limit = varargin{7};
                 end
                 if nargin > 12
-                    obj.upper_limit = varargin{13};
+                    obj.upper_limit = varargin{8};
                 end
                 if nargin > 13
-                    obj.x_position = varargin{14};
+                    obj.x_position = varargin{9};
                 end
                 if nargin > 14
-                    obj.y_position = varargin{15};
+                    obj.y_position = varargin{10};
                 end
                 if nargin > 15
-                    obj.discrete_colorbar = varargin{16};
+                    obj.discrete_colorbar = varargin{11};
                 end
             end
         end
