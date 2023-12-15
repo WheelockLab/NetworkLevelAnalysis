@@ -9,24 +9,24 @@ classdef MatrixPlot < handle
         % data in the input matrix
         networks
         figure % figure used for plotting
-        x_position = 0 % starting x position in the figure object
-        y_position = 0 % starting y position in the figure object
-        lower_limit = -0.3 % lower limit to clip input matrix
-        upper_limit = 0.3 % upper limit to clip input matrix
+        x_position % starting x position in the figure object
+        y_position % starting y position in the figure object
+        lower_limit % lower limit to clip input matrix
+        upper_limit % upper limit to clip input matrix
         name % name of the plot
         figure_size % Size to display. Either nla.gfx.FigSize.SMALL or nla.gfx.FigSize.LARGE
-        draw_legend = true % Legend on/off
-        draw_colorbar = true % Colorbar on/off
-        color_map = turbo(256) % Colormap to use (enter 'turbo(256)' for default)
-        marked_networks = false % networks to mark with a symbol
-        discrete_colorbar = false % colorbar as discrete. TRUE == discrete, FALSE == continuous
-        network_clicked_callback = false % Button function to add to each network. Used for clickable networks
-        figure_margins = nla.gfx.FigMargins.WHITESPACE % Margin on figure object yes/no.
-        network_dimensions = [] % Dimensions of the input
-        axes = false % The axes of the plot
-        image_display = false % The actual displayed values
-        color_bar = false % The colorbar
-        matrix_type = nla.gfx.MatrixType.MATRIX % Type of matrix data input used
+        draw_legend % Legend on/off
+        draw_colorbar % Colorbar on/off
+        color_map % Colormap to use (enter 'turbo(256)' for default)
+        marked_networks % networks to mark with a symbol
+        discrete_colorbar % colorbar as discrete. TRUE == discrete, FALSE == continuous
+        network_clicked_callbacke % Button function to add to each network. Used for clickable networks
+        figure_margins % Margin on figure object yes/no.
+        network_dimensions % Dimensions of the input
+        axes % The axes of the plot
+        image_display % The actual displayed values
+        color_bar % The colorbar
+        matrix_type % Type of matrix data input used
     end
 
     properties (Dependent)
@@ -69,64 +69,85 @@ classdef MatrixPlot < handle
             % x_position = 0
             % y_position = 0
             % discrete_colorbar = false
-
-
             import nla.gfx.createFigure
-            if nargin > 0
-                if isa(matrix, 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
-                    if ~isnumeric(matrix.v)
-                        % If this doesn't work (ie: program errors here), your data is
-                        % not of a numeric type, and cannot be converted to a numeric
-                        % type, which means it cannot be displayed.
-                        matrix.v = single(matrix.v);
-                    end
-                    obj.matrix_type = nla.gfx.MatrixType.TRIMATRIX;
-                end
-                obj.matrix = matrix;
-                obj.networks = networks;
-                obj.figure = figure;
-                obj.figure.Renderer = 'painters';
-                obj.name = name;
-                obj.figure_size = figure_size;
-                
-                if nargin > 5
-                    obj.network_clicked_callback = varargin{1};
-                end
-                if nargin > 6
-                    obj.marked_networks = varargin{2};
-                    if ~isequal(varargin{2}, false) && is(varargin{2}, 'nla.TriMatrix')
-                        obj.marked_networks = varargin{2}.asMatrix();
-                    end
-                end
-                if nargin > 7
-                    obj.figure_margins = varargin{3};
-                end
-                if nargin > 8
-                    obj.draw_legend = varargin{4};
-                end
-                if nargin > 9
-                    obj.draw_colorbar = varargin{5};
-                end
-                if nargin > 10
-                    obj.color_map = varargin{6};
-                end
+            matrix_input_parser = inputParser;
+            addRequired(matrix_input_parser, 'figure');
+            addRequired(matrix_input_parser, 'name');
+            addRequired(matrix_input_parser, 'matrix');
+            addRequired(matrix_input_parser, 'networks');
+            addRequired(matrix_input_parser, 'figure_size');
 
-                if nargin > 11
-                    obj.lower_limit = varargin{7};
-                end
-                if nargin > 12
-                    obj.upper_limit = varargin{8};
-                end
-                if nargin > 13
-                    obj.x_position = varargin{9};
-                end
-                if nargin > 14
-                    obj.y_position = varargin{10};
-                end
-                if nargin > 15
-                    obj.discrete_colorbar = varargin{11};
-                end
-            end
+            validNumberInput = @(x) isnumeric(x) && isscalar(x);
+            validFunctionHandle = @(x) isa(x, 'function_handle');
+            addParameter(matrix_input_parser, 'network_clicked_callback', false, validFunctionHandle);
+            addParameter(matrix_input_parser, 'marked_networks', false, @islogical);
+            addParameter(matrix_input_parser, 'figure_margins', nla.gfx.FigMargsins.WHITESPACE, @isenum);
+            addParameter(matrix_input_parser, 'draw_legend', true, @islogical);
+            addParameter(matrix_input_parser, 'draw_colorbar', true, @islogical);
+            addParameter(matrix_input_parser, 'color_map', turbo(256));
+            addParameter(matrix_input_parser, 'lower_limit', -0.3, validNumberInput);
+            addParameter(matrix_input_parser, 'upper_limit', 0.3, validNumberInput);
+            addParameter(matrix_input_parser, 'x_position', 0, validNumberInput);
+            addParameter(matrix_input_parser, 'y_position', 0, validNumberInput);
+            addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
+            
+            parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
+
+            % if nargin > 0
+            %     if isa(matrix, 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
+            %         if ~isnumeric(matrix.v)
+            %             % If this doesn't work (ie: program errors here), your data is
+            %             % not of a numeric type, and cannot be converted to a numeric
+            %             % type, which means it cannot be displayed.
+            %             matrix.v = single(matrix.v);
+            %         end
+            %         obj.matrix_type = nla.gfx.MatrixType.TRIMATRIX;
+            %     end
+            %     obj.matrix = matrix;
+            %     obj.networks = networks;
+            %     obj.figure = figure;
+            %     obj.figure.Renderer = 'painters';
+            %     obj.name = name;
+            %     obj.figure_size = figure_size;
+                
+            %     if nargin > 5
+            %         obj.network_clicked_callback = varargin{1};
+            %     end
+            %     if nargin > 6
+            %         obj.marked_networks = varargin{2};
+            %         if ~isequal(varargin{2}, false) && is(varargin{2}, 'nla.TriMatrix')
+            %             obj.marked_networks = varargin{2}.asMatrix();
+            %         end
+            %     end
+            %     if nargin > 7
+            %         obj.figure_margins = varargin{3};
+            %     end
+            %     if nargin > 8
+            %         obj.draw_legend = varargin{4};
+            %     end
+            %     if nargin > 9
+            %         obj.draw_colorbar = varargin{5};
+            %     end
+            %     if nargin > 10
+            %         obj.color_map = varargin{6};
+            %     end
+
+            %     if nargin > 11
+            %         obj.lower_limit = varargin{7};
+            %     end
+            %     if nargin > 12
+            %         obj.upper_limit = varargin{8};
+            %     end
+            %     if nargin > 13
+            %         obj.x_position = varargin{9};
+            %     end
+            %     if nargin > 14
+            %         obj.y_position = varargin{10};
+            %     end
+            %     if nargin > 15
+            %         obj.discrete_colorbar = varargin{11};
+            %     end
+            % end
         end
 
         function displayImage(obj)
