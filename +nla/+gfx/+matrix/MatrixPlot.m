@@ -20,7 +20,7 @@ classdef MatrixPlot < handle
         color_map % Colormap to use (enter 'turbo(256)' for default)
         marked_networks % networks to mark with a symbol
         discrete_colorbar % colorbar as discrete. TRUE == discrete, FALSE == continuous
-        network_clicked_callbacke % Button function to add to each network. Used for clickable networks
+        network_clicked_callback % Button function to add to each network. Used for clickable networks
         figure_margins % Margin on figure object yes/no.
         network_dimensions % Dimensions of the input
         axes % The axes of the plot
@@ -81,7 +81,7 @@ classdef MatrixPlot < handle
             validFunctionHandle = @(x) isa(x, 'function_handle');
             addParameter(matrix_input_parser, 'network_clicked_callback', false, validFunctionHandle);
             addParameter(matrix_input_parser, 'marked_networks', false, @islogical);
-            addParameter(matrix_input_parser, 'figure_margins', nla.gfx.FigMargsins.WHITESPACE, @isenum);
+            addParameter(matrix_input_parser, 'figure_margins', nla.gfx.FigMargins.WHITESPACE, @isenum);
             addParameter(matrix_input_parser, 'draw_legend', true, @islogical);
             addParameter(matrix_input_parser, 'draw_colorbar', true, @islogical);
             addParameter(matrix_input_parser, 'color_map', turbo(256));
@@ -92,6 +92,12 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
             
             parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
+            properties = {'figure', 'name', 'matrix', 'networks', 'figure_size', 'network_clicked_callback',...
+                'marked_networks', 'figure_margins', 'draw_legend', 'draw_colorbar', 'color_map', 'lower_limit', 'upper_limit',...
+                'x_position', 'y_position', 'discrete_colorbar'};
+            for property = properties
+                obj.(property{1}) = matrix_input_parser.Results.(property{1});
+            end
 
             % if nargin > 0
             %     if isa(matrix, 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
