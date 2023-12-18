@@ -94,7 +94,7 @@ classdef MatrixPlot < handle
                 end
                 if nargin > 6
                     obj.marked_networks = varargin{2};
-                    if ~isequal(varargin{2}, false) && is(varargin{2}, 'nla.TriMatrix')
+                    if ~isequal(varargin{2}, false) && isa(varargin{2}, 'nla.TriMatrix')
                         obj.marked_networks = varargin{2}.asMatrix();
                     end
                 end
@@ -240,10 +240,6 @@ classdef MatrixPlot < handle
             value = obj.matrix.asMatrix();
         end
     end
-
-
-
-        
 
     methods (Access = protected)
         function element_size = elementSize(obj)
