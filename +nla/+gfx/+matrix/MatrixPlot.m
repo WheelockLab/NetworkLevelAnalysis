@@ -109,7 +109,7 @@ classdef MatrixPlot < handle
             %     obj.figure.Renderer = 'painters';
             %     obj.name = name;
             %     obj.figure_size = figure_size;
-                
+
             %     if nargin > 5
             %         obj.network_clicked_callback = varargin{1};
             %     end
@@ -261,10 +261,6 @@ classdef MatrixPlot < handle
             value = obj.matrix.asMatrix();
         end
     end
-
-
-
-        
 
     methods (Access = protected)
         function element_size = elementSize(obj)
