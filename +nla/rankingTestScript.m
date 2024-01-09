@@ -1,0 +1,55 @@
+import nla.TriMatrix
+
+root_path = nla.findRootPath();
+
+tests = nla.TestPool();
+tests.net_tests = nla.genTests('net.test');
+tests.net_tests = tests.net_tests(6:7);
+
+fc_path = [root_path 'examples/fc_and_behavior/sample_func_conn.mat'];
+fc_struct = load(fc_path);
+fc_unordered = fc_struct.fc;
+functional_connectivity_unordered = double(fc_unordered);
+
+network_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_16nets_288ROI_on_MNI.mat'];
+network_atlas = load(network_atlas_path);
+network_to_remove = ["US"];
+
+[new_network_atlas] = nla.removeNetworks(network_atlas, network_to_remove, 'Wheelock_2020-CerebralCortex_16nets_288ROI_on_MNI');
+network_atlas = nla.NetworkAtlas(new_network_atlas);
+
+if all(abs(functional_connectivity_unordered(:)) <= 1)
+    functional_connectivity_unordered = nla.fisherR2Z(functional_connectivity_unordered);
+end
+
+input_struct.func_conn = TriMatrix(functional_connectivity_unordered(network_atlas.ROI_order, network_atlas.ROI_order, :));
+
+behavior_path = [root_path 'examples/fc_and_behavior/sample_behavior.mat'];
+behavior_struct = load(behavior_path);
+behavior = behavior_struct.Bx;
+input_struct.behavior = behavior(:, 10).Variables;
+
+input_struct.net_atlas = network_atlas;
+input_struct.prob_max = 0.05;
+input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
+
+network_input_struct = nla.net.genBaseInputs();
+network_input_struct.prob_max = 0.05;
+network_input_struct.behavior_count = 1;
+network_input_struct.d_max = 0.5;
+network_input_struct.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
+
+clear fc_unordered fc_struct behavior
+
+edge_test_results = tests.runEdgeTest(input_struct);
+network_test_results = tests.runNetTests(network_input_struct, edge_test_results, network_atlas);
+
+permutation_seed = 1;
+number_of_permutations = 100;
+permutation_edge_results = tests.runEdgeTestPerm(input_struct, number_of_permutations, permutation_seed);
+permutation_network_results = tests.runNetTestsPerm(network_input_struct, network_atlas, permutation_edge_results);
+
+% These results will be ranked with the new way
+ranked_permuted_network_results = tests.rankResults(input_struct, network_test_results, permutation_network_results, network_atlas.numNetPairs());
+
+
