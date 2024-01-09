@@ -6,6 +6,24 @@ classdef TestPool < nla.DeepCopyable
         net_tests = {}
         data_queue = false
     end
+
+    methods (Access = private)
+
+        function [number_processes, blocks] = initializeParallelPool(obj, number_permutations)
+            % get current parallel pool or start a new one
+            p = gcp;
+            number_processes = p.NumWorkers;
+            
+            % blocks of iteration to be handled by each process
+            if number_permutations < number_processes
+                blocks = 1:(number_permutations + 1);
+                number_processes = number_permutations;
+            else
+                blocks = uint32(linspace(1, double(number_permutations + 1), number_processes + 1));
+            end
+        end
+
+    end
     
     methods
         
@@ -25,8 +43,10 @@ classdef TestPool < nla.DeepCopyable
                 perm_seed = false;
             end
             edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
-            net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, net_results_nonperm, edge_results_perm, edge_result_nonperm);
-            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
+            net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, edge_results_perm);
+            ranked_permuted_network_results = obj.rankResults(input_struct, net_results_nonperm, net_results_perm, net_atlas.numNetPairs());
+
+            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, ranked_permuted_network_results);
         end
         
         function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
@@ -39,17 +59,7 @@ classdef TestPool < nla.DeepCopyable
                 perm_seed = randi(intmax('uint32'), 'uint32');
             end
             
-            % get current parallel pool or start a new one
-            p = gcp;
-            num_procs = p.NumWorkers;
-            
-            % blocks of iteration to be handled by each process
-            if num_perms < num_procs
-                blocks = 1:(num_perms+1);
-                num_procs = num_perms;
-            else
-                blocks = uint32(linspace(1, num_perms + 1, num_procs + 1));
-            end
+            [num_procs, blocks] = obj.initializeParallelPool(num_perms);
             
             edge_result_blocks = cell(1, num_procs);
             parfor proc = 1:num_procs
@@ -67,45 +77,34 @@ classdef TestPool < nla.DeepCopyable
             edge_result_perm.perm_seed = perm_seed;
         end
         
-        function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, net_results_nonperm, perm_edge_results, edge_result_nonperm)
-            % get current parallel pool or start a new one
-            p = gcp;
-            num_procs = p.NumWorkers;
+        function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, perm_edge_results)
             num_perms = perm_edge_results.perm_count;
-            
-            % blocks of iteration to be handled by each process
-            if num_perms < num_procs
-                blocks = 1:(num_perms+1);
-                num_procs = num_perms;
-            else
-                blocks = uint32(linspace(1, double(num_perms + 1), num_procs + 1));
-            end
+            [num_procs, blocks] = obj.initializeParallelPool(num_perms);
             
             % split permuted edge results into a 'block' for each worker
-            allEdgeResBlocks = cell(num_procs, 1);
-            for proc = 1:num_procs
-                thisBlockIdxs = blocks(proc):(blocks(proc+1)-1);
-                allEdgeResBlocks{proc} = perm_edge_results.getResultsByIdxs(thisBlockIdxs);
+            allEdgeResBlocks = {};
+            for process = 1:num_procs
+                thisBlockIdxs = blocks(process):(blocks(process+1)-1);
+                allEdgeResBlocks{process} = perm_edge_results.getResultsByIdxs(thisBlockIdxs);
             end
             
-            parfor proc = 1:num_procs
-                net_result_block = cell(numNetTests(obj), 1);
-                for i = 1:numNetTests(obj)
-                    net_result_block{i} = copy(net_results_nonperm{i});
-                end
-                obj.runNetTestsPermBlock(net_input_struct, net_atlas, net_result_block, allEdgeResBlocks{proc}, blocks(proc), blocks(proc+1));
-                net_result_blocks{proc} = net_result_block;
+            network_result_blocks = {};
+            for process = 1:num_procs
+                network_results = obj.runNetTestsPermBlock(net_input_struct, net_atlas, allEdgeResBlocks{process}, blocks(process));
+                network_result_blocks{process} = network_results;
             end
             
             % and net level result chunks
             net_level_results = {};
             for test_index = 1:numNetTests(obj)
-                for proc_index = 1:num_procs
-                    cur_proc_net_results = net_result_blocks{proc_index};
-                    cur_test_net_results(proc_index) = cur_proc_net_results(test_index);
+                current_test_network_results = {};
+                for process_index = 1:num_procs
+                    current_process_network_results = network_result_blocks{process_index};
+                    current_test_network_results{process_index} = current_process_network_results{test_index};
                 end
-                net_level_results{test_index} = cur_test_net_results{1};
-                net_level_results{test_index}.merge(net_input_struct, edge_result_nonperm, perm_edge_results, net_atlas, {cur_test_net_results{2:end}});
+                net_level_results{test_index} = current_test_network_results{1}.copy();
+                % Have to recast 'current_test_network_results{2:end}' to cell array. Matlab goodness
+                net_level_results{test_index}.merge(current_test_network_results(2:end));
             end
         end
         
@@ -116,7 +115,7 @@ classdef TestPool < nla.DeepCopyable
             for iteration = block_start:block_end - 1
                 % set RNG per-iteration based on the random seed and
                 % iteration number, so the # of processes doesn't impact
-                % the result(important for repeatability if running
+                % the result(important for repeatability if running 
                 % permutations with the same seed intentionally)
                 rng(bitxor(perm_seed, iteration));
                 permuted_input = input_struct.permute_method.permute(input_struct);
@@ -131,11 +130,16 @@ classdef TestPool < nla.DeepCopyable
             end
         end
         
-        function previous_net_results = runNetTestsPermBlock(obj, net_input_struct, net_atlas, previous_net_results, perm_edge_results, block_start, block_end)
+        function network_results_permutation = runNetTestsPermBlock(obj, net_input_struct, net_atlas, perm_edge_results, block_start)
+            network_results_permutation = obj.getNetworkResults(obj.net_tests);
+            
             for iteration_within_block = 1:perm_edge_results.perm_count
                 previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
                 net_input_struct.iteration = block_start + iteration_within_block - 1;
-                obj.runNetTests(net_input_struct, previous_edge_result, net_atlas, previous_net_results);
+                network_results = obj.runNetTests(net_input_struct, previous_edge_result, net_atlas);
+                for i = 1:numel(obj.net_tests)
+                    network_results_permutation{i}.concatenateResult(network_results{i});
+                end
                 if ~islogical(obj.data_queue)
                     send(obj.data_queue, iteration_within_block);
                 end
@@ -151,16 +155,10 @@ classdef TestPool < nla.DeepCopyable
             edge_result = obj.edge_test.run(input_struct);
         end
         
-        function net_results = runNetTests(obj, input_struct, edge_result, net_atlas, previous_results)
+        function net_results = runNetTests(obj, input_struct, edge_result, net_atlas)
             net_results = {};
             for i = 1:numNetTests(obj)
-                % Use the corresponding previous test result, if they are
-                % all provided, else just pass on the parameter
-                previous_result = previous_results;
-                if iscell(previous_results)
-                    previous_result = previous_results{i};
-                end
-                net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas, previous_result);
+                net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas);
             end
         end
         
@@ -174,6 +172,44 @@ classdef TestPool < nla.DeepCopyable
                 if isa(obj.net_tests{i}, 'net.BaseSigTest')
                     val = true;
                 end
+            end
+        end
+
+        function network_results = getNetworkResults(obj, network_tests)
+           % I had a great idea for a function here. Matlab is really really stupid with its rules and I got really
+           % angry. So, we get hardcoded shit
+
+           import nla.net.result.permutation.* nla.findRootPath
+
+           root_path = findRootPath();
+           results_directory_content = dir(strcat(root_path, '+nla/+net/+result/+permutation'));
+           results_directory_content_names = {results_directory_content.name};
+           results_directory_content_names = results_directory_content_names(~[results_directory_content.isdir]);
+
+            network_results = {};
+           for test = network_tests
+                for result = results_directory_content_names
+                    name_split = split(result, '.');
+                    if test{1}.name == nla.net.result.permutation.(name_split{1}).test
+                        network_results{end + 1} = nla.net.result.permutation.(name_split{1});
+                    end
+                end
+            end
+        end
+
+        function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
+            import nla.net.ResultRank
+            
+            stat_ranking = false;
+            if ~isfield(input_options, 'ranking_method') || input_options.ranking_method == nla.RankingMethod.TEST_STATISTIC
+                stat_ranking = true;
+            end
+
+            ranked_results = {};
+            for test = 1:numNetTests(obj)
+                ranker = ResultRank(nonpermuted_network_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                network_results_ranked = ranker.rank();
+                ranked_results{test} = network_results_ranked;
             end
         end
     end
