@@ -9,8 +9,9 @@ classdef HyperGeometricTest < handle
         function obj = HyperGeometricTest()
         end
 
-        function result = run(obj, edge_test_results, network_atlas)
+        function result = run(obj, test_options, edge_test_results, network_atlas)
             %RUN runs the hypergeometric test
+            %  test_options: The selected values for the test to be run. Formerly input_struct. Options are in nla.net.genBaseInputs
             %  edge_test_results: Non-permuted edge test results. Formerly edge_result
             %  network_atlas: Network atlas for data
             
@@ -19,7 +20,7 @@ classdef HyperGeometricTest < handle
             number_of_networks = network_atlas.numNets();
 
             % Container to hold results
-            result = nla.net2.result.NetworkTestResult(number_of_networks, obj.name, obj.statistics);
+            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
             % Empty this out since it is not needed
             result.single_sample_p_value = [];
             result.test_statistics.(obj.name).greated_than_expected = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
