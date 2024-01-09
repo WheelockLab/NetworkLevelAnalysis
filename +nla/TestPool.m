@@ -122,35 +122,7 @@ classdef TestPool < nla.DeepCopyable
                 end
             end
         end
-        
-        function network_result_block = runEdgeAndNetPermBlock(obj, edge_input_struct, net_input_struct, net_atlas,...
-            block_start, block_end, perm_seed)
-        
-            for iteration = block_start:block_end - 1
-                rng(iteration);
-                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
-                permuted_input.iteration = iteration;
-                
-                single_edge_result = obj.runEdgeTest(permuted_input);
-                network_results = obj.runNetTests(net_input_struct, single_edge_result, net_atlas, true);
-                
-                % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
-                % indexes
-                if iteration - block_start + 1 == 1
-                    for test = 1:numNetTests(obj)
-                        network_result_block{test} = copy(network_results{test});
-                    end
-                else
-                    for test = 1:numNetTests(obj)
-                        network_result_block{test}.merge(network_results{test});
-                    end
-                end
-
-                if ~islogical(obj.data_queue)
-                    send(obj.data_queue, iteration);
-                end
-            end
-        end
+    end
         
         function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
             % Optional perm_seed parameter for replicating runs. If not
@@ -270,15 +242,20 @@ classdef TestPool < nla.DeepCopyable
             val = numel(obj.net_tests);
         end
 
-        function ranked_results = rankResults(obj, input_options, nonpermuted_network_test_results, permuted_network_results, number_of_network_pairs)
-            import nla.net.ResultRank
 
-            ranked_results = permuted_network_results;
+        function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
+            import nla.net.ResultRank
+            
+            stat_ranking = false;
+            if ~isfield(input_options, 'ranking_method') || input_options.ranking_method == nla.RankingMethod.TEST_STATISTIC
+                stat_ranking = true;
+            end
+
+            ranked_results = {};
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, number_of_network_pairs);
-                ranked_results_object = ranker.rank();
-                ranked_results{test} = ranked_results_object;
-                ranked_results{test}.permutation_results = permuted_network_results{test}.permutation_results;
+                ranker = ResultRank(nonpermuted_network_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                network_results_ranked = ranker.rank();
+                ranked_results{test} = network_results_ranked;
             end
         end
     end
