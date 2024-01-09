@@ -279,6 +279,7 @@ classdef TestPool < nla.DeepCopyable
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
                 ranked_results{test}.permutation_results = permuted_network_results{test}.permutation_results;
+            
             end
         end
     end
