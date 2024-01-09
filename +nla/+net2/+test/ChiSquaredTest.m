@@ -24,7 +24,7 @@ classdef ChiSquaredTest < handle
             % Empty this out since it is not needed
             result.single_sample_p_value = [];
             result.test_statistics.(obj.name).chi2_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.test_statistics.(obj.name).greated_than_expected = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
+            result.test_statistics.(obj.name).greater_than_expected = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
