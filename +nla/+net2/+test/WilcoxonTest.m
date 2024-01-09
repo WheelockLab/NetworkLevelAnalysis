@@ -2,15 +2,16 @@ classdef WilcoxonTest < handle
     %WILCOXON Wilcoxon rank sum test
     properties (Constant)
         name = "wilcoxon"
-        statistics = ["ranksum_statistic", "single_sample_ranksum_statistic"]
+        statistics = ["ranksum_statistic", "single_sample_ranksum_statistic", "z_statistic"]
     end
 
     methods
         function obj = WilcoxonTest()
         end
 
-        function result = run(edge_test_results, network_atlas)
+        function result = run(obj, test_options, edge_test_results, network_atlas)
             %RUN runs the Wilcoxon rank-sum test
+            %  test_options: The selected values for the test to be run. Formerly input_struct. Options are in nla.net.genBaseInputs
             %  edge_test_results: Non-permuted edge test results. Formerly edge_result
             %  network_atlas: Network atlas for data
 
@@ -18,7 +19,7 @@ classdef WilcoxonTest < handle
 
             number_of_networks = network_atlas.numNets();
 
-            result = nla.net2.result.NetworkTestResult(number_of_networks, obj.name, obj.statistics);
+            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
             result.test_statistics.(obj.name).ranksum_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             result.test_statistics.(obj.name).z_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             result.test_statistics.(obj.name).single_sample_ranksum_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
