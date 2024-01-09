@@ -216,13 +216,13 @@ classdef TestPool < nla.DeepCopyable
             
             % split permuted edge results into a 'block' for each worker
             allEdgeResBlocks = {};
-            for process = 1:num_procs
+            parfor process = 1:num_procs
                 thisBlockIdxs = blocks(process):(blocks(process+1)-1);
                 allEdgeResBlocks{process} = perm_edge_results.getResultsByIdxs(thisBlockIdxs);
             end
             
             network_result_blocks = {};
-            for process = 1:num_procs
+            parfor process = 1:num_procs
                 network_results = obj.runNetTestsPermBlock(net_input_struct, net_atlas, allEdgeResBlocks{process}, blocks(process));
                 network_result_blocks{process} = network_results;
             end
@@ -270,15 +270,19 @@ classdef TestPool < nla.DeepCopyable
             val = numel(obj.net_tests);
         end
 
-        function ranked_results = rankResults(obj, input_options, nonpermuted_network_test_results, permuted_network_results, number_of_network_pairs)
+        function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
             import nla.net.ResultRank
+            
+            stat_ranking = false;
+            if ~isfield(input_options, 'ranking_method') || input_options.ranking_method == nla.RankingMethod.TEST_STATISTIC
+                stat_ranking = true;
+            end
 
-            ranked_results = permuted_network_results;
+            ranked_results = {};
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, number_of_network_pairs);
-                ranked_results_object = ranker.rank();
-                ranked_results{test} = ranked_results_object;
-                ranked_results{test}.permutation_results = permuted_network_results{test}.permutation_results;
+                ranker = ResultRank(nonpermuted_network_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                network_results_ranked = ranker.rank();
+                ranked_results{test} = network_results_ranked;
             end
         end
     end
