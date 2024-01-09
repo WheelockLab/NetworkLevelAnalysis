@@ -13,8 +13,9 @@ classdef TTests < handle
         function obj = TTests()
         end
 
-        function result = run(obj, edge_test_results, network_atlas, test_type)
+        function result = run(obj, test_options, edge_test_results, network_atlas, test_type)
             %RUN runs the Welch's t-test
+            %  test_options: The selected values for the test to be run. Formerly input_struct. Options are in nla.net.genBaseInputs
             %  edge_test_results: Non-permuted edge test results. Formerly edge_result
             %  network_atlas: Network atlas for data
             %  test_type: Welch's (welchs) or Student's (students) t-test (default: students)
@@ -29,7 +30,7 @@ classdef TTests < handle
 
             number_of_networks = network_atlas.numNets();
 
-            result = nla.net2.result.NetworkTestResult(number_of_networks, obj.name, obj.statistics);
+            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
             result.tests_statistics.(obj.name).t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             result.tests_statistics.(obj.name).single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
