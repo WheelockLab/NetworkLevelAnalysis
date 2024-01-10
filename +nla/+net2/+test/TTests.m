@@ -31,8 +31,8 @@ classdef TTests < handle
             number_of_networks = network_atlas.numNets();
 
             result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
-            result.tests_statistics.(obj.name).t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.tests_statistics.(obj.name).single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.permutation_results.t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.permutation_results.single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -49,10 +49,10 @@ classdef TTests < handle
 
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
 
-                    result.p_value.set(network, network2, p);
-                    result.tests_statistics.(obj.name).t_statistic.set(network, network2, stats.tstat);
-                    result.single_sample_p_value.set(network, network2, single_sample_p);
-                    result.tests_statistics.(obj.name).single_sample_t_statistic.set(network, network2, single_sample_stats.tstat);
+                    result.permutation_results.p_value.set(network, network2, p);
+                    result.permutation_results.t_statistic.set(network, network2, stats.tstat);
+                    result.permutation_results.single_sample_p_value.set(network, network2, single_sample_p);
+                    result.permutation_results.single_sample_t_statistic.set(network, network2, single_sample_stats.tstat);
                 end
             end
             
