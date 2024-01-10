@@ -21,10 +21,9 @@ classdef ChiSquaredTest < handle
 
             % Structure to pass results outside
             result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+
             % Empty this out since it is not needed
-            result.single_sample_p_value = [];
-            result.test_statistics.(obj.name).chi2_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.test_statistics.(obj.name).greater_than_expected = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
+            result.permutation_results.single_sample_p_value = false;
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -36,21 +35,20 @@ classdef ChiSquaredTest < handle
                     observed_significance = sum(network_pair_ROI_significance);
                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
                     chi2_value = ((observed_significance - expected_significance) .^ 2) ./ expected_significance;
-                    result.test_statistics.(obj.name).chi2_statistic.set(network, network2, chi2_value);
-                    result.test_statistics.(obj.name).greater_than_expected.set(network, network2, observed_significance > expected_significance);
+                    result.permutation_results.chi2_statistic.set(network, network2, chi2_value);
+                    result.permutation_results.greater_than_expected.set(network, network2, observed_significance > expected_significance);
                 end
             end
 
             % If the observed value is not greater than the expected, we zero out the result
             % This just results in a p-value of 1. Which means no difference between chance and null
             % hypothesis. We also zero anything that isn't finite to be safe
-
-            result.test_statistics.(obj.name).chi2_statistic.v(~result.test_statistics.(obj.name).greater_than_expected.v) = 0;
-            result.test_statistics.(obj.name).chi2_statistic.v(~isfinite(result.test_statistics.(obj.name).chi2_statistic.v)) = 0;
+            result.permutation_results.chi2_statistic.v(~result.permutation_results.greater_than_expected.v) = 0;
+            result.permutation_results.chi2_statistic.v(~isfinite(result.permutation_results.chi2_statistic.v)) = 0;
 
             % Matlab function for chi-squared cdf to get p-value. "Upper" calculates the upper tail instead of
             % using 1 - lower tail
-            result.p_value.v = chi2cdf(result.test_statistics.(obj.name).chi2_statistic.v, 1, "upper");
+            result.permutations_results.p_value.v = chi2cdf(result.permutation_results.chi2_statistic.v, 1, "upper");
         end
     end
 end

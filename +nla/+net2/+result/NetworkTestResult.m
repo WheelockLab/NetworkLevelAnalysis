@@ -4,26 +4,31 @@ classdef NetworkTestResult < handle
     % When a result is created the three repositories (within_network_pair, full_connectome, no_permutations) are set
     % to false. This makes it easier to do an if/else check on them. 
     % The three private methods create the structures and trimatrices to keep the data.
+    % Notation:
+    %   Test Methods: The method used for ranking the statistics (within net pair, full connectome, no permutation)
+    %   Statistics: The statistical results from a specific network test (chi-squared, t-tests)
+    %
     % Output object:
     %   test_name: The name of the network test run (chi_squared, hypergeometric, etc)
     %   test_options: The options passed in. Method, plotting methods (formerly input_struct)
     %   within_network_pair: Results from within_network_pair tests
     %   full_connectome: Results from full_connectome tests
     %   no_permutations: Results from the no permutation test
+    %   permutation_results: Results from all the permutations of the network tests. These are used in the ranking to create
+    %       the results for the test methods
     %
     % Within each of the three results structures will be properties containing the tri-matrices. Each test is different,
     % but all contain:
     %   p_value: TriMatrix with p-values
-    %   p_value_permutations: TriMatrix with all the p-value permutations
     %   single_sample_p_value: TriMatrix with the single sample p-value (if available)
-    %   single_sample_p_value_permutations: TriMatrix with single sample p-value permutations
     %
     properties
         test_name = "" % Name of the network test run
         test_options = struct() % Options selected for the test. Formerly input_struct
         within_network_pair = false % Results for within-network-pair tests
         full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
-        no_permutations = false % Results for the network tests with no permutations (the 'observed' results)        
+        no_permutations = false % Results for the network tests with no permutations (the 'observed' results)    
+        permutation_results = false % Results for each permutation test used to calculate p-values for the test methods    
     end
 
     properties (Access = private)
@@ -59,27 +64,12 @@ classdef NetworkTestResult < handle
         function merge(obj, other_objects)
             %MERGE Merge two groups of results together. Not guaranteed to be ordered
             for object_index = 1:numel(other_objects)
-                other_object = other_objects{object_index};
-
-                for method_index = 1:numel(obj.test_methods)
-                    test_method = obj.test_methods(method_index);
-                    statistic_prefix = "obj.(test_method)";
-
-                    if obj.(test_method)                       
-                        test_statistics = fieldnames(other_object.(test_method));
-                        % Iterate through all the statistics
-                        % This is messy. Choice has to be made between wordy code of a million .m files for classes
-                        % Damn you, Matlab! Multiple classes in a file should be easy!
-                        for statistic_index = 1:numel(test_statistics)
-                            test_statistic = test_statistics{statistic_index};
-                            % This merge method really just merges all the permutation data together. The observed
-                            % statistics should be the same 
-                            if contains(other_object.(test_method).(test_statistic), "_permutations")
-                                obj.(test_method).(test_statistic).v = [(statistic_prefix).(test_statistic).v,...
-                                    other_object.(test_method).(test_statistic).v];
-                            end
-                        end
-                    end
+                % These are the names of the statistics in permutation_results. We only really need to merge the permutation results,
+                % all the other results will be 2D while the permutation results are 3D
+                statistics = fieldnames(other_objects{object_index}.permutation_results);
+                for statistic_index = 1:numel(statistics)
+                    obj.permutation_results.(statistics(statistic_index)).v = [obj.permutation_results.(statistics(statistic_index)).v,...
+                        other_objects{object_index}.permutation_results.(statistics(statistic_index)).v];
                 end
             end
         end
@@ -87,6 +77,7 @@ classdef NetworkTestResult < handle
         function concatenateResult(obj, other_object)
             %CONCATENATERESULT Add a result to the back of a TriMatrix. Used to keep permutation data. Ordered
 
+            % Check to make sure we've created an object and create one if we haven't
             if ~all({obj.no_permutations, obj.within_network_pair, obj.full_connectome})
                 for method_index = 1:numel(obj.test_methods)
                     test_method = obj.test_methods(test_method_index);
@@ -97,26 +88,15 @@ classdef NetworkTestResult < handle
                 end
             end
 
-            for method_index = 1:numel(obj.test_methods)
-                test_method = obj.test_methods(method_index);
-                statistic_prefix = obj.(test_method);
-
-                (statistic_prefix).p_value_permutations.v(:, obj.last_index + 1) = other_object.(test_method).p_value.v;
-                if ~isempty(other_object.(test_method).single_sample_p_value)
-                    (statistic_prefix).single_sample_p_value_permutations.v(:, obj.last_index + 1) = other_object.(test_method).single_sample_p_value.v;
+            statistics = fieldnames(obj.permutation_results);
+            for statistic_index = 1:numel(statistics)
+                statistic_name = statistics(statistic_index);
+                if obj.permutation_results.(statistic_name)
+                    obj.permutation_results.(statistic_name).v(:, obj.last_index + 1) = other_object.permutation_results.(statistic_name).v;
                 end
-                    
-                test_specific_statistics = fieldnames(obj.(test_method));
-                for statistic_index = 1:numel(test_specific_statistics)
-                    test_statistic = test_specific_statistics{statistic_index};
-                    if ~contains(other_object.(test_method).(test_statistic), "_permutations")
-                        (statistic_prefix).(strcat(test_statistic, "_permutations")).v(:, obj.last_index + 1) =...
-                            other_object.(test_method).(test_statistic).v;
-                    end
-                end
-
-                obj.last_index = obj.last_index + 1;
             end
+
+            obj.last_index = obj.last_index + 1;
         end
     end
 
@@ -148,14 +128,12 @@ classdef NetworkTestResult < handle
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            for test_method_index = numel(obj.test_methods)
-                test_method = obj.test_methods(test_method_index);
-                if obj.(test_method)
-                    for statistic_index = 1:numel(test_specific_statistics)
-                        test_statistic = test_specific_statistics(statistic_index);
-                        obj.(test_method).(test_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                    end
-                end
+            obj.permutation_results.p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+
+            for statistic_index = 1:numel(test_specific_statistics)
+                test_statistic = test_specific_statistics(statistic_index);
+                obj.permutation_results.(strcat(test_statistic, "_permutations")) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             end
         end
 
@@ -166,9 +144,7 @@ classdef NetworkTestResult < handle
 
             % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is every test regardless of test or method
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            obj.(test_method).p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            obj.(test_method).single_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
     end
 end
