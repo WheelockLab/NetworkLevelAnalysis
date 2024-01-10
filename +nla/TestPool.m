@@ -43,8 +43,8 @@ classdef TestPool < nla.DeepCopyable
                 perm_seed = false;
             end
             edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
-            net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, edge_results_perm);
-            ranked_permuted_network_results = obj.rankResults(input_struct, net_results_nonperm, net_results_perm, net_atlas.numNetPairs());
+            permutation_network_results = obj.runNetTestsPerm(net_input_struct, net_atlas, edge_results_perm);
+            ranked_permuted_network_results = obj.rankResults(input_struct, net_results_nonperm, permutation_network_results, net_atlas.numNetPairs());
 
             result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, ranked_permuted_network_results);
         end
@@ -98,7 +98,7 @@ classdef TestPool < nla.DeepCopyable
                 end
             end
         end      
-          
+
         function edge_result = runEdgeTest(obj, input_struct)
             if ~isfield(input_struct, 'iteration')
                 input_struct.iteration = 0;
@@ -139,14 +139,13 @@ classdef TestPool < nla.DeepCopyable
         end
         
         function network_results_permutation = runNetTestsPermBlock(obj, net_input_struct, net_atlas, perm_edge_results, block_start)
-            network_results_permutation = obj.getNetworkResults(obj.net_tests);
             
             for iteration_within_block = 1:perm_edge_results.perm_count
                 previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
                 net_input_struct.iteration = block_start + iteration_within_block - 1;
                 network_results = obj.runNetTests(net_input_struct, previous_edge_result, net_atlas);
                 for i = 1:numel(obj.net_tests)
-                    network_results_permutation{i}.concatenateResult(network_results{i});
+                    network_results{i}.concatenateResult(network_results{i});
                 end
                 if ~islogical(obj.data_queue)
                     send(obj.data_queue, iteration_within_block);
@@ -170,28 +169,6 @@ classdef TestPool < nla.DeepCopyable
             for i = 1:obj.numNetTests()
                 if isa(obj.net_tests{i}, 'net.BaseSigTest')
                     val = true;
-                end
-            end
-        end
-
-        function network_results = getNetworkResults(obj, network_tests)
-           % I had a great idea for a function here. Matlab is really really stupid with its rules and I got really
-           % angry. So, we get hardcoded shit
-
-           import nla.net.result.permutation.* nla.findRootPath
-
-           root_path = findRootPath();
-           results_directory_content = dir(strcat(root_path, '+nla/+net/+result/+permutation'));
-           results_directory_content_names = {results_directory_content.name};
-           results_directory_content_names = results_directory_content_names(~[results_directory_content.isdir]);
-
-            network_results = {};
-           for test = network_tests
-                for result = results_directory_content_names
-                    name_split = split(result, '.');
-                    if test{1}.name == nla.net.result.permutation.(name_split{1}).test
-                        network_results{end + 1} = nla.net.result.permutation.(name_split{1});
-                    end
                 end
             end
         end

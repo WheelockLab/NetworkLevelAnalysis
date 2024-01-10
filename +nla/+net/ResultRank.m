@@ -24,47 +24,42 @@ classdef ResultRank < handle
             end
         end
         
-        function ranking_result = rank(obj)
-            % Copy the nonpermuted network results to put the permuted results into after ranking
-            ranking_result = obj.nonpermuted_network_results.copy();
-%             ranking_result.perm_prob_hist = zeros(nla.HistBin.SIZE, "uint32");
-            % Copying doesn"t copy all the properties? So we rewrite the permutations
-            % Also, permutations is as cast as an unsigned 32-bit int, so we have to do that here #LegacyCodeIssues
-            ranking_result.perm_count = uint32(obj.permutations);
-            
+        function ranking = rank(obj)
             % Experiment wide ranking
-            if obj.permuted_network_results.test ~= "Cohen's D"
-               ranking_result = obj.basicRank(ranking_result);
-            end
-        end
-        
-        function ranking = basicRank(obj, ranking)
-            % Experiment Wide ranking
-            permuted_probabilites = "probability_permutations";
-            nonpermuted_probability = "prob";
-            for index = 1:numel(obj.nonpermuted_network_results.(nonpermuted_probability).v)
-                combined_probabilities = [obj.permuted_network_results.(permuted_probabilites).v(:); obj.nonpermuted_network_results.(nonpermuted_probability).v(index)];
-                % If we could get matlab to not change the value/precision on sort, we could use binary search and decrease sorting from O(n) -> O(log(n))
-                % This would make a very large speed increase (especially for large n) each iteration.
-                [~, sorted_combined_probabilites] = sort(combined_probabilities);
-                ranking.perm_prob_ew.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs) / (1 + obj.permutations * obj.number_of_network_pairs);
+            % If full_connectome was not selected, obj.permuted_network_results.full_connectome = false
+            %TODO: Front-end needs to be reworked to handle this output. The interchange between front and back for this 
+            % section needs some love
+            % The non-permuted results need to be placed into the "no_permutations" section of the obj.permuted_network_result
+            % The obj.nonpermuted_network_results can then be eliminated as an argument
+            if obj.permuted_network_results.full_connectome
+                for index = 1:numel(obj.nonpermuted_network_results.no_permutations.p_value.v)
+                    combined_probabilities = [obj.permuted_network_results.permutation_results.p_value.v(:);...
+                        obj.nonpermuted_network_results.no_permutations.p_value.v(index)];
+                    % If we could get matlab to not change the value/precision on sort, we could use binary search and 
+                    % decrease sorting from O(n) -> O(log(n))
+                    % This would make a very large speed increase (especially for large n) each iteration.
+                    % TODO: the above
+                    [~, sorted_combined_probabilites] = sort(combined_probabilities);
+                    obj.permuted_network_results.full_connectome.p_value.v(index) =...
+                        find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs) /...
+                        (1 + obj.permutations * obj.number_of_network_pairs);
+                end
             end
 
             % Network Pair ranking
-            if any(strcmp(["Welch's T", "Student's T", "Wilcoxon rank-sum", "Kolmogorov-Smirnov"], obj.permuted_network_results.test))
-                permuted_probabilites = "single_sample_probability_permutations";
-                nonpermuted_probability = "ss_prob";
-                for index = 1:numel(obj.nonpermuted_network_results.(nonpermuted_probability).v)
-                    combined_probabilities = [obj.permuted_network_results.(permuted_probabilites).v(index, :), obj.nonpermuted_network_results.(nonpermuted_probability).v(index)];
+            if obj.permuted_network_results.within_net_pair && obj.permuted_network_results.within_net_pair.single_sample_p_value
+                for index = 1:numel(obj.nonpermuted_network_results.no_permutations.p_value.v)
+                    combined_probabilities = [obj.permuted_network_results.permutation_results.p_value.v(index, :),...
+                        obj.nonpermuted_network_results.permutation_results.p_value.v(index)];
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
-                    ranking.within_np_prob.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
+                    ranking.within_network_pair.single_sample_p_value.v(index) = find(...
+                        squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
                 end
             end
         end
         
         function value = get.permutations(obj)
-            statistic = obj.permuted_network_results.statistic; % This is a string that is the statistic of measurement
-            value = size(obj.permuted_network_results.(statistic).v, 2); % This takes the above statistic and gets the property to use its size to find the number of permutations
+            value = obj.permuted_network_results.permutation_count;    
         end
     end
 end

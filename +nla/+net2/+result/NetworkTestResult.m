@@ -35,6 +35,10 @@ classdef NetworkTestResult < handle
         last_index = 0
     end
 
+    properties (Dependent)
+        permutation_count
+    end
+
     properties (Constant)
         test_methods = ["no_permutations", "within_network_pair", "full_connectome"]
     end
@@ -97,6 +101,15 @@ classdef NetworkTestResult < handle
             end
 
             obj.last_index = obj.last_index + 1;
+        end
+
+        function value = get.permutation_count(obj)
+            if obj.permutation_results
+                p_value_size = size(obj.permutation_results.p_value);
+                value = p_value_size(2);
+            else
+                error("No permutation test results found.")
+            end
         end
     end
 
