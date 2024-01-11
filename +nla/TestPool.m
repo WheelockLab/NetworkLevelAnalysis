@@ -241,7 +241,15 @@ classdef TestPool < nla.DeepCopyable
         function val = numNetTests(obj)
             val = numel(obj.net_tests);
         end
-
+        
+        function val = containsSigBasedNetworkTest(obj)
+            val = false;
+            for i = 1:obj.numNetTests()
+                if isa(obj.net_tests{i}, 'net.BaseSigTest')
+                    val = true;
+                end
+            end
+        end
 
         function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
             import nla.net.ResultRank
@@ -253,7 +261,7 @@ classdef TestPool < nla.DeepCopyable
 
             ranked_results = {};
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
                 network_results_ranked = ranker.rank();
                 ranked_results{test} = network_results_ranked;
             end
