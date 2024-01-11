@@ -28,11 +28,11 @@ classdef NetworkTestResult < handle
         within_network_pair = false % Results for within-network-pair tests
         full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
         no_permutations = false % Results for the network tests with no permutations (the 'observed' results)    
-        permutation_results = false % Results for each permutation test used to calculate p-values for the test methods    
+        permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods    
     end
 
     properties (Access = private)
-        last_index = 0
+        last_index = 1
     end
 
     properties (Dependent)
@@ -59,21 +59,25 @@ classdef NetworkTestResult < handle
                 obj.test_name = test_name;
                 obj.test_options = test_options;
 
-                obj.createResultsStorage(number_of_networks, test_specific_statistics)
-            else
+                obj.createResultsStorage(test_options, number_of_networks, test_specific_statistics)
+            elseif nargin > 0
                 error("NetworkTestResults requires 4 arguments: Test Options, Number of Networks, Test Name, Test Statistics")
             end
         end
 
         function merge(obj, other_objects)
             %MERGE Merge two groups of results together. Not guaranteed to be ordered
+            if ~iscell(other_objects)
+                other_objects = {other_objects};
+            end
             for object_index = 1:numel(other_objects)
                 % These are the names of the statistics in permutation_results. We only really need to merge the permutation results,
                 % all the other results will be 2D while the permutation results are 3D
                 statistics = fieldnames(other_objects{object_index}.permutation_results);
                 for statistic_index = 1:numel(statistics)
-                    obj.permutation_results.(statistics(statistic_index)).v = [obj.permutation_results.(statistics(statistic_index)).v,...
-                        other_objects{object_index}.permutation_results.(statistics(statistic_index)).v];
+                    statistic = statistics(statistic_index);
+                    obj.permutation_results.(statistic{1}).v = [obj.permutation_results.(statistic{1}).v,...
+                        other_objects{object_index}.permutation_results.(statistic{1}).v];
                 end
             end
         end
@@ -82,21 +86,18 @@ classdef NetworkTestResult < handle
             %CONCATENATERESULT Add a result to the back of a TriMatrix. Used to keep permutation data. Ordered
 
             % Check to make sure we've created an object and create one if we haven't
-            if ~all({obj.no_permutations, obj.within_network_pair, obj.full_connectome})
-                for method_index = 1:numel(obj.test_methods)
-                    test_method = obj.test_methods(test_method_index);
-                    if other_object.(test_method)
-                        obj = nla.net2.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
-                            other_object.test_name, fieldnames(other_object.(test_method)));
-                    end
-                end
+            if ~isfield(obj.permutation_results, 'p_value_permutations')
+                obj = nla.net2.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
+                    other_object.test_name, fieldnames(other_object.(test_method)));
+                % Set last index to zero since this is the concatenated data will be the initial data
+                obj.last_index = 0;
             end
 
             statistics = fieldnames(obj.permutation_results);
             for statistic_index = 1:numel(statistics)
                 statistic_name = statistics(statistic_index);
-                if obj.permutation_results.(statistic_name)
-                    obj.permutation_results.(statistic_name).v(:, obj.last_index + 1) = other_object.permutation_results.(statistic_name).v;
+                if ~isempty(obj.permutation_results.(statistic_name{1}))
+                    obj.permutation_results.(statistic_name{1}).v(:, obj.last_index + 1) = other_object.permutation_results.(statistic_name{1}).v;
                 end
             end
 
@@ -104,9 +105,8 @@ classdef NetworkTestResult < handle
         end
 
         function value = get.permutation_count(obj)
-            if obj.permutation_results
-                p_value_size = size(obj.permutation_results.p_value);
-                value = p_value_size(2);
+            if isfield(obj.permutation_results, 'p_value_permutations')
+                value = size(obj.permutation_results.p_value_permutations.v, 2);
             else
                 error("No permutation test results found.")
             end
@@ -114,7 +114,7 @@ classdef NetworkTestResult < handle
     end
 
     methods (Access = private)
-        function createResultsStorage(obj, number_of_networks, test_specific_statistics)
+        function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
             %   For example: 
             %       Within Network Pair test
@@ -123,14 +123,14 @@ classdef NetworkTestResult < handle
 
             % Our 3 test methods. No permutations, Within-Network-Piar, Full Connectome
             % Creating an array of pairs status (yes/no) and name for the results (Find a better way, code-monkey)
-            test_methods_and_names = [{obj.test_options.nonpermuted, "no_permutations"};...
-                {obj.test_options.within_net_pair, "within_network_pair"};...
-                {obj.test_options.full_conn, "full_connectome"}];
-
+            test_methods_and_names = struct("no_permutations", test_options.nonpermuted,...
+                "within_network_pair", test_options.within_net_pair,...
+                "full_connectome", test_options.full_conn);
+            
             % Calling function to create results containers
-            for test_method_index = 1:3
-                if test_methods_and_names(test_method_index, 1)
-                    obj.createPValueTriMatrices(number_of_networks, test_methods_and_names(test_method_index, 2))
+            for test_method_index = 1:numel(obj.test_methods)
+                if test_methods_and_names.(obj.test_methods(test_method_index))
+                    obj.createPValueTriMatrices(number_of_networks, (obj.test_methods(test_method_index)));
                     obj.createTestSpecificResultsStorage(number_of_networks, test_specific_statistics);
                 end
             end
@@ -142,11 +142,13 @@ classdef NetworkTestResult < handle
             import nla.TriMatrix nla.TriMatrixDiag
 
             obj.permutation_results.p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
+                TriMatrixDiag.KEEP_DIAGONAL);
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
-                obj.permutation_results.(strcat(test_statistic, "_permutations")) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                obj.permutation_results.(strcat(test_statistic, "_permutations")) = TriMatrix(number_of_networks,...
+                    TriMatrixDiag.KEEP_DIAGONAL);
             end
         end
 
@@ -155,7 +157,9 @@ classdef NetworkTestResult < handle
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is every test regardless of test or method
+            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is every test 
+            % regardless of test or method
+            obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
