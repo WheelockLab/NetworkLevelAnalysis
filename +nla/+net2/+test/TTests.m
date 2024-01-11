@@ -13,7 +13,7 @@ classdef TTests < handle
         function obj = TTests()
         end
 
-        function result = run(obj, test_options, edge_test_results, network_atlas, test_type)
+        function result = run(obj, test_options, edge_test_results, network_atlas, permutations, test_type)
             %RUN runs the Welch's t-test
             %  test_options: The selected values for the test to be run. Formerly input_struct. Options are in nla.net.genBaseInputs
             %  edge_test_results: Non-permuted edge test results. Formerly edge_result
@@ -22,17 +22,24 @@ classdef TTests < handle
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            if nargin == 2
+            if nargin == 4
                 test_type = "students";
-            elseif nargin == 3 && test_type == "welchs"
+            elseif nargin == 5 && test_type == "welchs"
                 obj.name = "welchs_t";
             end
 
             number_of_networks = network_atlas.numNets();
 
+            % Store results in the 'no_permutations' structure if this is the no-permutation test
+            permutation_results = "no_permutations";
+            if permutations
+                % Otherwise, add it on to the back of the 'permutation_results' structure
+                permutation_results = "permutation_results";
+            end
+
             result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
-            result.permutation_results.t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.permutation_results.single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -49,10 +56,10 @@ classdef TTests < handle
 
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
 
-                    result.permutation_results.p_value.set(network, network2, p);
-                    result.permutation_results.t_statistic.set(network, network2, stats.tstat);
-                    result.permutation_results.single_sample_p_value.set(network, network2, single_sample_p);
-                    result.permutation_results.single_sample_t_statistic.set(network, network2, single_sample_stats.tstat);
+                    result.(permutation_results).p_value.set(network, network2, p);
+                    result.(permutation_results).t_statistic.set(network, network2, stats.tstat);
+                    result.(permutation_results).single_sample_p_value.set(network, network2, single_sample_p);
+                    result.(permutation_results).single_sample_t_statistic.set(network, network2, single_sample_stats.tstat);
                 end
             end
             

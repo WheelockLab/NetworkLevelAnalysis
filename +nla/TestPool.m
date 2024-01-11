@@ -38,15 +38,15 @@ classdef TestPool < nla.DeepCopyable
             obj.edge_test = nla.edge.test.Pearson();
         end
         
-        function result = runPerm(obj, input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
+        function result = runPerm(obj, input_struct, net_input_struct, net_atlas, nonpermuted_edge_test_results, nonpermuted_network_test_results, num_perms, perm_seed)
             if ~exist('perm_seed', 'var')
                 perm_seed = false;
             end
             edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
             permutation_network_results = obj.runNetTestsPerm(net_input_struct, net_atlas, edge_results_perm);
-            ranked_permuted_network_results = obj.rankResults(input_struct, net_results_nonperm, permutation_network_results, net_atlas.numNetPairs());
+            ranked_permuted_network_results = obj.rankResults(input_struct, nonpermuted_network_test_results, permutation_network_results, net_atlas.numNetPairs());
 
-            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, ranked_permuted_network_results);
+            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, nonpermuted_edge_test_results, nonpermuted_network_test_results, edge_results_perm, ranked_permuted_network_results);
         end
         
         function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
@@ -143,7 +143,7 @@ classdef TestPool < nla.DeepCopyable
             for iteration_within_block = 1:perm_edge_results.perm_count
                 previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
                 net_input_struct.iteration = block_start + iteration_within_block - 1;
-                network_results = obj.runNetTests(net_input_struct, previous_edge_result, net_atlas);
+                network_results = obj.runNetTests(net_input_struct, previous_edge_result, net_atlas, true);
                 for i = 1:numel(obj.net_tests)
                     network_results{i}.concatenateResult(network_results{i});
                 end
@@ -153,10 +153,10 @@ classdef TestPool < nla.DeepCopyable
             end
         end
         
-        function net_results = runNetTests(obj, input_struct, edge_result, net_atlas)
+        function net_results = runNetTests(obj, input_struct, edge_result, net_atlas, permutations)
             net_results = {};
             for i = 1:numNetTests(obj)
-                net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas);
+                net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas, permutations);
             end
         end
         
@@ -173,7 +173,7 @@ classdef TestPool < nla.DeepCopyable
             end
         end
 
-        function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
+        function ranked_results = rankResults(obj, input_options, nonpermuted_network_test_results, permuted_network_results, number_of_network_pairs)
             import nla.net.ResultRank
             
             stat_ranking = false;
@@ -183,7 +183,7 @@ classdef TestPool < nla.DeepCopyable
 
             ranked_results = {};
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
                 network_results_ranked = ranker.rank();
                 ranked_results{test} = network_results_ranked;
             end

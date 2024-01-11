@@ -1,5 +1,6 @@
 classdef ResultPool
-    %RESULTPOOL Pool of results (observed, permuted, edge and net level)
+    %RESULTPOOL Summary of this class goes here
+    %   TODO Detailed explanation goes here
     
     properties
         net_atlas
@@ -9,13 +10,12 @@ classdef ResultPool
         net_results
         perm_edge_result
         perm_net_results
+        perm_seed
         version
-        commit
-        commit_short
     end
     
     methods
-        function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results)
+        function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results, perm_seed)
             import nla.* % required due to matlab package system quirks
             obj.input_struct = input_struct;
             obj.net_input_struct = net_input_struct;
@@ -24,9 +24,8 @@ classdef ResultPool
             obj.perm_edge_result = perm_edge_result;
             obj.net_results = net_results;
             obj.perm_net_results = perm_net_results;
+            obj.perm_seed = perm_seed;
             obj.version = VERSION;
-            obj.commit = helpers.git.commitString(true);
-            obj.commit_short = helpers.git.commitString();
         end
         
         function output(obj)
@@ -45,8 +44,8 @@ classdef ResultPool
             flags.plot_type = nla.PlotType.FIGURE;
             if ~islogical(obj.net_results)
                 for i = 1:numel(obj.net_results)
-                    obj.net_results{i}.output(obj.input_struct, obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
-                    obj.perm_net_results{i}.output(obj.input_struct, obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
+                    obj.net_results{i}.output(obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
+                    obj.perm_net_results{i}.output(obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
                 end
             end
         end
@@ -80,17 +79,11 @@ classdef ResultPool
                     net2_name = obj.net_atlas.nets(n2).name;
                     net_pairs_mat(n2, n) = string(net_name);
                     net_pairs2_mat(n2, n) = string(net2_name);
-                    if n == n2
-                        net_pair_size_mat(n2, n) = nla.helpers.triNum(obj.net_atlas.nets(n).numROIs);
-                    else
-                        net_pair_size_mat(n2, n) = obj.net_atlas.nets(n).numROIs * obj.net_atlas.nets(n2).numROIs;
-                    end
                 end
             end
             net_pairs = TriMatrix(net_pairs_mat, TriMatrixDiag.KEEP_DIAGONAL);
             net_pairs2 = TriMatrix(net_pairs2_mat, TriMatrixDiag.KEEP_DIAGONAL);
-            net_pair_size = TriMatrix(net_pair_size_mat, TriMatrixDiag.KEEP_DIAGONAL);
-            summary_table = table(net_pairs.v, net_pairs2.v, net_pair_size.v, 'VariableNames', ["Network 1", "Network 2", "Net-Pair Size"]);
+            summary_table = table(net_pairs.v, net_pairs2.v, 'VariableNames', ["Network 1", "Network 2"]);
             for i = 1:numel(obj.perm_net_results)
                 summary_table = obj.perm_net_results{i}.genSummaryTable(summary_table);
             end
