@@ -280,7 +280,7 @@ classdef TestPool < nla.DeepCopyable
 
             ranked_results = {};
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
                 network_results_ranked = ranker.rank();
                 ranked_results{test} = network_results_ranked;
             end
