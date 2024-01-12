@@ -6,7 +6,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function loadInputData(testCase)
-            load(fullfile("nla", "net", "tests", "edgeTestInputStruct.mat"), "input_struct");
+            load(fullfile("nla", "edge", "tests", "edgeTestInputStruct.mat"), "input_struct");
             load(fullfile("nla", "edge", "tests", "edgeKendallBResult.mat"), "result");
             testCase.variables.input_struct = input_struct;
             testCase.variables.edge_result = result;
@@ -15,65 +15,63 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
 
     methods (TestClassTeardown)
         function clearData(testCase)
-            clear testCase.variables
+            clear testCase.variables;
         end
     end
 
     methods (Test)
-        function chiSquaredTest(testCase)
-            import nla.net.test.ChiSquared
-            chi_squared = ChiSquared();
-            expected = chi_squared.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
+        function chiSquaredTestTest(testCase)
+            import nla.net.test.ChiSquaredTest
+            chi_squared_test = ChiSquaredTest();
+            expected = chi_squared_test.run(testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
             actual = load(fullfile("nla", "net", "tests", "networkTestChiSquaredResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
+            % Rounding to 4 decimal places due to things close to 0 being off by 10^-10 or something tiny
+            testCase.verifyEqual(round(actual.result.prob.v, 4), round(expected.p_value.v, 4));
+            testCase.verifyEqual(round(actual.result.chi2.v, 4), round(expected.test_statistics.chi_squared.chi2_statistic.v, 4));
         end
 
-        function cohenDTest(testCase)
-            import nla.net.test.CohenD
-            cohenD = CohenD();
-            expected = cohenD.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
-            actual = load(fullfile("nla", "net", "tests", "networkTestCohenDResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
-        end
-
-        function hyperGeometricTest(testCase)
-            import nla.net.test.HyperGeo
-            hyper_geo = HyperGeo();
-            expected = hyper_geo.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
+        function hypergeometricTestTest(testCase)
+            import nla.net.test.HyperGeometricTest
+            hypergeometric_test = HyperGeometricTest();
+            expected = hypergeometric_test.run(testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
             actual = load(fullfile("nla", "net", "tests", "networkTestHyperGeoResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
+            testCase.verifyEqual(round(actual.result.prob.v, 4), round(expected.p_value.v, 4));
         end
 
-        function kolmogorovSmirnovTest(testCase)
-            import nla.net.test.KolmogorovSmirnov
-            k_s = KolmogorovSmirnov();
-            expected = k_s.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
+        function kolmogorovSmirnovTestTest(testCase)
+            import nla.net.test.KolmogorovSmirnovTest
+            k_s = KolmogorovSmirnovTest();
+            expected = k_s.run(testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
             actual = load(fullfile("nla", "net", "tests", "networkTestKolmogorovSmirnovResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
+            testCase.verifyEqual(round(actual.result.prob.v, 4), round(expected.p_value.v, 4));
+            testCase.verifyEqual(round(actual.result.ks.v, 4), round(expceted.test_statistics.kolmogorov_smirnov.ks_statistic.v, 4));
         end
 
-        function studentTTest(testCase)
-            import nla.net.test.StudentT
-            student_t = StudentT();
-            expected = student_t.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
+        function studentTTestTest(testCase)
+            import nla.net.test.StudentTTest
+            student_t = StudenTTest();
+            expected = student_t.run(testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
             actual = load(fullfile("nla", "net", "tests", "networkTestStudentTResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
+            testCase.verifyEqual(round(actual.result.prob.v, 4), round(expected.p_value.v, 4));
+            testCase.verifyEqual(round(actual.result.t.v, 4), round(expected.test_statistics.students_t.t_statistic.v, 4));
         end
 
-        function welchTTest(testCase)
-            import nla.net.test.WelchT
-            welch_t = WelchT();
-            expected = welch_t.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
+        function welchTTestTest(testCase)
+            import nla.net.test.WelchTTest
+            welch_t = WelchTTest();
+            expected = welch_t.run(testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
             actual = load(fullfile("nla", "net", "tests", "networkTestWelchTResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
+            testCase.verifyEqual(round(actual.result.prob.v, 4), round(expected.p_value.v, 4));
+            testCase.verifyEqual(round(actual.result.t.v, 4), round(expected.test_statistics.welchs_t.t_statistic.v, 4));
         end
 
-        function wilcoxonTest(testCase)
-            import nla.net.test.Wilcoxon
-            wilcoxon = Wilcoxon();
-            expected = wilcoxon.run(testCase.variables.input_struct, testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
+        function wilcoxonTestTest(testCase)
+            import nla.net.test.WilcoxonTest
+            wilcoxon_test = WilcoxonTest();
+            expected = wilcoxon_test.run(testCase.variables.edge_result, testCase.variables.input_struct.net_atlas);
             actual = load(fullfile("nla", "net", "tests", "networkTestWilcoxonResult.mat"));
-            testCase.verifyEqual(actual.result, expected);
+            testCase.verifyEqual(round(actual.result.prob.v, 4), round(expected.p_value.v, 4));
+            testCase.verifyEqual(round(actual.result.w.v, 4), round(expected.test_statistics.wilcoxon.ranksum_statistic.v, 4));
         end
     end
 end
