@@ -1,19 +1,17 @@
-classdef TTests < handle
-    %TTESTs Student's t-test (t-test assuming normal distributions) or 
-    % Welch's t-Test (t-test assuming normal distributions with unequal variances)
-    properties
-        name = "students_t"
-    end
+classdef WelchTTest < handle
+    %WELCHTTEST Welch's t-Test (t-test assuming normal distributions with unequal variances)
 
     properties (Constant)
+        name = "welchs_t"
+        display_name = "Welch's T-test"
         statistics = ["t_statistic", "single_sample_t_statistic"]
     end
 
     methods 
-        function obj = TTests()
+        function obj = WelchTTest()
         end
 
-        function result = run(obj, test_options, edge_test_results, network_atlas, permutations, test_type)
+        function result = run(obj, test_options, edge_test_results, network_atlas, permutations)
             %RUN runs the Welch's t-test
             %  test_options: The selected values for the test to be run. Formerly input_struct. Options are in nla.net.genBaseInputs
             %  edge_test_results: Non-permuted edge test results. Formerly edge_result
@@ -21,12 +19,6 @@ classdef TTests < handle
             %  test_type: Welch's (welchs) or Student's (students) t-test (default: students)
 
             import nla.TriMatrix nla.TriMatrixDiag
-
-            if nargin == 4
-                test_type = "students";
-            elseif nargin == 5 && test_type == "welchs"
-                obj.name = "welchs_t";
-            end
 
             number_of_networks = network_atlas.numNets();
 
@@ -37,7 +29,7 @@ classdef TTests < handle
                 permutation_results = "permutation_results";
             end
 
-            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
             result.(permutation_results).t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             result.(permutation_results).single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
@@ -48,12 +40,7 @@ classdef TTests < handle
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
 
-                    if test_type == "Welchs" || test_type == "W"
-                        [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v, "Vartype", "unequal");
-                    elseif test_type == "Students" || test_type == "S"
-                        [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v);
-                    end
-
+                    [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v, "Vartype", "unequal");
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
 
                     result.(permutation_results).p_value.set(network, network2, p);
@@ -63,6 +50,14 @@ classdef TTests < handle
                 end
             end
             
+        end
+    end
+
+    methods (Static)
+        function inputs = requiredInputs()
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
+                nla.inputField.Number('d_max', "Net-level Cohen's D threshold >", 0, 0.5, 1);};
         end
     end
 end

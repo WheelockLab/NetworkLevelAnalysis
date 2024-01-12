@@ -28,7 +28,7 @@ classdef NetworkTestResult < handle
         within_network_pair = false % Results for within-network-pair tests
         full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
         no_permutations = false % Results for the network tests with no permutations (the 'observed' results)    
-        permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods    
+        permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods   
     end
 
     properties (Access = private)
@@ -87,7 +87,7 @@ classdef NetworkTestResult < handle
 
             % Check to make sure we've created an object and create one if we haven't
             if ~isfield(obj.permutation_results, 'p_value_permutations')
-                obj = nla.net2.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
+                obj = nla.net.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
                     other_object.test_name, fieldnames(other_object.(test_method)));
                 % Set last index to zero since this is the concatenated data will be the initial data
                 obj.last_index = 0;
@@ -102,6 +102,29 @@ classdef NetworkTestResult < handle
             end
 
             obj.last_index = obj.last_index + 1;
+        end
+
+        function object_copy = copy(obj)
+            number_of_networks = obj.no_permutations.p_value.size;
+            all_statistics = fieldnames(obj.no_permutations);
+            test_specific_statistics = [];
+            % Go through all the stats in the 'no_permutations' container
+            for statistic_index = 1:numel(all_statistics)   
+                statistic = all_statistics(statistic_index);
+                % If the statistic is no 'p_value' or 'single_sample_p_value' then keep it
+                if ~(any(strcmp({"p_value", "single_sample_p_value"}, statistic{1})) || ~contains(statistic{1}, "_permutations"))
+                    test_specific_statistics = [test_specific_statistics, statistic{1}];
+                end
+            end
+
+            object_copy = nla.net.result.NetworkTestResult(obj.test_options, number_of_networks, obj.test_name, test_specific_statistics);
+            top_level_properties = fieldnames(obj);
+            for top_level_index = 1:numel(top_level_properties)
+                top_level_property = top_level_properties(top_level_index);
+                if isstruct(object_copy.(top_level_property{1}))
+                    object_copy.(top_level_property{1}) = cell2struct(struct2cell(obj.(top_level_property{1})), fieldnames(obj.(top_level_property{1})));
+                end
+            end
         end
 
         function value = get.permutation_count(obj)

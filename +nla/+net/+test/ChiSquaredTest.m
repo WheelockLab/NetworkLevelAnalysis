@@ -2,6 +2,7 @@ classdef ChiSquaredTest < handle
     %CHISQUARED Chi-squared test to determine how far a result is from expectation
     properties (Constant)
         name = "chi_squared"
+        display_name = "Chi-Squared"
         statistics = ["chi2_statistic", "greated_than_expected"]
     end
 
@@ -27,7 +28,7 @@ classdef ChiSquaredTest < handle
             number_of_networks = network_atlas.numNets();
 
             % Structure to pass results outside
-            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
 
             % Empty this out since it is not needed
             result.(permutation_results).single_sample_p_value = false;
@@ -56,6 +57,12 @@ classdef ChiSquaredTest < handle
             % Matlab function for chi-squared cdf to get p-value. "Upper" calculates the upper tail instead of
             % using 1 - lower tail
             result.permutations_results.p_value.v = chi2cdf(result.(permutation_results).chi2_statistic.v, 1, "upper");
+        end
+    end
+
+    methods (Static)
+        function inputs = requiredInputs()
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
 end

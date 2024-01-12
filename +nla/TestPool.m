@@ -138,7 +138,7 @@ classdef TestPool < nla.DeepCopyable
             end
         end
         
-        function network_results_permutation = runNetTestsPermBlock(obj, net_input_struct, net_atlas, perm_edge_results, block_start)
+        function network_results = runNetTestsPermBlock(obj, net_input_struct, net_atlas, perm_edge_results, block_start)
             
             for iteration_within_block = 1:perm_edge_results.perm_count
                 previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);

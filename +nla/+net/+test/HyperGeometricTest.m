@@ -2,6 +2,7 @@ classdef HyperGeometricTest < handle
     %HYPERGEOMETRICTEST Hypergeometric (One-sided Fisher's Exact Test) to test significance
     properties (Constant)
         name = "hypergeometric"
+        display_name = "Hypergeometric"
         statistics = ["greater_than_expected"]
     end
 
@@ -27,7 +28,7 @@ classdef HyperGeometricTest < handle
             end
 
             % Container to hold results
-            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
             % Empty this out since it is not needed
             result.(permutation_results).single_sample_p_value = false;
             result.(permutation_results).greated_than_expected = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
@@ -53,6 +54,12 @@ classdef HyperGeometricTest < handle
             % This just results in a p-value of 1. Which means no difference between chance and null
             % hypothesis.
             result.(permutation_results).p_value.v(~result.(permutation_results).greated_than_expected.v) = 1;
+        end
+    end
+
+    methods (Static)
+        function inputs = requiredInputs()
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
 end
