@@ -4,7 +4,6 @@ classdef KolmogorovSmirnovTest < handle
         name = "kolmogorov_smirnov"
         display_name = "Kolmogorov-Smirnov"
         statistics = ["ks_statistic", "single_sample_ks_statistic"]
-        ranking_statistic = "ks_statistic"
     end
 
     methods
@@ -27,16 +26,18 @@ classdef KolmogorovSmirnovTest < handle
             ks_statistic = "ks_statistic";
             single_sample_p_value = "single_sample_p_value";
             single_sample_ks_statistic = "single_sample_ks_statistic";
-            if isequal(permutations, true)
+            if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
-                p_value = strcat(p_value, "_permutations");
-                ks_statistic = strcat(ks_statistic, "_permutations");
-                single_sample_p_value = strcat(single_sample_p_value, "_permutations");
-                single_sample_ks_statistic = strcat(single_sample_ks_statistic, "_permutations");
+                p_value = "p_value_permutations";
+                ks_statistic = "ks_statistic_permutations";
+                single_sample_p_value = "single_sample_p_value_permutations";
+                single_sample_ks_statistic = "single_sample_ks_statistic_permutations";
             end
 
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics, obj.ranking_statistic);
+           result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+           result.(permutation_results).(ks_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+           result.(permutation_results).(single_sample_ks_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -44,6 +45,7 @@ classdef KolmogorovSmirnovTest < handle
                 for network2 = 1:network
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
+
 
                     [~, p, ks] = kstest2(network_rho, edge_test_results.coeff.v);
                     result.(permutation_results).(p_value).set(network, network2, p);
@@ -60,10 +62,9 @@ classdef KolmogorovSmirnovTest < handle
 
     methods (Static)
         function inputs = requiredInputs()
-            inputs = {...
-                nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
                 nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
-            };
+                nla.inputField.Number('d_max', "Net-level Cohen's D threshold >", 0, 0.5, 1);};
         end
     end
 end

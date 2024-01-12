@@ -3,8 +3,7 @@ classdef ChiSquaredTest < handle
     properties (Constant)
         name = "chi_squared"
         display_name = "Chi-Squared"
-        statistics = ["chi2_statistic", "greater_than_expected"]
-        ranking_statistic = "chi2_statistic"
+        statistics = ["chi2_statistic", "greated_than_expected"]
     end
 
     methods
@@ -21,19 +20,18 @@ classdef ChiSquaredTest < handle
 
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
-            chi2_statistic = "chi2_statistic";
-            greater_than_expected = "greater_than_expected";
-            if isequal(permutations, true)
+            if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
-                chi2_statistic = strcat(chi2_statistic, "_permutations");
-                greater_than_expected = strcat(greater_than_expected, "_permutations");
             end
 
             number_of_networks = network_atlas.numNets();
 
             % Structure to pass results outside
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics, obj.ranking_statistic);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+
+            % Empty this out since it is not needed
+            result.(permutation_results).single_sample_p_value = false;
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -44,25 +42,21 @@ classdef ChiSquaredTest < handle
                     network_ROI_count = numel(network_pair_ROI_significance);
                     observed_significance = sum(network_pair_ROI_significance);
                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
-                    chi2_value = ((observed_significance - expected_significance) .^ 2) .* ((expected_significance .^ -1)); %legacy style, AS 240529
-                    result.(permutation_results).(chi2_statistic).set(network, network2, chi2_value);
-                    result.(permutation_results).(greater_than_expected).set(network, network2, observed_significance > expected_significance);
+                    chi2_value = ((observed_significance - expected_significance) .^ 2) ./ expected_significance;
+                    result.(permutation_results).chi2_statistic.set(network, network2, chi2_value);
+                    result.(permutation_results).greater_than_expected.set(network, network2, observed_significance > expected_significance);
                 end
             end
 
             % If the observed value is not greater than the expected, we zero out the result
             % This just results in a p-value of 1. Which means no difference between chance and null
             % hypothesis. We also zero anything that isn't finite to be safe
-            result.(permutation_results).(chi2_statistic).v(~result.(permutation_results).(greater_than_expected).v) = 0;
-            result.(permutation_results).(chi2_statistic).v(~isfinite(result.(permutation_results).(chi2_statistic).v)) = 0;
+            result.(permutation_results).chi2_statistic.v(~result.(permutation_results).greater_than_expected.v) = 0;
+            result.(permutation_results).chi2_statistic.v(~isfinite(result.(permutation_results).chi2_statistic.v)) = 0;
 
             % Matlab function for chi-squared cdf to get p-value. "Upper" calculates the upper tail instead of
             % using 1 - lower tail
-            if permutations
-                result.permutation_results.p_value_permutations.v = chi2cdf(result.permutation_results.chi2_statistic_permutations.v, 1, "upper");
-            else
-                result.no_permutations.p_value.v = chi2cdf(result.no_permutations.chi2_statistic.v, 1, "upper");
-            end
+            result.permutations_results.p_value.v = chi2cdf(result.(permutation_results).chi2_statistic.v, 1, "upper");
         end
     end
 
