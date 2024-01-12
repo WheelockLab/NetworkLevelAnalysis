@@ -9,7 +9,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function loadInputData(testCase)
-            import nla.TriMatrix nla.TriMatrixDiag nla.net2.test.WilcoxonTest nla.net2.result.NetworkTestResult
+            import nla.TriMatrix nla.TriMatrixDiag nla.net.test.WilcoxonTest nla.net.result.NetworkTestResult
             testCase.number_of_networks = 15;
             testCase.test_data = TriMatrix(testCase.number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             testCase.test_data.v = rand(size(testCase.test_data.v));
@@ -29,17 +29,17 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
 
     methods (Test)
         function NetworkTestResultCreationTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
-            testCase.verifyInstanceOf(results, ?nla.net2.result.NetworkTestResult);
+            testCase.verifyInstanceOf(results, ?nla.net.result.NetworkTestResult);
             testCase.verifyEqual(results.test_name, testCase.test.name);
             testCase.verifyEqual(results.test_options, testCase.test_options);
         end
 
         function NetworkTestResultNoPermutationsTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
@@ -48,7 +48,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
         end
 
         function NetworkTestResultWithinNetworkPairTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
@@ -57,7 +57,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
         end
 
         function NetworkTestResultFullConnectomeTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
@@ -66,7 +66,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
         end
 
         function NetworkTestResultPermutationResultsTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
@@ -75,7 +75,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
         end
 
         function NetworkTestResultPermutationsTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
 
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
@@ -87,7 +87,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
         end
 
         function NetworkTestResultMergeTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
 
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
@@ -104,7 +104,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
         end
 
         function NetworkTestResultConcatenateResultTest(testCase)
-            import nla.net2.result.NetworkTestResult
+            import nla.net.result.NetworkTestResult
 
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.statistics);
