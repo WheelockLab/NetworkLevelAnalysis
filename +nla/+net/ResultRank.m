@@ -89,9 +89,9 @@ classdef ResultRank < handle
             % section needs some love
             % The non-permuted results need to be placed into the "no_permutations" section of the obj.permuted_network_result
             % The obj.nonpermuted_network_results can then be eliminated as an argument
-            if obj.permuted_network_results.full_connectome
+            if isstruct(obj.permuted_network_results.full_connectome)
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.p_value.v)
-                    combined_probabilities = [obj.permuted_network_results.permutation_results.p_value.v(:);...
+                    combined_probabilities = [obj.permuted_network_results.permutation_results.p_value_permutations.v(:);...
                         obj.nonpermuted_network_results.no_permutations.p_value.v(index)];
                     % If we could get matlab to not change the value/precision on sort, we could use binary search and 
                     % decrease sorting from O(n) -> O(log(n))
@@ -123,10 +123,10 @@ classdef ResultRank < handle
                     );
 =======
             % Network Pair ranking
-            if obj.permuted_network_results.within_net_pair && obj.permuted_network_results.within_net_pair.single_sample_p_value
+            if isstruct(obj.permuted_network_results.within_network_pair) && isfield(obj.permuted_network_results.within_network_pair, "single_sample_p_value")
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.p_value.v)
-                    combined_probabilities = [obj.permuted_network_results.permutation_results.p_value.v(index, :),...
-                        obj.nonpermuted_network_results.permutation_results.p_value.v(index)];
+                    combined_probabilities = [obj.permuted_network_results.permutation_results.p_value_permutations.v(index, :),...
+                        obj.nonpermuted_network_results.no_permutations.p_value.v(index)];
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
                     ranking.within_network_pair.single_sample_p_value.v(index) = find(...
                         squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
