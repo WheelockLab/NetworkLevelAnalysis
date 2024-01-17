@@ -3,7 +3,6 @@ classdef ResultPool
     %   TODO Detailed explanation goes here
     
     properties
-<<<<<<< HEAD
         network_atlas
         test_options
         network_test_options
@@ -11,20 +10,10 @@ classdef ResultPool
         network_test_results
         permutation_edge_test_results
         permutation_network_test_results
-=======
-        net_atlas
-        input_struct
-        net_input_struct
-        edge_result
-        net_results
-        perm_edge_result
-        perm_net_results
->>>>>>> copied lots of files needed for permutations and test/result running. Will modify later. Tests run all the way through.
         version
     end
     
     methods
-<<<<<<< HEAD
         function obj = ResultPool(test_options, network_test_options, network_atlas, edge_test_results,...
                 network_test_results, permutation_edge_test_results, permutation_network_test_results)
             obj.test_options = test_options;
@@ -35,22 +24,11 @@ classdef ResultPool
             obj.network_test_results = network_test_results;
             obj.permutation_network_test_results = permutation_network_test_results;
             obj.version = nla.VERSION;
-=======
-        function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results)
-            import nla.* % required due to matlab package system quirks
-            obj.input_struct = input_struct;
-            obj.net_input_struct = net_input_struct;
-            obj.net_atlas = net_atlas;
-            obj.edge_result = edge_result;
-            obj.perm_edge_result = perm_edge_result;
-            obj.net_results = net_results;
-            obj.perm_net_results = perm_net_results;
-            obj.version = VERSION;
->>>>>>> copied lots of files needed for permutations and test/result running. Will modify later. Tests run all the way through.
         end
         
         function output(obj)
             flags = struct();
+            flags.display_sig = obj.containsSignificanceBasedNetworkResult();
             obj.edge_test_results.output(obj.network_atlas, flags);
             if ~islogical(obj.permutation_edge_test_results)
                 obj.permutation_edge_test_results.output(obj.network_atlas, flags);
