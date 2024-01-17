@@ -294,11 +294,11 @@ classdef TestPool < nla.DeepCopyable
                 stat_ranking = true;
             end
 
-            ranked_results = {};
+            ranked_results = cell(1, numNetTests(obj));
             for test = 1:numNetTests(obj)
                 ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
-                network_results_ranked = ranker.rank();
-                ranked_results{test} = network_results_ranked;
+                ranked_results_object = ranker.rank();
+                ranked_results{test} = ranked_results_object.permuted_network_results;
             end
         end
     end
