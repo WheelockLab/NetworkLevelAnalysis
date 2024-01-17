@@ -132,8 +132,7 @@ classdef TestPool < nla.DeepCopyable
                     current_process_network_results = network_result_blocks{process_index};
                     current_test_network_results{process_index} = current_process_network_results{test_index};
                 end
-                net_level_results{test_index} = current_test_network_results{1}.copy();
-                % Have to recast 'current_test_network_results{2:end}' to cell array. Matlab goodness
+                net_level_results{test_index} = current_test_network_results{1};
                 net_level_results{test_index}.merge(current_test_network_results(2:end));
             end
         end
@@ -144,9 +143,9 @@ classdef TestPool < nla.DeepCopyable
                 previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
                 net_input_struct.iteration = block_start + iteration_within_block - 1;
                 network_results = obj.runNetTests(net_input_struct, previous_edge_result, net_atlas, true);
-                for i = 1:numel(obj.net_tests)
-                    network_results{i}.concatenateResult(network_results{i});
-                end
+                % for i = 1:numel(obj.net_tests)
+                %     network_results.concatenateResult(network_results{i});
+                % end
                 if ~islogical(obj.data_queue)
                     send(obj.data_queue, iteration_within_block);
                 end
@@ -181,11 +180,11 @@ classdef TestPool < nla.DeepCopyable
                 stat_ranking = true;
             end
 
-            ranked_results = {};
+            ranked_results = cell(1, numNetTests(obj));
             for test = 1:numNetTests(obj)
                 ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
-                network_results_ranked = ranker.rank();
-                ranked_results{test} = network_results_ranked;
+                ranked_results_object = ranker.rank();
+                ranked_results{test} = ranked_results_object.permuted_network_results;
             end
         end
     end

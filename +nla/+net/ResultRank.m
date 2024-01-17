@@ -23,7 +23,7 @@ classdef ResultRank < handle
             end
         end
         
-        function ranking = rank(obj)
+        function obj = rank(obj)
             % Experiment wide ranking
             % If full_connectome was not selected, obj.permuted_network_results.full_connectome = false
             %TODO: Front-end needs to be reworked to handle this output. The interchange between front and back for this 
@@ -46,12 +46,13 @@ classdef ResultRank < handle
             end
 
             % Network Pair ranking
-            if isstruct(obj.permuted_network_results.within_network_pair) && isfield(obj.permuted_network_results.within_network_pair, "single_sample_p_value")
+            if isstruct(obj.permuted_network_results.within_network_pair) &&...
+                isfield(obj.permuted_network_results.within_network_pair, "single_sample_p_value")
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.p_value.v)
                     combined_probabilities = [obj.permuted_network_results.permutation_results.p_value_permutations.v(index, :),...
                         obj.nonpermuted_network_results.no_permutations.p_value.v(index)];
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
-                    ranking.within_network_pair.single_sample_p_value.v(index) = find(...
+                    obj.permuted_network_results.within_network_pair.single_sample_p_value.v(index) = find(...
                         squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
                 end
             end
