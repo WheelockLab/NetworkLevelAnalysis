@@ -37,10 +37,12 @@ classdef NetworkTestResult < handle
 
     properties (Dependent)
         permutation_count
+        significance_test
     end
 
     properties (Constant)
         test_methods = ["no_permutations", "within_network_pair", "full_connectome"]
+        significance_test_names = ["chi_squared", "hypergeometric"]
     end
 
     methods
@@ -86,12 +88,12 @@ classdef NetworkTestResult < handle
             %CONCATENATERESULT Add a result to the back of a TriMatrix. Used to keep permutation data. Ordered
 
             % Check to make sure we've created an object and create one if we haven't
-            if ~isfield(obj.permutation_results, 'p_value_permutations')
-                obj = nla.net.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
-                    other_object.test_name, fieldnames(other_object.(test_method)));
-                % Set last index to zero since this is the concatenated data will be the initial data
-                obj.last_index = 0;
-            end
+            % if ~isfield(obj.permutation_results, 'p_value_permutations')
+            %     obj = nla.net.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
+            %         other_object.test_name, fieldnames(other_object.(test_method)));
+            %     % Set last index to zero since this is the concatenated data will be the initial data
+            %     obj.last_index = 0;
+            % end
 
             statistics = fieldnames(obj.permutation_results);
             for statistic_index = 1:numel(statistics)
@@ -105,34 +107,32 @@ classdef NetworkTestResult < handle
         end
 
         function object_copy = copy(obj)
-            number_of_networks = obj.no_permutations.p_value.size;
-            all_statistics = fieldnames(obj.no_permutations);
-            test_specific_statistics = [];
-            % Go through all the stats in the 'no_permutations' container
-            for statistic_index = 1:numel(all_statistics)   
-                statistic = all_statistics(statistic_index);
-                % If the statistic is no 'p_value' or 'single_sample_p_value' then keep it
-                if ~(any(strcmp({"p_value", "single_sample_p_value"}, statistic{1})) || ~contains(statistic{1}, "_permutations"))
-                    test_specific_statistics = [test_specific_statistics, statistic{1}];
-                end
-            end
-
-            object_copy = nla.net.result.NetworkTestResult(obj.test_options, number_of_networks, obj.test_name, test_specific_statistics);
-            top_level_properties = fieldnames(obj);
-            for top_level_index = 1:numel(top_level_properties)
-                top_level_property = top_level_properties(top_level_index);
-                if isstruct(object_copy.(top_level_property{1}))
-                    object_copy.(top_level_property{1}) = cell2struct(struct2cell(obj.(top_level_property{1})), fieldnames(obj.(top_level_property{1})));
+            object_copy = nla.net.result.NetworkTestResult();
+            fields = fieldnames(obj);
+            for field_index = 1:size(fields, 2)
+                field_name = fields{field_index};
+                if isstruct(obj.(field_name))
+                    object_copy.(field_name) = cell2struct(struct2cell(obj.(field_name)), fieldnames(obj.(field_name)));
+                else
+                    object_copy.(field_name) = obj.(field_name);
                 end
             end
         end
 
         function value = get.permutation_count(obj)
-            if isfield(obj.permutation_results, 'p_value_permutations')
-                value = size(obj.permutation_results.p_value_permutations.v, 2);
+            if isfield(obj.permutation_results, "p_value_permutations") &&...
+                ~isequal(obj.permutation_results.p_value_permutations, false)
+                value = size(obj.permutation_results.p_value_permutations.v, 2)
+            elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
+                ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
+                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
             else
                 error("No permutation test results found.")
             end
+        end
+
+        function value = get.significance_test(obj)
+            value = any(strcmp(obj.significance_test_names, obj.test_name));
         end
     end
 
@@ -185,6 +185,17 @@ classdef NetworkTestResult < handle
             obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+        end
+    end
+
+    methods (Static)
+        function options = editableOptions()
+            % options that can be edited post-run (ie: are simple
+            % thresholds etc. for summary statistics, or generally can be
+            % modified without requiring re-permutation)
+            import nla.inputField.Integer nla.inputField.Number 
+            options = {Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
 end
