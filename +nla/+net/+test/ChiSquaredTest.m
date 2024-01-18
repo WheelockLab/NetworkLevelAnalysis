@@ -28,7 +28,8 @@ classdef ChiSquaredTest < handle
             number_of_networks = network_atlas.numNets();
 
             % Structure to pass results outside
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
+                obj.statistics);
 
             % Empty this out since it is not needed
             result.(permutation_results).single_sample_p_value = false;

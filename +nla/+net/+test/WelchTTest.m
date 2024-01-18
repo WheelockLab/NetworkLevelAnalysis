@@ -29,7 +29,8 @@ classdef WelchTTest < handle
                 permutation_results = "permutation_results";
             end
 
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
+                obj.statistics);
             result.(permutation_results).t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             result.(permutation_results).single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 

@@ -35,9 +35,10 @@ classdef KolmogorovSmirnovTest < handle
                 single_sample_ks_statistic = "single_sample_ks_statistic_permutations";
             end
 
-           result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
-           result.(permutation_results).(ks_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-           result.(permutation_results).(single_sample_ks_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
+                obj.statistics);
+            result.(permutation_results).(ks_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).(single_sample_ks_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
