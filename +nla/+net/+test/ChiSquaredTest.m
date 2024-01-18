@@ -33,7 +33,11 @@ classdef ChiSquaredTest < handle
             number_of_networks = network_atlas.numNets();
 
             % Structure to pass results outside
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics, obj.ranking_statistic);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
+                obj.statistics);
+
+            % Empty this out since it is not needed
+            result.(permutation_results).single_sample_p_value = false;
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network

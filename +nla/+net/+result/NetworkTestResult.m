@@ -142,43 +142,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.last_index = obj.last_index + 1;
         end
 
-        % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
-        % Any help on renaming would be great.
-        function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            
-            import nla.TriMatrix nla.TriMatrixDiag
-
-            test_number = 0;
-            significance_count_matrix = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            names = [];
-
-            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                title = "Non-Permuted";
-                p_values = obj.no_permutations.p_value;
-                fdr_method = network_test_options.fdr_correction; 
-            end
-            if isfield(flags, "show_full_conn") && flags.show_full_conn
-                title = "Full Connectome";
-                p_values = obj.full_connectome.p_value;
-                fdr_method = nla.net.mcc.None;
-            end
-            if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                title = "Within Network Pair";
-                p_values = obj.within_network_pair.single_sample_p_value;
-                fdr_method = network_test_options.fdr_correction;
-            end
-            [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
-            [test_number, significance_count_matrix, names] = obj.appendSignificanceMatrix(test_number, significance_count_matrix,...
-                names, significance, name);
-        end
-
-        %% This is taken directly from old version to maintain functionality. Not sure anyone uses it.
-        function table_new = generateSummaryTable(obj, table_old)
-            table_new = [table_old, table(obj.full_connectome.p_value.v, 'VariableNames', [obj.test_name + "P-value"])];
-        end
-
-        %%
-        % getters for dependent properties
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
