@@ -24,6 +24,7 @@ classdef NetworkTestResult < handle
     %
     properties
         test_name = "" % Name of the network test run
+        test_display_name = "" % Name of the network test for the front-end to display
         test_options = struct() % Options selected for the test. Formerly input_struct
         within_network_pair = false % Results for within-network-pair tests
         full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
@@ -46,7 +47,7 @@ classdef NetworkTestResult < handle
     end
 
     methods
-        function obj = NetworkTestResult(test_options, number_of_networks, test_name, test_specific_statistics)
+        function obj = NetworkTestResult(test_options, number_of_networks, test_name, test_display_name, test_specific_statistics)
             %CONSTRUCTOR Used for creating results.
             %
             % Arguments:
@@ -57,8 +58,9 @@ classdef NetworkTestResult < handle
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            if nargin == 4
+            if nargin == 5
                 obj.test_name = test_name;
+                obj.test_display_name = test_display_name;
                 obj.test_options = test_options;
 
                 obj.createResultsStorage(test_options, number_of_networks, test_specific_statistics)
@@ -106,23 +108,10 @@ classdef NetworkTestResult < handle
             obj.last_index = obj.last_index + 1;
         end
 
-        function object_copy = copy(obj)
-            object_copy = nla.net.result.NetworkTestResult();
-            fields = fieldnames(obj);
-            for field_index = 1:size(fields, 2)
-                field_name = fields{field_index};
-                if isstruct(obj.(field_name))
-                    object_copy.(field_name) = cell2struct(struct2cell(obj.(field_name)), fieldnames(obj.(field_name)));
-                else
-                    object_copy.(field_name) = obj.(field_name);
-                end
-            end
-        end
-
         function value = get.permutation_count(obj)
             if isfield(obj.permutation_results, "p_value_permutations") &&...
                 ~isequal(obj.permutation_results.p_value_permutations, false)
-                value = size(obj.permutation_results.p_value_permutations.v, 2)
+                value = size(obj.permutation_results.p_value_permutations.v, 2);
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
                 value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
