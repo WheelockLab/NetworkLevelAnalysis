@@ -210,18 +210,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
 
-        function histogram = createHistogram(obj, statistic)
-            if ~endsWith(statistic, "_permutations")
-                statistic = strcat(statistic, "_permutations");
-            end
-            permutation_data = obj.permutation_results.(statistic);
-            histogram = zeros(nla.HistBin.SIZE, "uint32");
-
-            for permutation = 1:obj.permutation_count
-                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
-            end
-        end
-
         function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
             import nla.gfx.createFigure nla.net.result.plot.PermutationTestPlotter nla.net.result.chord.ChordPlotter
             
@@ -425,6 +413,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             number_of_tests = number_of_tests + 1;
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
+        end
+
+        function histogram = createHistogram(obj, test_method, statistic)
+            permutation_data = obj.permutation_results.(test_method).(statistic);
+            histogram = zeros(nla.HistBin.SIZE, "uint32");
+
+            for permutation = 1:obj.permutation_count
+                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
+            end
         end
     end
 
