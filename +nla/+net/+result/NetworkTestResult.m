@@ -463,6 +463,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
         end
+
+        function histogram = createHistogram(obj, test_method, statistic)
+            permutation_data = obj.permutation_results.(test_method).(statistic);
+            histogram = zeros(nla.HistBin.SIZE, "uint32");
+
+            for permutation = 1:obj.permutation_count
+                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
+            end
+        end
     end
 
     methods (Static)
