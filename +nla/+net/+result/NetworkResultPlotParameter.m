@@ -24,7 +24,8 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function result = plotProbabilityParameters(obj, test_method, plot_statistic, plot_title, fdr_correction, significance_filter)
+        function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
+                plot_title, fdr_correction, significance_filter)
             % plot_title - this will be a string
             % significance filter - this will be a boolean or some sort of object/struct filter
             % fdr_correction - a struct of fdr_correction (found in nla.net.mcc)
@@ -65,7 +66,6 @@ classdef NetworkResultPlotParameter < handle
             p_value_plot_max = p_value_max;
             % determine colormap and operate on values if it's -log10
             switch obj.network_test_results.test_options.prob_plot_method
-
                 case nla.gfx.ProbPlotMethod.LOG
                     color_map = obj.getLogColormap(statistic_input);
                 % Here we take a -log10 and change the maximum value to show on the plot
@@ -99,7 +99,7 @@ classdef NetworkResultPlotParameter < handle
             % Return a struct. It's either this or a long array. Since matlab doesn't do dictionaries, we're doing this
             result = struct();
             result.color_map = color_map;
-            result.probabilities_matrix = statistic_plot_matrix;
+            result.statistic_plot_matrix = statistic_plot_matrix;
             result.p_value_plot_max = p_value_plot_max;
             result.name_label = name_label;
             result.significance_plot = significance_plot;
@@ -139,19 +139,19 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods (Static)
-        function result = plotProbabilityHistogramParameters(probability_max)
+        function result = plotProbabilityHistogramParameters(probability_histogram, probability_max)
             empirical_fdr = zeros(nla.HistBin.SIZE);
             % TODO: need to figure out what to do about perm_prob_hist
 
             [~, minimum_index] = min(abs(probability_max, empirical_fdr));
-            full_connectome_p_value_max = nla.HistBin.EDGES(minimum_index);
+            p_value_max = nla.HistBin.EDGES(minimum_index);
             if (empirical_fdr(minimum_index) > probability_max) && minimum_index > 1
-                full_connectome_p_value_max = nla.HistBin.EDGES(minimum_index - 1);
+                p_value_max = nla.HistBin.EDGES(minimum_index - 1);
             end
 
             result = struct();
             result.empirical_fdr = empirical_fdr;
-            result.full_connectome_p_value_max = full_connectome_p_value_max;
+            result.p_value_max = p_value_max;
         end
     end
 
@@ -196,7 +196,7 @@ classdef NetworkResultPlotParameter < handle
 
         function statistic = getStatsFromMethodAndName(obj, test_method, plot_statistic)
             % combining the method and stat name to get the data. With a fail safe for forgetting 'single_sample'
-            if test_method == 'within_network_pair' && ~startsWith(plot_statistic, "single_sample")
+            if test_method == "within_network_pair" && ~startsWith(plot_statistic, "single_sample")
                 plot_statistic = strcat("single_sample_", plot_statistic);
             end
             statistic = obj.network_test_results.(test_method).(plot_statistic);
