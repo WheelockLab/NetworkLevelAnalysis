@@ -32,9 +32,8 @@ classdef NetworkResultPlotParameter < handle
             % test_method - 'no permutations', 'within network pair', 'full connectome'
 
             import nla.TriMatrix nla.TriMatrixDiag
-
             % We're going to use a default filter here
-            if nargin < 4
+            if isequal(significance_filter, false)
                 significance_filter = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
                 significance_filter.v = true(numel(significance_filter.v), 1);
             end
@@ -47,7 +46,7 @@ classdef NetworkResultPlotParameter < handle
             statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
 
             p_value_max = fdr_correction.correct(obj.network_atlas, obj.network_test_results.test_options, statistic_input);
-            p_value_breakdown_label = fdr_correction.createLable(obj.network_atlas, obj.network_test_results.test_options,...
+            p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.network_test_results.test_options,...
                 statistic_input);
 
             name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
@@ -138,25 +137,8 @@ classdef NetworkResultPlotParameter < handle
         end
     end
 
-    methods (Static)
-        function result = plotProbabilityHistogramParameters(probability_histogram, probability_max)
-            empirical_fdr = zeros(nla.HistBin.SIZE);
-            % TODO: need to figure out what to do about perm_prob_hist
-
-            [~, minimum_index] = min(abs(probability_max, empirical_fdr));
-            p_value_max = nla.HistBin.EDGES(minimum_index);
-            if (empirical_fdr(minimum_index) > probability_max) && minimum_index > 1
-                p_value_max = nla.HistBin.EDGES(minimum_index - 1);
-            end
-
-            result = struct();
-            result.empirical_fdr = empirical_fdr;
-            result.p_value_max = p_value_max;
-        end
-    end
-
     methods (Access = protected)
-        function color_map = getLogColormap(probabilities_input, p_value_max)
+        function color_map = getLogColormap(obj, probabilities_input, p_value_max)
             log_minimum = log10(min(nonzeros(probabilities_input.v)));
             log_minimum = min([-40, log_minimum]);
 
@@ -165,14 +147,14 @@ classdef NetworkResultPlotParameter < handle
             if p_value_max ~= 0
                 color_map_base = parula(obj.default_discrete_colors);
                 color_map = flip(color_map_base(ceil(logspace(log_minimum, 0, obj.default_discrete_colors) .*...
-                    obj.default_discrete_colors). :));
+                    obj.default_discrete_colors), :));
                 color_map = [color_map; default_color_map];
             else
                 color_map = default_color_map;
             end
         end
 
-        function color_map = getColormap(p_value_max)
+        function color_map = getColormap(obj, p_value_max)
             default_color_map = [1 1 1];
             if p_value_max == 0
                 color_map = default_color_map;

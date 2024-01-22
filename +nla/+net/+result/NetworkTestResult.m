@@ -72,13 +72,15 @@ classdef NetworkTestResult < handle
 
         function output(obj, edge_test_options, network_atlas, edge_test_result, flags)
             import nla.net.result.NetworkResultPlotParameter nla.net.result.plot.NoPermutationPlotter
-            import nla.gfx.createFigure
+            import nla.gfx.createFigure nla.net.result.plot.FullConnectomePlotter 
+            import nla.net.result.plot.WithinNetworkPairPlotter
 
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas);
             % We need the no-permutations vs. network size no matter what, so we're just doing it here.
             p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                 "p_value");
+            significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
             if obj.permutation_count == 0
                 if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                     % No permutations results
@@ -87,9 +89,7 @@ classdef NetworkTestResult < handle
                         
                         % Get the plot parameters (titles, stats, labels, max, min, etc)
                         plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
-                        p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                            edge_test_result, "no_permutations", "p_value", plot_title, obj.test_options.fdr_correction);
-
+                        p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result, "no_permutations", "p_value", plot_title, obj.test_options.fdr_correction, false);
                         plotter = NoPermutationPlotter(network_atlas);
                         % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                         % plot the probability
@@ -104,11 +104,11 @@ classdef NetworkTestResult < handle
                         plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes);
                     end
                 end
+            end
             if obj.permutation_count > 0
                 if isfield(flags, "show_full_conn") && flags.show_full_conn
                     plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
                     if flags.plot_type == nla.PlotType.FIGURE
-                        significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
                         if significance_input
                             plot_figure = createFigure(1000, 900);
                             axes = subplot(2,2,2);
@@ -127,19 +127,17 @@ classdef NetworkTestResult < handle
                         result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas);
 
                         % Get the plot parameters (titles, stats, labels, etc.)
+                        %TODO: why do we use no fdr here?
                         full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
                             edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title,...
                             nla.net.mcc.None());
                         % TODO: Put another probability plot here with cohen's d signiificance marked.
 
-                        full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
+                        full_connectome_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
                             "full_connectome", "p_value");
 
-                        % create a histogram and get its parameters for plotting
+                        % create a histogram
                         p_value_histogram = obj.createHistogram("full_connectome", "p-value");
-                        p_value_histogram_parameters = NetworkResultPlotParameter.plotProbabilityHistogramParameters(...
-                            p_value_histogram, obj.test_options.prob_max...
-                        );
 
                         plotter = FullConnectomePlotter(network_atlas);
 
@@ -152,12 +150,34 @@ classdef NetworkTestResult < handle
                         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, axes3);
                         plotter.plotProbabilityHistogram(axes, p_value_histogram,...
                             obj.permutation_results.full_connectome.p_value_permutations.v(:,1), obj.test_display_name,...
-                            p_value_histogram_parameters);
+                            obj.test_options.prob_max);
                     end
                 end
             end
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                
+                plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
+                if flags.plot_type == nla.PlotType.FIGURE
+                    if significance_input
+                        plot_figure = createFigure(500, 900);
+                        axes = subplot(2,1,2);
+                        x_coordinate = 0;
+                    else
+
+                    end
+                    y_coordinate = 425;
+
+                    result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas);
+
+                    within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
+                        "within_network_pair", "p_value");
+
+                    within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
+                        edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction);
+
+                    plotter = WithinNetworkPairPlotter(network_atlas);
+                    plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
+                    plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, axes);
+                end
             end
         end
 
@@ -203,10 +223,11 @@ classdef NetworkTestResult < handle
         function value = get.permutation_count(obj)
             if isfield(obj.permutation_results, "p_value_permutations") &&...
                 ~isequal(obj.permutation_results.p_value_permutations, false)
-                value = size(obj.permutation_results.p_value_permutations.v, 2);
+                % Need to subtract 1. If it's no permutations, there will still be one because we ran the no-permutation test
+                value = size(obj.permutation_results.p_value_permutations.v, 2) - 1;
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
-                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
+                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2) - 1;
             else
                 error("No permutation test results found.")
             end
