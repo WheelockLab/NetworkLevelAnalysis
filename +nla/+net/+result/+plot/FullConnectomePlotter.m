@@ -18,27 +18,26 @@ classdef FullConnectomePlotter < NoPermutationPlotter
         end
 
         function plotProbabilityHistogram(obj, axes, statistic_input, no_permutations_network_result, test_method,...
-            parameters)
+            probability_max)
             import nla.HistBin
 
-            empirical_fdr = parameters.empirical_fdr;
+            empirical_fdr = zeros(HistBin.SIZE);
             empirical_fdr = cumsum(double(statistic_input) ./ sum(statistic_input));
 
-            minimum_index = parameters.minimum_index;
-            p_value_max = parameters.p_value_max;
+            [~, minimum_index] = min(abs(probability_max - empirical_fdr));
+
             statistic_max = HistBin.EDGES(minimum_index);
 
-            if (empirical_fdr(minimum_index) > p_value_max) && minimum_index > 1
-                p_value_max = HistBin.EDGES(minimum_index - 1);
+            if (empirical_fdr(minimum_index) > probability_max) && minimum_index > 1
+                statistic_max = HistBin.EDGES(minimum_index - 1);
             end
 
             loglog(axes, HistBin.EDGES(2:end), empirical_fdr, "k");
             hold("on");
             loglog(axes, no_permutations_network_result, statistic_input.v, "ok");
             axis([min(no_permutations_network_result), 1, min(statistic_input.v), 1]);
-            loglog(axes, axes.XLim, [p_value_max, p_value_max], "b");
-            no_permutation_max = max(no_permutations_network_result);
-            loglog(axes, [no_permutation_max, no_permutation_max], axes.YLim, "r");
+            loglog(axes, axes.XLim, [probability_max, probability_max], "b");
+            loglog(axes, [statistic_max, statistic_max], axes.YLim, "r");
 
             name_label = sprintf("%s P-values", test_method);
             nla.gfx.setTitle(axes, name_label);
