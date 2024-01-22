@@ -183,10 +183,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
                 ~isequal(obj.permutation_results.p_value_permutations, false)
-                value = size(obj.permutation_results.p_value_permutations.v, 2);
+                % Need to subtract 1. If it's no permutations, there will still be one because we ran the no-permutation test
+                value = size(obj.permutation_results.p_value_permutations.v, 2) - 1;
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
-                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
+                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2) - 1;
             else
                 error("No permutation test results found.")
             end
