@@ -24,7 +24,7 @@ classdef NoPermutationPlotter < handle
                 color_map, significance_plot, false, clickCallback);
         end
 
-        function plotProbabilityVsNetworkSize(obj, parameters, axes)
+        function plotProbabilityVsNetworkSize(obj, parameters, axes, plot_title)
             import nla.gfx.setTitle
 
             network_size = parameters.network_size;
@@ -44,7 +44,7 @@ classdef NoPermutationPlotter < handle
 
             xlabel(axes, "Number of ROI pairs within network pair");
             ylabel(axes, "-log_1_0(Asymptotic P-value)");
-            setTitle(axes, "Non-permuted P-values vs. Network-Pair Size");
+            setTitle(axes, plot_title);
             second_title = sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p_values, rho);
             setTitle(axes, second_title, true);
             lims = ylim(axes);

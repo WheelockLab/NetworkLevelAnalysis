@@ -183,11 +183,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
                 ~isequal(obj.permutation_results.p_value_permutations, false)
-                % Need to subtract 1. If it's no permutations, there will still be one because we ran the no-permutation test
-                value = size(obj.permutation_results.p_value_permutations.v, 2) - 1;
+                value = size(obj.permutation_results.p_value_permutations.v, 2);
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
-                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2) - 1;
+                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
             else
                 error("No permutation test results found.")
             end
@@ -466,7 +465,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function histogram = createHistogram(obj, test_method, statistic)
-            permutation_data = obj.permutation_results.(test_method).(statistic);
+            if ~endsWith(statistic, "_permutations")
+                statistic = strcat(statistic, "_permutations");
+            end
+            permutation_data = obj.permutation_results.(statistic);
             histogram = zeros(nla.HistBin.SIZE, "uint32");
 
             for permutation = 1:obj.permutation_count
