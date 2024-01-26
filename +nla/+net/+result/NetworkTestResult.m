@@ -199,7 +199,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 value = size(obj.permutation_results.two_sample_p_value_permutations.v, 2);
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
-                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2) - 1;
+                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
             else
                 error("No permutation test results found.")
             end
