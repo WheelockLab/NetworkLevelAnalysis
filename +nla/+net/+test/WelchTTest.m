@@ -24,15 +24,23 @@ classdef WelchTTest < handle
 
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
+            p_value = "p_value";
+            t_statistic = "t_statistic";
+            single_sample_p_value = "single_sample_p_value";
+            single_sample_t_statistic = "single_sample_t_statistic";
             if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
+                p_value = "p_value_permutations";
+                t_statistic = "t_statistic_permutations";
+                single_sample_p_value = "single_sample_p_value_permutations";
+                single_sample_t_statistic = "single_sample_t_statistic_permutations";
             end
 
             result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
                 obj.statistics);
-            result.(permutation_results).t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.(permutation_results).single_sample_t_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).(t_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).(single_sample_t_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -44,10 +52,10 @@ classdef WelchTTest < handle
                     [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v, "Vartype", "unequal");
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
 
-                    result.(permutation_results).p_value.set(network, network2, p);
-                    result.(permutation_results).t_statistic.set(network, network2, stats.tstat);
-                    result.(permutation_results).single_sample_p_value.set(network, network2, single_sample_p);
-                    result.(permutation_results).single_sample_t_statistic.set(network, network2, single_sample_stats.tstat);
+                    result.(permutation_results).(p_value).set(network, network2, p);
+                    result.(permutation_results).(t_statistic).set(network, network2, stats.tstat);
+                    result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
+                    result.(permutation_results).(single_sample_t_statistic).set(network, network2, single_sample_stats.tstat);
                 end
             end
             

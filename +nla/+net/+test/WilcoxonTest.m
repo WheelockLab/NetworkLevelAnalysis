@@ -22,16 +22,25 @@ classdef WilcoxonTest < handle
 
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
+            p_value = "p_value";
+            ranksum_statistic = "ranksum_statistic";
+            z_statistic = "z_statistic";
+            single_sample_p_value = "single_sample_p_value";
+            single_sample_ranksum_statistic = "single_sample_ranksum_statistic";
             if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
+                p_value = "p_value_permutations";
+                ranksum_statistic = "ranksum_statistic_permutations";
+                z_statistic = "z_statistic_permutations";
+                single_sample_p_value = "single_sample_p_value_permutations";
+                single_sample_ranksum_statistic = "single_sample_ranksum_statistic_permutations";
             end
 
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
-                obj.statistics);
-            result.(permutation_results).ranksum_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.(permutation_results).z_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.(permutation_results).single_sample_ranksum_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics);
+            result.(permutation_results).(ranksum_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).(z_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            result.(permutation_results).(single_sample_ranksum_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -41,15 +50,24 @@ classdef WilcoxonTest < handle
                         network_atlas.nets(network2).indexes);
 
                     [p, ~, stats] = ranksum(network_rho, edge_test_results.coeff.v);
-                    result.(permutation_results).p_value.set(network, network2, p);
-                    result.(permutation_results).ranksum_statistic.set(network, network2, stats.ranksum);
-                    result.(permutation_results).z_statistic.set(network, network2, stats.zval);
+                    result.(permutation_results).(p_value).set(network, network2, p);
+                    result.(permutation_results).(ranksum_statistic).set(network, network2, stats.ranksum);
+                    result.(permutation_results).(z_statistic).set(network, network2, stats.zval);
                     
                     [single_sample_p, ~, single_sample_stats] = signrank(network_rho);
-                    result.(permutation_results).single_sample_p_value.set(network, network2, single_sample_p);
-                    result.(permutation_results).single_sample_ranksum_statistic(network, network2, single_sample_ranksum_statistic);
+                    result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
+                    result.(permutation_results).(single_sample_ranksum_statistic).set(network, network2, single_sample_stats.signedrank);
                 end
             end
+        end
+    end
+
+    methods (Static)
+        function inputs = requiredInputs()
+
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
+                nla.inputField.Number('d_max', "Net-level Cohen's D threshold >", 0, 0.5, 1)};
         end
     end
 end
