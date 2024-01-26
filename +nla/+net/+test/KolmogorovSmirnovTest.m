@@ -47,7 +47,6 @@ classdef KolmogorovSmirnovTest < handle
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
 
-
                     [~, p, ks] = kstest2(network_rho, edge_test_results.coeff.v);
                     result.(permutation_results).(p_value).set(network, network2, p);
                     result.(permutation_results).(ks_statistic).set(network, network2, ks);

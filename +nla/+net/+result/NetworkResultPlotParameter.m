@@ -64,6 +64,7 @@ classdef NetworkResultPlotParameter < handle
             statistic_plot_matrix = statistic_input_scaled;
             p_value_plot_max = p_value_max;
             % determine colormap and operate on values if it's -log10
+            obj.network_test_results.test_options
             switch obj.network_test_results.test_options.prob_plot_method
                 case nla.gfx.ProbPlotMethod.LOG
                     color_map = obj.getLogColormap(statistic_input);
@@ -90,7 +91,7 @@ classdef NetworkResultPlotParameter < handle
                 wait_popup = waitbar(0.05, wait_text);
                 nla.gfx.drawBrainVis(edge_test_options, obj.network_test_results.test_options, obj.network_atlas,...
                     nla.gfx.MeshType.STD, 0.25, 3, true, edge_test_result, network1, network2,...
-                    any(strcmp(obj.significance_test_names, obj.test_name)));
+                    any(strcmp(obj.significance_test_names, obj.network_test_results.test_name)));
                 waitbar(0.95);
                 close(wait_popup);
             end
@@ -140,7 +141,7 @@ classdef NetworkResultPlotParameter < handle
     methods (Access = protected)
         function color_map = getLogColormap(obj, probabilities_input, p_value_max)
             log_minimum = log10(min(nonzeros(probabilities_input.v)));
-            log_minimum = min([-40, log_minimum]);
+            log_minimum = max([-40, log_minimum]);
 
             % Relevant for BenjaminYekutieli/BenjaminHochberg fdr correction
             default_color_map = [1 1 1];
