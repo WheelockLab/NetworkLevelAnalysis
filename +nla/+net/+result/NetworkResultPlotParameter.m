@@ -4,6 +4,7 @@ classdef NetworkResultPlotParameter < handle
     properties
         network_test_results
         network_atlas
+        updated_test_options
     end
 
     properties (Dependent)
@@ -17,10 +18,11 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods
-        function obj = NetworkResultPlotParameter(network_test_results, network_atlas)
+        function obj = NetworkResultPlotParameter(network_test_results, network_atlas, updated_test_options)
             if nargin > 0
                 obj.network_test_results = network_test_results;
                 obj.network_atlas = network_atlas;
+                obj.updated_test_options = updated_test_options;
             end
         end
 
@@ -39,14 +41,14 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % Adding on to the plot title if it's a -log10 plot
-            if obj.network_test_results.test_options.prob_plot_method == nla.gfx.ProbPlotMethod.NEG_LOG_10
+            if obj.updated_test_options.prob_plot_method == nla.gfx.ProbPlotMethod.NEG_LOG_10
                 plot_title = sprintf("%s (-log_1_0(P))", plot_title);
             end
 
             statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
 
-            p_value_max = fdr_correction.correct(obj.network_atlas, obj.network_test_results.test_options, statistic_input);
-            p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.network_test_results.test_options,...
+            p_value_max = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
+            p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);
 
             name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
@@ -64,10 +66,10 @@ classdef NetworkResultPlotParameter < handle
             statistic_plot_matrix = statistic_input_scaled;
             p_value_plot_max = p_value_max;
             % determine colormap and operate on values if it's -log10
-            obj.network_test_results.test_options
-            switch obj.network_test_results.test_options.prob_plot_method
+
+            switch obj.updated_test_options.prob_plot_method
                 case nla.gfx.ProbPlotMethod.LOG
-                    color_map = obj.getLogColormap(statistic_input);
+                    color_map = obj.getLogColormap(statistic_input, p_value_max);
                 % Here we take a -log10 and change the maximum value to show on the plot
                 case nla.gfx.ProbPlotMethod.NEG_LOG_10
                     color_map = parula(obj.default_discrete_colors);
@@ -89,7 +91,7 @@ classdef NetworkResultPlotParameter < handle
                 wait_text = sprintf("Generating %s - %s network-pair brain plot", obj.network_atlas.nets(network1).name,...
                     obj.network_atlas.nets(network2).name);
                 wait_popup = waitbar(0.05, wait_text);
-                nla.gfx.drawBrainVis(edge_test_options, obj.network_test_results.test_options, obj.network_atlas,...
+                nla.gfx.drawBrainVis(edge_test_options, obj.updated_test_options, obj.network_atlas,...
                     nla.gfx.MeshType.STD, 0.25, 3, true, edge_test_result, network1, network2,...
                     any(strcmp(obj.significance_test_names, obj.network_test_results.test_name)));
                 waitbar(0.95);
