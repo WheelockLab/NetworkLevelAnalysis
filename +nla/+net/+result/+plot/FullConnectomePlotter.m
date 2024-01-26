@@ -1,11 +1,8 @@
-classdef FullConnectomePlotter < NoPermutationPlotter
-
-    properties
-        network_atlas
-    end
+classdef FullConnectomePlotter < nla.net.result.plot.NoPermutationPlotter
 
     methods
         function obj = FullConnectomePlotter(network_atlas)
+            obj = obj@nla.net.result.plot.NoPermutationPlotter();
             if nargin > 0
                 obj.network_atlas = network_atlas;
             end
@@ -14,15 +11,14 @@ classdef FullConnectomePlotter < NoPermutationPlotter
         function [w, h] = plotProbability(obj, plot_figure, parameters, x_coordinate, y_coordinate)
             % I know I don't need to define this here. I don't like it when the superclass methods just start showing up
             % Matlab's class organization is so hacked together, I just like to really show everything
-            [w, h] = plotProbability@NoPermutationPlotter(obj, plot_figure, parameters, x_coordinate, y_coordinate);
+            [w, h] = plotProbability@nla.net.result.plot.NoPermutationPlotter(obj, plot_figure, parameters, x_coordinate, y_coordinate);
         end
 
-        function plotProbabilityHistogram(obj, axes, statistic_input, no_permutations_network_result, test_method,...
+        function plotProbabilityHistogram(obj, axes, histogram_data, statistic_input, no_permutations_network_result, test_method,...
             probability_max)
             import nla.HistBin
 
-            empirical_fdr = zeros(HistBin.SIZE);
-            empirical_fdr = cumsum(double(statistic_input) ./ sum(statistic_input));
+            empirical_fdr = cumsum(double(histogram_data) ./ sum(histogram_data));
 
             [~, minimum_index] = min(abs(probability_max - empirical_fdr));
 
@@ -31,11 +27,10 @@ classdef FullConnectomePlotter < NoPermutationPlotter
             if (empirical_fdr(minimum_index) > probability_max) && minimum_index > 1
                 statistic_max = HistBin.EDGES(minimum_index - 1);
             end
-
             loglog(axes, HistBin.EDGES(2:end), empirical_fdr, "k");
             hold("on");
-            loglog(axes, no_permutations_network_result, statistic_input.v, "ok");
-            axis([min(no_permutations_network_result), 1, min(statistic_input.v), 1]);
+            loglog(axes, no_permutations_network_result, statistic_input, "ok");
+            axis([min(no_permutations_network_result), 1, min(statistic_input), 1]);
             loglog(axes, axes.XLim, [probability_max, probability_max], "b");
             loglog(axes, [statistic_max, statistic_max], axes.YLim, "r");
 
