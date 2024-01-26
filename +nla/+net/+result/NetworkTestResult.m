@@ -70,7 +70,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function output(obj, edge_test_options, network_atlas, edge_test_result, flags)
+        function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
             import nla.net.result.NetworkResultPlotParameter 
             import nla.net.result.plot.NoPermutationPlotter
             import nla.gfx.createFigure nla.net.result.plot.FullConnectomePlotter 
@@ -91,7 +91,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     % Get the plot parameters (titles, stats, labels, max, min, etc)
                     plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
                     p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                        "no_permutations", "p_value", plot_title, obj.test_options.fdr_correction, false);
+                        "no_permutations", "p_value", plot_title, updated_test_options.fdr_correction, false);
                     plotter = NoPermutationPlotter(network_atlas);
                     % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                     % plot the probability
@@ -134,7 +134,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     if significance_input
                         plot_figure = createFigure(1000, 900);
                         plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
-                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, obj.test_options.prob_max);
+                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
                         plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,2,3), "Non-permuted P-values vs. Network-Pair Size");
                         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
                             "Permuted P-values vs. Net-Pair Size");
@@ -146,7 +146,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,3,6),...
                             "Permuted P-values vs. Net-Pair Size");
                         plotter.plotProbabilityHistogram(subplot(2,3,4), p_value_histogram,  obj.full_connectome.p_value.v,...
-                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, obj.test_options.prob_max);
+                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
                         x_coordinate = 75;
                     end
 
@@ -169,7 +169,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         "within_network_pair", "p_value");
 
                     within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                        edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction);
+                        edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction);
 
                     plotter = WithinNetworkPairPlotter(network_atlas);
                     y_coordinate = 425;
@@ -187,7 +187,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                         % TODO: add marked networks to this
                         within_network_pair_p_value_parameters_marked = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                            edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction)
+                            edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction)
                         plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_marked, w - 50, y_coordinate);
                     end
 
