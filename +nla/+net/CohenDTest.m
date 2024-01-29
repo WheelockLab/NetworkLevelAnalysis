@@ -9,24 +9,21 @@ classdef CohenDTest < handle
         function obj = CohenDTest
         end
 
-        function result = run(obj, edge_test_results, network_atlas)
+        function result_object = run(obj, edge_test_results, network_atlas, result_object)
             import nla.TriMatrix nla.TriMatrixDiag
 
             number_of_networks = network_atlas.numNets();
 
-            result = struct();
-            result.d_statistic = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-
-            for network = 1:number_of_networks
-                for network2 = 1:network
-                    network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
-                        network_atlas.nets(network).indexes);
-                    all_data_std_denominator = numel(network_rho) + numel(edge_test_results.coeff.v) - 2;
-                    all_data_std_numerator = ((numel(network_rho) - 1) .* std(network_rho) .^ 2) +...
-                        ((numel(edge_test_results.coeff.v) - 1) .* std(edge_test_results.coeff.v) .^ 2);
-                    all_data_std = sqrt(all_data_std_numerator / all_data_std_denominator);
-                    d = abs((mean(network_rho)) - mean(edge_test_results.coeff.v)) / all_data_std;
-                    result.d_statistic.set(network, network2, d);
+            for row = 1:number_of_networks
+                for column = 1:row
+                    network_rho = edge_test_results.coeff.get(network_atlas.nets(row).indexes,...
+                        network_atlas.nets(column).indexes);
+                    single_sample_d = abs(mean(network_rho)) / std(network_rho);
+                    d = abs((mean(network_rho) - mean(edge_test_results.coeff.v)) / sqrt(((std(network_rho).^2)) +...
+                        (std(edge_test_results.coeff.v).^2)));
+                    result_object.no_permutations.d.set(row, column, single_sample_d);
+                    result_object.within_network_pair.d.set(row, column, single_sample_d);
+                    result_object.full_connectome.d.set(row, column, d);
                 end
             end
         end

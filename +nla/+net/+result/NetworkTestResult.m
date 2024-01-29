@@ -295,6 +295,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            %Cohen's D results
+            obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
 
         function histogram = createHistogram(obj, test_method, statistic)
