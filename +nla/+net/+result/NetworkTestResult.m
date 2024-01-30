@@ -43,7 +43,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
     properties (Constant)
         test_methods = ["no_permutations", "within_network_pair", "full_connectome"]
-        significance_test_names = ["chi_squared", "hypergeometric"]
+        significance_test_names = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
     end
 
     methods
@@ -83,6 +83,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                 "p_value");
             significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
+            %%
+            % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 % No permutations results
                 if flags.plot_type == nla.PlotType.FIGURE
@@ -106,7 +108,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes, "Non-permuted P-values vs. Network-Pair Size");
                 end
             end
-            
+            %%
+
+            %%
+            % Full Connectome Plotting
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
                 if flags.plot_type == nla.PlotType.FIGURE
@@ -154,10 +159,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
                     % TODO: plot cohen's d marked probability here if not chi-squared or hypergeo
 
-                    
                 end
             end
+            %%
 
+            %%
+            % Within network pair plotting
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
 
@@ -185,16 +192,13 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,2,3),...
                             "Within Net-Pair P-values vs. Net-Pair Size");
                         [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
-                        % TODO: add marked networks to this
                         within_network_pair_p_value_parameters_marked = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                            edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction)
+                            edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction);
                         plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_marked, w - 50, y_coordinate);
                     end
-
-                    
-                    
                 end
             end
+            %%
         end
 
         function merge(obj, other_objects)
