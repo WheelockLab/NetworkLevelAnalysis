@@ -39,10 +39,17 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     llimit = edge_result.coeff_range(1);
     ulimit = edge_result.coeff_range(2);
     
-    color_map = turbo();
-    color_map_n = hsv(2800);
-    color_map_n = color_map_n(1401:2400,:);
-    color_map_p = cat(1, summer(500), flip(autumn(500), 1));
+    % This is the colormap if there's no functional connectivity provided
+    color_map = parula(); % parula is a little gentler than turbo
+
+    % color_man_n = color map negative, color_man_p = color map positive
+    % the reason we've created the hsv_map and then use a subset of it is to get the deep blue -> green
+    % the closest builtin is 'cool', but that only goes teal -> green
+    hsv_map = hsv(2800); % big colormap
+    color_map_n = hsv_map(1401:2400,:); %use from the middle -> 1000
+    
+    % Luckily, 'autumn' has the colors we want for warmth
+    color_map_p = flip(autumn(1000));
     
     ROI_vals = nan(net_atlas.numROIs(), 1);
     fc_vals = nan(net_atlas.numROIs(), 1);
