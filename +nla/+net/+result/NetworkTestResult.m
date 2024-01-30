@@ -249,10 +249,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     methods (Access = private)
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
-            %   For example: 
-            %       Within Network Pair test
-            %       NetworkTestResult.within_network_pair = {p_value, p_value_permutations, etc etc}
-            %   Any test method not being run will be an empty structure
+            %   
 
             % Our 3 test methods. No permutations, Within-Network-Piar, Full Connectome
             % Creating an array of pairs status (yes/no) and name for the results (Find a better way, code-monkey)
@@ -280,6 +277,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
+                obj.no_permutations.(test_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
                 obj.permutation_results.(strcat(test_statistic, "_permutations")) = TriMatrix(number_of_networks,...
                     TriMatrixDiag.KEEP_DIAGONAL);
             end
@@ -290,7 +288,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is every test 
+            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is in every test 
             % regardless of test or method
             obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
