@@ -20,15 +20,13 @@ classdef ChiSquaredTest < handle
 
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
-            p_value = "p_value";
             chi2_statistic = "chi2_statistic";
             greater_than_expected = "greater_than_expected";
             if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
-                p_value = "p_value_permutations";
-                chi2_statistic = "chi2_statistic_permutations";
-                greater_than_expected = "greater_than_expected_permutations";
+                chi2_statistic = strcat(chi2_statistic, "_permutations");
+                greater_than_expected = strcat(greater_than_expected, "_permutations");
             end
 
             number_of_networks = network_atlas.numNets();
@@ -36,10 +34,6 @@ classdef ChiSquaredTest < handle
             % Structure to pass results outside
             result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
                 obj.statistics);
-
-            % Empty this out since it is not needed
-            result.(permutation_results).(chi2_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            result.(permutation_results).(greater_than_expected) = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -64,7 +58,11 @@ classdef ChiSquaredTest < handle
 
             % Matlab function for chi-squared cdf to get p-value. "Upper" calculates the upper tail instead of
             % using 1 - lower tail
-            result.(permutation_results).(p_value).v = chi2cdf(result.(permutation_results).(chi2_statistic).v, 1, "upper");
+            if permutations
+                result.permutation_results.p_value_permutations.v = chi2cdf(result.permutation_results.chi2_statistic_permutations.v, 1, "upper");
+            else
+                result.no_permutations.p_value.v = chi2cdf(result.no_permutations.chi2_statistic.v, 1, "upper");
+            end
         end
     end
 
