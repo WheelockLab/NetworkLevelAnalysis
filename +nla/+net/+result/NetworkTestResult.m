@@ -43,7 +43,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
     properties (Constant)
         test_methods = ["no_permutations", "within_network_pair", "full_connectome"]
-        significance_test_names = ["chi_squared", "hypergeometric"]
+        significance_test_names = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
     end
 
     methods
@@ -89,6 +89,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
 
             significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
+            %%
+            % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 % No permutations results
                 if flags.plot_type == nla.PlotType.FIGURE
@@ -112,7 +114,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes, "Non-permuted P-values vs. Network-Pair Size");
                 end
             end
-            
+            %%
+
+            %%
+            % Full Connectome Plotting
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
                 plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
@@ -171,10 +176,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     end
                     % TODO: plot cohen's d marked probability here if not chi-squared or hypergeo
 
-                    
                 end
             end
+            %%
 
+            %%
+            % Within network pair plotting
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
 
@@ -210,11 +217,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                         plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
                     end
-
-                    
-                    
                 end
             end
+            %%
         end
 
         function merge(obj, other_objects)
@@ -269,10 +274,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     methods (Access = private)
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
-            %   For example: 
-            %       Within Network Pair test
-            %       NetworkTestResult.within_network_pair = {p_value, p_value_permutations, etc etc}
-            %   Any test method not being run will be an empty structure
+            %   
 
             % Our 3 test methods. No permutations, Within-Network-Piar, Full Connectome
             % Creating an array of pairs status (yes/no) and name for the results (Find a better way, code-monkey)
@@ -300,6 +302,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
+                obj.no_permutations.(test_statistic) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
                 obj.permutation_results.(strcat(test_statistic, "_permutations")) = TriMatrix(number_of_networks,...
                     TriMatrixDiag.KEEP_DIAGONAL);
             end
@@ -310,7 +313,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is every test 
+            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is in every test 
             % regardless of test or method
             obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
