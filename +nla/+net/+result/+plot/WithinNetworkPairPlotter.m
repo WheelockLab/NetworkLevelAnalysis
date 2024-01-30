@@ -1,9 +1,4 @@
 classdef WithinNetworkPairPlotter < nla.net.result.plot.NoPermutationPlotter
-
-    properties
-        network_atlas
-    end
-
     methods
         function obj = WithinNetworkPairPlotter(network_atlas)
             obj = obj@nla.net.result.plot.NoPermutationPlotter();
