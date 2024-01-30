@@ -34,8 +34,6 @@ classdef HyperGeometricTest < handle
             % Container to hold results
             result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
                 obj.statistics);
-            % Empty this out since it is not needed
-            result.(permutation_results).(greater_than_expected) = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
