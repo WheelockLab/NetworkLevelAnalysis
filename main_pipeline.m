@@ -30,15 +30,17 @@ fc_unordered = fc_struct.fc;
 % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
 func_conn_unordered = double(fc_unordered);
 
-%% Load network atlas
-net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat']; % path to network atlas
-net_atlas = NetworkAtlas(net_atlas_path);
-
-%% OR load network atlas + FC and remove undesired networks (Optional)
-%prev_net_atlas = load('# Path to starting network atlas here #');
-%nets_to_remove = [1,2,3, etc. Indexes of whichever networks you wish to remove];
-%[new_net_atlas, func_conn_unordered] = removeNetworks(prev_net_atlas, nets_to_remove, func_conn_unordered);
-%net_atlas = NetworkAtlas(new_net_atlas);
+%% Load network atlas and remove undesired networks (Optional)
+net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_17nets_300ROI_on_MNI.mat']; % path to network atlas
+prev_net_atlas = load(net_atlas_path);
+nets_to_remove = ["US"]; % remove the unspecified/none network
+[new_net_atlas] = removeNetworks(prev_net_atlas, nets_to_remove, 'Wheelock_2020_CerebralCortex_16nets_288ROI_on_MNI');
+net_atlas = NetworkAtlas(new_net_atlas);
+%% OR load network atlas without removing networks
+% This should be done if your parcellation lacks an "unspecified" network,
+% or, if the atlas you are using has already removed it.
+%net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_16nets_288ROI_on_MNI.mat']; % path to network atlas
+%net_atlas = NetworkAtlas(net_atlas_path);
 
 %% Transform R-values to Z-scores
 % If this condition isn't true, it cannot be R values
