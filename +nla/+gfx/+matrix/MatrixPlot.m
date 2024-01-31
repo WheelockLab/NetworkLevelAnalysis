@@ -1,6 +1,10 @@
 classdef MatrixPlot < handle
     %MATRIXPLOT Base class for drawing a matrix or tri-matrix organized by
     % networks. 
+    %
+    % plot_object = MatrixPlot(figure, name, matrix_data, networks, figure_size, OPTIONS)
+    % Options should be written as parameter-value pairs.
+    % i.e. (...,"marked_networks", true, "lower_limit", 0,...)
 
     properties
         matrix % matrix data to plot, either full matrix or tri-matrix data
@@ -26,7 +30,6 @@ classdef MatrixPlot < handle
         axes % The axes of the plot
         image_display % The actual displayed values
         color_bar % The colorbar
-        matrix_type % Type of matrix data input used
     end
 
     properties (Dependent)
@@ -37,6 +40,7 @@ classdef MatrixPlot < handle
         % Accessed by obj.image_dimensions("<something from list above>")
         image_dimensions 
         as_matrix % Convenience to give matrix object as an actual matlab matrix
+        matrix_type % Type of matrix data input used
     end
 
     properties (Access = private, Constant)
@@ -57,7 +61,7 @@ classdef MatrixPlot < handle
             % networks
             % figure size
             %
-            % These arguments are optional (in this order) with defaults
+            % These arguments are optional with defaults
             % network_clicked_callback = false
             % marked_networks = false
             % figure_margins = nla.gfx.FigMargins.WHITESPACE
@@ -99,61 +103,6 @@ classdef MatrixPlot < handle
                 obj.(property{1}) = matrix_input_parser.Results.(property{1});
             end
 
-            % if nargin > 0
-            %     if isa(matrix, 'nla.TriMatrix') % This is the best way to test for a class here. All the rest fail
-            %         if ~isnumeric(matrix.v)
-            %             % If this doesn't work (ie: program errors here), your data is
-            %             % not of a numeric type, and cannot be converted to a numeric
-            %             % type, which means it cannot be displayed.
-            %             matrix.v = single(matrix.v);
-            %         end
-            %         obj.matrix_type = nla.gfx.MatrixType.TRIMATRIX;
-            %     end
-            %     obj.matrix = matrix;
-            %     obj.networks = networks;
-            %     obj.figure = figure;
-            %     obj.figure.Renderer = 'painters';
-            %     obj.name = name;
-            %     obj.figure_size = figure_size;
-
-            %     if nargin > 5
-            %         obj.network_clicked_callback = varargin{1};
-            %     end
-            %     if nargin > 6
-            %         obj.marked_networks = varargin{2};
-            %         if ~isequal(varargin{2}, false) && is(varargin{2}, 'nla.TriMatrix')
-            %             obj.marked_networks = varargin{2}.asMatrix();
-            %         end
-            %     end
-            %     if nargin > 7
-            %         obj.figure_margins = varargin{3};
-            %     end
-            %     if nargin > 8
-            %         obj.draw_legend = varargin{4};
-            %     end
-            %     if nargin > 9
-            %         obj.draw_colorbar = varargin{5};
-            %     end
-            %     if nargin > 10
-            %         obj.color_map = varargin{6};
-            %     end
-
-            %     if nargin > 11
-            %         obj.lower_limit = varargin{7};
-            %     end
-            %     if nargin > 12
-            %         obj.upper_limit = varargin{8};
-            %     end
-            %     if nargin > 13
-            %         obj.x_position = varargin{9};
-            %     end
-            %     if nargin > 14
-            %         obj.y_position = varargin{10};
-            %     end
-            %     if nargin > 15
-            %         obj.discrete_colorbar = varargin{11};
-            %     end
-            % end
         end
 
         function displayImage(obj)
@@ -265,6 +214,14 @@ classdef MatrixPlot < handle
 
         function value = get.as_matrix(obj)
             value = obj.matrix.asMatrix();
+        end
+
+        function value = get.matrix_type(obj)
+            import nla.gfx.MatrixType
+            value = MatrixType.MATRIX;
+            if isa(obj.matrix, 'nla.TriMatrix')
+                value = MatrixType.TRIMATRIX;
+            end
         end
     end
 
@@ -391,8 +348,8 @@ classdef MatrixPlot < handle
                     
                     obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1], [position_y, position_y + chunk_height + 1]));
                     obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1], [position_y + chunk_height, position_y + chunk_height]));
-                    
-                    if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && network_matrix
+
+                    if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
                         obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width], [position_y - 1, position_y + chunk_height + 1]));
                         obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width], [position_y - 1, position_y - 1]));
                     end

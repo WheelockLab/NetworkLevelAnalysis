@@ -57,7 +57,10 @@ classdef CohenD < nla.net.BasePermResult
 
                         %% Matrix plot
 %                         gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], d_sig, false, @brainFigsButtonClickedCallback);
-                          matrix_plot = gfx.matrix.MatrixPlot(fig, name_label, obj.d, net_atlas.nets, gfx.FigSize.SMALL, @brainFigsButtonClickedCallback, d_sig, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], input_struct.d_max, 1, 0, 525);
+                          matrix_plot = gfx.matrix.MatrixPlot(fig, name_label, obj.d, net_atlas.nets, gfx.FigSize.SMALL,...
+                            'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', d_sig,...
+                            'draw_legend', false, 'color_map', [1,1,1;parula(256)], 'lower_limit', input_struct.d_max,...
+                            'upper_limit', 1, 'x_poisition', 0, 'y_position', 525);
                           matrix_plot.displayImage();
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, d_sig, obj.d, input_struct.d_max, [1,1,1;parula(256)], name_label, true, flags.plot_type);
@@ -73,7 +76,9 @@ classdef CohenD < nla.net.BasePermResult
                         %% Within Net-Pair statistics (withinNP)
                         fig = gfx.createFigure();
 %                         [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], within_np_d_sig, false, @brainFigsButtonClickedCallback);
-                        matrix_plot2 = gfx.matrix.MatrixPlot(fig, name_label, obj.within_np_d, net_atlas.nets, gfx.FigSize.SMALL, @brainFigsButtonClickedCallback, within_np_d_sig, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], input_struct.d_max, 1);
+                        matrix_plot2 = gfx.matrix.MatrixPlot(fig, name_label, obj.within_np_d, net_atlas.nets, gfx.FigSize.SMALL,...
+                            'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', within_np_d_sig,...
+                            'draw_legend', false, 'color_map', [1,1,1;parula(256)], 'upper_limit', input_struct.d_max, 'lower_limit', 1);
                         fig.Position(3) = matrix_plot2.image_dimensions("image_width");
                         fig.Position(4) = matrix_plot2.image_dimensions("image_height");
                         matrix_plot2.displayImage();
