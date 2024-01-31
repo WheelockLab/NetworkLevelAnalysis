@@ -84,7 +84,7 @@ classdef MatrixPlot < handle
             validNumberInput = @(x) isnumeric(x) && isscalar(x);
             validFunctionHandle = @(x) isa(x, 'function_handle');
             addParameter(matrix_input_parser, 'network_clicked_callback', false, validFunctionHandle);
-            addParameter(matrix_input_parser, 'marked_networks', false, @islogical);
+            addParameter(matrix_input_parser, 'marked_networks', false);
             addParameter(matrix_input_parser, 'figure_margins', nla.gfx.FigMargins.WHITESPACE, @isenum);
             addParameter(matrix_input_parser, 'draw_legend', true, @islogical);
             addParameter(matrix_input_parser, 'draw_colorbar', true, @islogical);
@@ -101,6 +101,11 @@ classdef MatrixPlot < handle
                 'x_position', 'y_position', 'discrete_colorbar'};
             for property = properties
                 obj.(property{1}) = matrix_input_parser.Results.(property{1});
+                if property{1} == "marked_networks"
+                    if ~isequal(obj.marked_networks, false) && isa(obj.marked_networks, 'nla.TriMatrix')
+                        obj.marked_networks = obj.marked_networks.asMatrix();
+                    end
+                end
             end
 
         end
