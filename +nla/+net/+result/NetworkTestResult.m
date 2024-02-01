@@ -174,8 +174,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     if ~significance_input
                         plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
                     end
-                    % TODO: plot cohen's d marked probability here if not chi-squared or hypergeo
-
                 end
             end
             %%
