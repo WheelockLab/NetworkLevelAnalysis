@@ -29,7 +29,8 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
                 plot_title, fdr_correction, significance_filter)
             % plot_title - this will be a string
-            % significance filter - this will be a boolean or some sort of object/struct filter
+            % plot_statistic - this is the stat that will be plotted
+            % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
             % fdr_correction - a struct of fdr_correction (found in nla.net.mcc)
             % test_method - 'no permutations', 'within network pair', 'full connectome'
 
@@ -65,8 +66,8 @@ classdef NetworkResultPlotParameter < handle
             % default values for plotting
             statistic_plot_matrix = statistic_input_scaled;
             p_value_plot_max = p_value_max;
+            significance_type = nla.gfx.SigType.DECREASING;
             % determine colormap and operate on values if it's -log10
-
             switch obj.updated_test_options.prob_plot_method
                 case nla.gfx.ProbPlotMethod.LOG
                     color_map = obj.getLogColormap(statistic_input, p_value_max);
@@ -82,6 +83,7 @@ classdef NetworkResultPlotParameter < handle
                     else
                         p_value_plot_max = 40;
                     end
+                    significance_type = nla.gfx.SigType.INCREASING;
                 otherwise
                     color_map = obj.getColormap(p_value_max);
             end
@@ -106,6 +108,7 @@ classdef NetworkResultPlotParameter < handle
             result.name_label = name_label;
             result.significance_plot = significance_plot;
             result.callback = @brainFigureButtonCallback;
+            result.significance_type = significance_type;
         end
 
         function result = plotProbabilityVsNetworkSize(obj, test_method, plot_statistic)
