@@ -43,10 +43,8 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     color_map = parula(); % parula is a little gentler than turbo
 
     % color_man_n = color map negative, color_man_p = color map positive
-    % the reason we've created the hsv_map and then use a subset of it is to get the deep blue -> green
-    % the closest builtin is 'cool', but that only goes teal -> green
-    hsv_map = hsv(2800); % big colormap
-    color_map_n = hsv_map(1401:2400,:); %use from the middle -> 1000
+    
+    color_map_n = flip(winter(1000));
     
     % Luckily, 'autumn' has the colors we want for warmth
     color_map_p = flip(autumn(1000));
