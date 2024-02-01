@@ -31,7 +31,7 @@ classdef StudentTTest < handle
                 permutation_results = "permutation_results";
                 p_value = strcat(p_value, "_permutations");
                 t_statistic = strcat(t_statistic, "_permutations");
-                single_sample_p_value = strcat(single_sample_p_valuem, "_permutations");
+                single_sample_p_value = strcat(single_sample_p_value, "_permutations");
                 single_sample_t_statistic = strcat(single_sample_t_statistic, "_permutations");
             end
 

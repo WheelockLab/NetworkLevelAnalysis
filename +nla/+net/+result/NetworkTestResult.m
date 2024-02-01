@@ -70,18 +70,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function output(obj, edge_test_options, network_atlas, edge_test_result, flags)
+        function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
             import nla.net.result.NetworkResultPlotParameter 
             import nla.net.result.plot.NoPermutationPlotter
             import nla.gfx.createFigure nla.net.result.plot.FullConnectomePlotter 
             import nla.net.result.plot.WithinNetworkPairPlotter
+            import nla.TriMatrix nla.TriMatrixDiag
 
             % This is the object that will do the calculations for the plots
-            result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas);
+            result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
             % We need the no-permutations vs. network size no matter what, so we're just doing it here.
             p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                 "p_value");
+
+            % Cohen's D results for markers
+            cohens_d_filter = TriMatrix(network_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+            cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
+
             significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
             %%
             % Nonpermuted Plotting
@@ -93,7 +99,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     % Get the plot parameters (titles, stats, labels, max, min, etc)
                     plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
                     p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                        "no_permutations", "p_value", plot_title, obj.test_options.fdr_correction, false);
+                        "no_permutations", "p_value", plot_title, updated_test_options.fdr_correction, false);
                     plotter = NoPermutationPlotter(network_atlas);
                     % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                     % plot the probability
@@ -114,20 +120,27 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % Full Connectome Plotting
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
+                plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
                 if flags.plot_type == nla.PlotType.FIGURE
                     
 
                     % This is the object that will do the calculations for the plots
-                    result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas);
+                    result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
                     % Get the plot parameters (titles, stats, labels, etc.)
                     %TODO: why do we use no fdr here?
                     full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
                         edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title,...
                         nla.net.mcc.None(), false);
-                    % TODO: Put another probability plot here with cohen's d signiificance marked.
 
-                    full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("full_connectome", "p_value");
+                    % Mark the probability trimatrix with cohen's d results
+                    full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+                        edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
+                        nla.net.mcc.None(), cohens_d_filter);
+                    
+
+                    full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
+                        "full_connectome", "p_value");
 
                     % create a histogram
                     p_value_histogram = obj.createHistogram("full_connectome", "p_value");
@@ -139,8 +152,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     if significance_input
                         plot_figure = createFigure(1000, 900);
                         plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
-                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, obj.test_options.prob_max);
-                        plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,2,3), "Non-permuted P-values vs. Network-Pair Size");
+                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
+                        plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,2,3),...
+                            "Non-permuted P-values vs. Network-Pair Size");
                         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
                             "Permuted P-values vs. Net-Pair Size");
                         x_coordinate = 25;
@@ -151,14 +165,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,3,6),...
                             "Permuted P-values vs. Net-Pair Size");
                         plotter.plotProbabilityHistogram(subplot(2,3,4), p_value_histogram,  obj.full_connectome.p_value.v,...
-                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, obj.test_options.prob_max);
+                            obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
                         x_coordinate = 75;
                     end
 
                     y_coordinate = 425;
-                    plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
-                    % TODO: plot cohen's d marked probability here if not chi-squared or hypergeo
-
+                    [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
+                    if ~significance_input
+                        plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
+                    end
                 end
             end
             %%
@@ -170,13 +185,19 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 if flags.plot_type == nla.PlotType.FIGURE
 
-                    result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas);
+                    result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
                     within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
                         "within_network_pair", "p_value");
 
                     within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                        edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction);
+                        edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction, false);
+
+                    plot_title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
+                        updated_test_options.d_max);
+                    within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+                        edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title,...
+                        updated_test_options.fdr_correction, cohens_d_filter);
 
                     plotter = WithinNetworkPairPlotter(network_atlas);
                     y_coordinate = 425;
@@ -188,13 +209,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                     else
                         plot_figure = createFigure(1000,900);
-                        x_coordinate = 25
+                        x_coordinate = 25;
                         plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,2,3),...
                             "Within Net-Pair P-values vs. Net-Pair Size");
                         [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
-                        within_network_pair_p_value_parameters_marked = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                            edge_test_result, "within_network_pair", "p_value", plot_title, obj.test_options.fdr_correction);
-                        plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_marked, w - 50, y_coordinate);
+                        plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
                     end
                 end
             end
@@ -297,6 +316,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            %Cohen's D results
+            obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
 
         function histogram = createHistogram(obj, test_method, statistic)
