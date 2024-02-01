@@ -75,6 +75,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.net.result.plot.NoPermutationPlotter
             import nla.gfx.createFigure nla.net.result.plot.FullConnectomePlotter 
             import nla.net.result.plot.WithinNetworkPairPlotter
+            import nla.net.result.chord.ChordPlotter
             import nla.TriMatrix nla.TriMatrixDiag
 
             % This is the object that will do the calculations for the plots
@@ -92,14 +93,16 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                % No permutations results
+
+                % Get the plot parameters (titles, stats, labels, max, min, etc)
+                plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
+                p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
+                    "no_permutations", "p_value", plot_title, updated_test_options.fdr_correction, false);
+                
+                    % No permutations results
                 if flags.plot_type == nla.PlotType.FIGURE
                     plot_figure = createFigure(500, 900);
 
-                    % Get the plot parameters (titles, stats, labels, max, min, etc)
-                    plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
-                    p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                        "no_permutations", "p_value", plot_title, updated_test_options.fdr_correction, false);
                     plotter = NoPermutationPlotter(network_atlas);
                     % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                     % plot the probability
@@ -112,6 +115,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     % do need to create a reference here for the axes since this just uses matlab builtins
                     axes = subplot(2,1,2);
                     plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes, "Non-permuted P-values vs. Network-Pair Size");
+                elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                    if isfield(updated_test_options, 'edge_chord_plot_method')
+                        p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+                    end
+                    chord_plotter = ChordPlotter(network_atlas, edge_test_result);
+                    chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
                 end
             end
             %%
