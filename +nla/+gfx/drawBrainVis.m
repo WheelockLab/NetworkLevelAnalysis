@@ -15,16 +15,16 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     %       thresholded by significance (for example, Chi2, HG)
 
     import nla.* % required due to matlab package system quirks
-    
-    fc_exists = isfield(edge_input_struct, 'func_conn');
-    
+ 
+    % NET126: Muriah asked that fc not be considered when doing the brains, only the magnitude of the coeffs.
+    % fc_exists = isfield(edge_input_struct, 'func_conn');
+    fc_exists = false;
+    color_fc = fc_exists;
+
     show_ROI_centroids = true;
     if isfield(input_struct, 'show_ROI_centroids')
         show_ROI_centroids = input_struct.show_ROI_centroids;
     end
-    
-    
-    color_fc = fc_exists;
     
     %% Display figures 
     fig = gfx.createFigure(1550, 750);
@@ -40,14 +40,15 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     ulimit = edge_result.coeff_range(2);
     
     % This is the colormap if there's no functional connectivity provided
-    color_map = parula(); % parula is a little gentler than turbo
+    % color_map = parula(); % parula is a little gentler than turbo
 
     % color_man_n = color map negative, color_man_p = color map positive
-    
-    color_map_n = flip(winter(1000));
+    color_map_n = winter(1000);
     
     % Luckily, 'autumn' has the colors we want for warmth
     color_map_p = flip(autumn(1000));
+
+    color_map = cat(1, color_map_n, color_map_p);
     
     ROI_vals = nan(net_atlas.numROIs(), 1);
     fc_vals = nan(net_atlas.numROIs(), 1);
@@ -181,7 +182,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     if color_fc
         ax = subplot('Position',[.075,0.175,.35,.75]);
     else
-        ax = subplot('Position',[.075,0.025,.35,.9]);
+        ax = subplot('Position',[.075,0.025,.35,.85]);
     end
     
     if surface_parcels && ~islogical(net_atlas.parcels)
@@ -205,12 +206,12 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
             legend_entry.DisplayName = net_atlas.nets(i).name;
         end
     end
-    hold(ax, 'off');
-    legend(ax, 'Location', 'best');
+    hold(ax, 'off'); 
     gfx.hideAxes(ax);
     
     %% Display colormap
     if color_fc
+        legend(ax, 'Location', 'best');
         colorbar_ax = subplot('Position',[.02,0,0.4,0.1]);
         colorbar_image = imread('+nla/+gfx/+images/brain_vis_fc_colormap.png');
         dims = size(colorbar_image);
@@ -222,7 +223,8 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
         num_ticks = 10;
         colormap(ax, color_map);
         cb = colorbar(ax);
-
+        cb.Location = 'southoutside';
+        cb.Label.String = 'Coefficient Magnitude';
         ticks = [0:num_ticks];
         cb.Ticks = double(ticks) ./ num_ticks;
 
