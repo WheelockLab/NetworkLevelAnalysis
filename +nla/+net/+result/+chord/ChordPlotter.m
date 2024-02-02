@@ -10,6 +10,8 @@ classdef ChordPlotter < handle
     properties
         network_atlas
         edge_test_result
+        split_plot
+        edge_plot_type
     end
 
     methods
@@ -23,15 +25,29 @@ classdef ChordPlotter < handle
         end
 
         function generateChordFigure(obj, parameters, chord_type)
-            import nla.gfx.SigType nla.gfx.drawChord nla.net.result.plot.NoPermutationPlotter
+            import nla.gfx.SigType nla.gfx.drawChord nla.net.result.plot.NoPermutationPlotter nla.gfx.EdgeChordPlotMethod
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
                 coefficient_bounds = [parameters.p_value_plot_max, 1];
             end
 
-            if chord_type == nla.PlotType.CHORD
+            obj.edge_plot_type = EdgeChordPlotMethod.PROB;
+            obj.split_plot = false;
+            if isfield(parameters, 'edge_chord_plot_method')
+                obj.edge_plot_type = parameters.edge_chord_plot_method;
+                if obj.edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT || obj.edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT
+                    obj.split_plot = true;
+                end
+            end
+
+            if obj.split_plot
+                plot_figure = nla.gfx.createFigure((obj.axis_width * 2) + obj.trimatrix_width - 100, obj.axis_width);
+            else
                 plot_figure = nla.gfx.createFigure(obj.axis_width + obj.trimatrix_width, obj.axis_width);
+            end
+            
+            if chord_type == nla.PlotType.CHORD
 
                 figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width,...
                     obj.axis_width]);
@@ -48,29 +64,20 @@ classdef ChordPlotter < handle
 
                 drawChord(figure_axis, 500, obj.network_atlas, statistic_matrix, parameters.color_map,...
                     parameters.significance_type, chord_type, coefficient_bounds(1), coefficient_bounds(2));
-                
-                plotter = NoPermutationPlotter(obj.network_atlas);
-                plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height)
-
-                obj.generatePlotText(plot_figure, chord_type)
             else
-                obj.generateEdgeChordFigure(parameters, chord_type, obj.edge_test_result)
+                obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
             end
+
+            plotter = NoPermutationPlotter(obj.network_atlas);
+            plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height)
+
+            obj.generatePlotText(plot_figure, chord_type)
         end
     end
 
     methods (Access = protected)
-        function generateEdgeChordFigure(obj, parameters, chord_type)
+        function generateEdgeChordFigure(obj, plot_figure, parameters, chord_type)
             import nla.gfx.EdgeChordPlotMethod nla.gfx.drawChord nla.gfx.setTitle
-
-            edge_plot_type = EdgeChordPlotMethod.PROB;
-            split_plot = false;
-            if isfield(parameters, 'edge_chord_plot_method')
-                edge_plot_type = parameters.edge_chord_plot_method;
-                if edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT || edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT
-                    split_plot = true;
-                end
-            end
 
             range_limit = std(obj.edge_test_result.coeff.v) * 5;
             coefficient_min = -range_limit;
@@ -81,7 +88,7 @@ classdef ChordPlotter < handle
             clipped_values.v(obj.edge_test_result.coeff.v > 0) = 0;
             clipped_values_positive = nla.TriMatrix(obj.network_atlas.numROIs(), nla.TriMatrixDiag.REMOVE_DIAGONAL);
             clipped_values_positive.v = obj.edge_test_result.coeff.v;
-            clipped_values_positive.v(obj.edge_test_result.v < 0) = 0;
+            clipped_values_positive.v(obj.edge_test_result.coeff.v < 0) = 0;
 
             color_map = turbo(1000);
             significance_type = nla.gfx.SigType.ABS_INCREASING;
@@ -91,7 +98,7 @@ classdef ChordPlotter < handle
             negative_title = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)",...
                 obj.edge_test_result.prob_max);
 
-            switch edge_plot_type
+            switch obj.edge_plot_type
                 case EdgeChordPlotMethod.COEFF
                     main_title = positive_title;
 
@@ -129,20 +136,14 @@ classdef ChordPlotter < handle
             for network1 = 1:obj.network_atlas.numNets()
                 for network2 = 1:network1
                     if ~parameters.significance_plot.get(network1, network2)
-                        clipped_values.set(obj.network_atlas.nets(network1).indexes, obj.network_atlas(network2).indexes,...
+                        clipped_values.set(obj.network_atlas.nets(network1).indexes, obj.network_atlas.nets(network2).indexes,...
                             insignificance);
-                        if split_plot
-                            clipped_values_positive.set(obj.network_atlas.nets(network1).indexes, obj.network_atlas(network2).indexes,...
+                        if obj.split_plot
+                            clipped_values_positive.set(obj.network_atlas.nets(network1).indexes, obj.network_atlas.nets(network2).indexes,...
                             insignificance);
                         end
                     end
                 end
-            end
-
-            if split_plot
-                plot_figure = nla.gfx.createFigure((obj.axis_width * 2) + obj.trimat_width - 100, obj.axis_width);
-            else
-                plot_figure = nla.gfx.createFigure(obj.axis_width + obj.trimat_width, obj.axis_width);
             end
 
             plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position',...
@@ -150,31 +151,31 @@ classdef ChordPlotter < handle
             nla.gfx.hideAxes(plot_axis);
             plot_axis.Visible = true;
 
-            if split_plot
+            if obj.split_plot
                 drawChord(plot_axis, 450, obj.network_atlas, clipped_values_positive, color_map, significance_type,...
                     chord_type, coefficient_min, coefficient_max);
                 setTitle(plot_axis, positive_main_title);
 
                 % create another axis, I hate this naming but we can overwrite the old one
-                plot_axis = axes(plot_figure, 'Units', 'pixes', 'Position',...
-                    [obj.trimat_width + obj.axis_width - 100, 0 , obj.axis_width - 50, obj.axis_width - 50]);
+                plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position',...
+                    [obj.trimatrix_width + obj.axis_width - 100, 0 , obj.axis_width - 50, obj.axis_width - 50]);
                 nla.gfx.hideAxes(plot_axis);
                 plot_axis.Visible = true;
             end
 
-            drawChord(plot_axis, 450, obj.network_atlas, color_map, significance_type, chord_type, coefficient_min, coefficient_max);
+            drawChord(plot_axis, 450, obj.network_atlas, clipped_values, color_map, significance_type, chord_type, coefficient_min, coefficient_max);
             setTitle(plot_axis, main_title);
 
             colormap(plot_axis, color_map);
             color_bar = colorbar(plot_axis);
             color_bar.Units = 'pixels';
-            color_bar.Loaction = 'east';
+            color_bar.Location = 'east';
             color_bar.Position = [color_bar.Position(1) + 25, color_bar.Position(2) + 100, color_bar.Position(3),...
                 color_bar.Position(4) - 200];
 
             number_ticks = 10;
             ticks = [0:number_ticks];
-            color_bar.Ticks = double(tickts) ./ number_ticks;
+            color_bar.Ticks = double(ticks) ./ number_ticks;
 
             labels = {};
             for tick = ticks
