@@ -1,6 +1,5 @@
 classdef ChordPlotter < handle
 % CHORDPLOTTER Draws network test results in Chord Figures
-<<<<<<< HEAD
 %   Object takes the brain network atlas and the edge test results to initialize
 %   generateChordFigure creates the chord plots for the network test results
 %   The parameters used as an input are fron NetworkResultPlotParameter
@@ -17,27 +16,12 @@ classdef ChordPlotter < handle
         edge_test_result % Edge test results
         split_plot = false % This is an option that is set automatically during operation. 
         edge_plot_type = "nla.gfx.EdgeChordPlotMethod.PROB" % Default chord type for edges
-=======
-
-    properties (Constant)
-        axis_width = 750;
-        trimatrix_width = 500;
-        bottom_text_height = 250;
-    end
-
-    properties
-        network_atlas
-        edge_test_result
->>>>>>> added chord plotter and trying to integrate it into no permutations
     end
 
     methods
         function obj = ChordPlotter(network_atlas, edge_test_result)
-<<<<<<< HEAD
             % Constructor. Inputs = network_atlas, edge_test_result
             % Output = ChordPlotter object
-=======
->>>>>>> added chord plotter and trying to integrate it into no permutations
             if nargin > 0
                 obj.network_atlas = network_atlas;
             end
