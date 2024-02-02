@@ -23,7 +23,7 @@ classdef ChordPlotter < handle
         end
 
         function generateChordFigure(obj, parameters, chord_type)
-            import nla.gfx.SigType nla.gfx.drawChord
+            import nla.gfx.SigType nla.gfx.drawChord nla.net.result.plot.NoPermutationPlotter
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
@@ -48,6 +48,11 @@ classdef ChordPlotter < handle
 
                 drawChord(figure_axis, 500, obj.network_atlas, statistic_matrix, parameters.color_map,...
                     parameters.significance_type, chord_type, coefficient_bounds(1), coefficient_bounds(2));
+                
+                plotter = NoPermutationPlotter(obj.network_atlas);
+                plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height)
+
+                obj.generatePlotText(plot_figure, chord_type)
             else
                 obj.generateEdgeChordFigure(parameters, chord_type, obj.edge_test_result)
             end
@@ -176,6 +181,16 @@ classdef ChordPlotter < handle
                 labels{tick + 1} = sprintf("%.2g", coefficient_min + (tick * ((coefficient_max - coefficient_min) / number_ticks)));
             end
             color_bar.TickLabels = labels;
+        end
+
+        function generatePlotText(obj, plot_figure, chord_type)
+            text_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [55, obj.bottom_text_height + 15, 450, 75]);
+            nla.gfx.hideAxes(text_axis);
+            info_text = "Click any net-pair in the above plot to view its edge-level correlations.";
+            if chord_type == nla.PlotType.CHORD_EDGE
+                info_text = sprintf("%s\n\nChord plot:\nEach ROI is marked by a dot next to its corresponding network.\nROIs are placed in increasing order counter-clockwise, the first ROI in\na network being the most clockwise, the last being the most counter-\nclockwise.", info_text);
+            end
+            text(text_axis, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
     end
 end
