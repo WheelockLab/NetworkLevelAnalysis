@@ -38,15 +38,13 @@ classdef WelchT < nla.net.BaseCorrTest
             end
             
             % if a previous result is passed in, add on to it
-            if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @helpers.abs_ge, previous_result.t, previous_result.prob, t, prob, previous_result.ss_t, previous_result.ss_prob, ss_t, ss_prob);
-            else
-                result = net.result.WelchT(num_nets);
-                result.prob = prob;
-                result.t = t;
-                result.ss_prob = ss_prob;
-                result.ss_t = ss_t;
-            end
+ 
+            result = net.result.WelchT(num_nets);
+            result.prob = prob;
+            result.t = t;
+            result.ss_prob = ss_prob;
+            result.ss_t = ss_t;
+        
         end
     end
 end

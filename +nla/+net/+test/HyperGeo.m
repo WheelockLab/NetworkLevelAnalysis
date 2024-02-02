@@ -39,13 +39,10 @@ classdef HyperGeo < nla.net.BaseSigTest
             prob.v(~observed_gt_expected.v) = 1;
             
             % if a previous result is passed in, add on to it
-            if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @le, previous_result.prob, previous_result.prob, prob, prob, previous_result.prob, previous_result.prob, prob, prob);
-            else
-                result = net.result.HyperGeo(num_nets);
-                result.observed_gt_expected = observed_gt_expected;
-                result.prob = prob;
-            end
+            result = net.result.HyperGeo(num_nets);
+            result.observed_gt_expected = observed_gt_expected;
+            result.prob = prob;
+            
         end
     end
 end

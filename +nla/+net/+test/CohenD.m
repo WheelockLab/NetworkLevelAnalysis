@@ -36,13 +36,11 @@ classdef CohenD < nla.net.BaseCorrTest
             [d, within_np_d] = net.test.CohenD.effectSizes(edge_result, net_atlas);
             
             % if a previous result is passed in, add on to it
-            if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.d, false, d, false, false, false, false, false);
-            else
-                result = net.result.CohenD(num_nets);
-                result.d = d;
-                result.within_np_d = within_np_d;
-            end
+
+            result = net.result.CohenD(num_nets);
+            result.d = d;
+            result.within_np_d = within_np_d;
+            
         end
     end
 end

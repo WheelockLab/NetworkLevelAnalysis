@@ -36,15 +36,12 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
             end
             
             % if a previous result is passed in, add on to it
-            if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.ks, previous_result.prob, ks, prob, previous_result.ss_ks, previous_result.ss_prob, ss_ks, ss_prob);
-            else
-                result = net.result.KolmogorovSmirnov(num_nets);
-                result.prob = prob;
-                result.ks = ks;
-                result.ss_prob = ss_prob;
-                result.ss_ks = ss_ks;
-            end
+            result = net.result.KolmogorovSmirnov(num_nets);
+            result.prob = prob;
+            result.ks = ks;
+            result.ss_prob = ss_prob;
+            result.ss_ks = ss_ks;
+            
         end
     end
 end

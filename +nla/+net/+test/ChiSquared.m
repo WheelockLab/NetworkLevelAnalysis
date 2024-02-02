@@ -50,14 +50,11 @@ classdef ChiSquared < nla.net.BaseSigTest
             prob.v = chi2cdf(chi2.v, 1, 'upper');
             
             % If a previous non-permuted result is passed in, add on to it
-            if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.chi2, previous_result.prob, chi2, prob, previous_result.chi2, previous_result.prob, chi2, prob);
-            else
-                result = net.result.ChiSquared(num_nets);
-                result.chi2 = chi2;
-                result.observed_gt_expected = observed_gt_expected;
-                result.prob = prob;
-            end
+            result = net.result.ChiSquared(num_nets);
+            result.chi2 = chi2;
+            result.observed_gt_expected = observed_gt_expected;
+            result.prob = prob;
+            
         end
     end
 end

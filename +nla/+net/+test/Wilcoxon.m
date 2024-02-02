@@ -41,16 +41,13 @@ classdef Wilcoxon < nla.net.BaseCorrTest
             end
             
             % if a previous result is passed in, add on to it
-            if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @helpers.abs_ge, previous_result.z, previous_result.prob, z, prob, previous_result.ss_w, previous_result.ss_prob, ss_w, ss_prob);
-            else
-                result = net.result.Wilcoxon(num_nets);
-                result.prob = prob;
-                result.w = w;
-                result.z = z;
-                result.ss_prob = ss_prob;
-                result.ss_w = ss_w;
-            end
+
+            result = net.result.Wilcoxon(num_nets);
+            result.prob = prob;
+            result.w = w;
+            result.z = z;
+            result.ss_prob = ss_prob;
+            result.ss_w = ss_w;
         end
     end
 end
