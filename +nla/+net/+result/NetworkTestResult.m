@@ -284,6 +284,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function value = get.permutation_count(obj)
+            % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
                 ~isequal(obj.permutation_results.p_value_permutations, false)
                 value = size(obj.permutation_results.p_value_permutations.v, 2);
@@ -296,6 +297,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function value = get.significance_test(obj)
+            % Convenience method to determine if inputs were correlation coefficients, or "significance" values
             value = any(strcmp(obj.significance_test_names, obj.test_name));
         end
     end
