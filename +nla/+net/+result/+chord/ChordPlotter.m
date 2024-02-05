@@ -1,21 +1,27 @@
 classdef ChordPlotter < handle
 % CHORDPLOTTER Draws network test results in Chord Figures
+% Object takes the brain network atlas and the edge test results to initialize
+% generateChordFigure creates the chord plots for the network test results
+% The parameters used as an input are fron NetworkResultPlotParameter
+% Chord type is coming from the test options/input_struct.
 
     properties (Constant)
-        axis_width = 750;
-        trimatrix_width = 500;
-        bottom_text_height = 250;
+        axis_width = 750; % Constant for the size of the chord
+        trimatrix_width = 500; % Constant for the size of the Trimatrix plotted with
+        bottom_text_height = 250; % How far from the bottom of the trimatrix the text appears
     end
 
     properties
-        network_atlas
-        edge_test_result
-        split_plot
-        edge_plot_type
+        network_atlas % Network Atlas for the data
+        edge_test_result % Edge test results
+        split_plot = false % This is an option that is set automatically during operation. 
+        edge_plot_type = nla.gfx.EdgeChordPlotMethod.PROB % Default chord type for edges
     end
 
     methods
         function obj = ChordPlotter(network_atlas, edge_test_result)
+            % Constructor. Inputs = network_atlas, edge_test_result
+            % Output = ChordPlotter object
             if nargin > 0
                 obj.network_atlas = network_atlas;
             end
@@ -25,6 +31,7 @@ classdef ChordPlotter < handle
         end
 
         function generateChordFigure(obj, parameters, chord_type)
+            % generateChordFigure plots chords for a network test
             import nla.gfx.SigType nla.gfx.drawChord nla.net.result.plot.NoPermutationPlotter nla.gfx.EdgeChordPlotMethod
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
@@ -32,8 +39,7 @@ classdef ChordPlotter < handle
                 coefficient_bounds = [parameters.p_value_plot_max, 1];
             end
 
-            obj.edge_plot_type = EdgeChordPlotMethod.PROB;
-            obj.split_plot = false;
+            % Check if it's an edge chord plot, and if so, do we plot positive and negative separately
             if isfield(parameters, 'edge_chord_plot_method')
                 obj.edge_plot_type = parameters.edge_chord_plot_method;
                 if obj.edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT || obj.edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT
@@ -41,14 +47,15 @@ classdef ChordPlotter < handle
                 end
             end
 
+            % Create the figure windows that all the plots will go in
             if obj.split_plot
                 plot_figure = nla.gfx.createFigure((obj.axis_width * 2) + obj.trimatrix_width - 100, obj.axis_width);
             else
                 plot_figure = nla.gfx.createFigure(obj.axis_width + obj.trimatrix_width, obj.axis_width);
             end
             
+            % Plot a standard chord plot
             if chord_type == nla.PlotType.CHORD
-
                 figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width,...
                     obj.axis_width]);
                 nla.gfx.hideAxes(figure_axis);
@@ -65,18 +72,21 @@ classdef ChordPlotter < handle
                 drawChord(figure_axis, 500, obj.network_atlas, statistic_matrix, parameters.color_map,...
                     parameters.significance_type, chord_type, coefficient_bounds(1), coefficient_bounds(2));
             else
+                % Plot edge chord
                 obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
             end
 
+            % Plot Trimatrix with the chord plots
             plotter = NoPermutationPlotter(obj.network_atlas);
-            plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height)
+            plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height);
 
-            obj.generatePlotText(plot_figure, chord_type)
+            obj.generatePlotText(plot_figure, chord_type);
         end
     end
 
     methods (Access = protected)
         function generateEdgeChordFigure(obj, plot_figure, parameters, chord_type)
+            % generateEdgeChordFigure generates the edge chord plotting
             import nla.gfx.EdgeChordPlotMethod nla.gfx.drawChord nla.gfx.setTitle
 
             range_limit = std(obj.edge_test_result.coeff.v) * 5;
@@ -92,12 +102,15 @@ classdef ChordPlotter < handle
 
             color_map = turbo(1000);
             significance_type = nla.gfx.SigType.ABS_INCREASING;
-            insignificance = 0;
+            insignificance = 0; % This is basically the background for the plot
+            % This is the title for the positive (or non-split) chord plot
             positive_title = sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)",...
                 obj.edge_test_result.prob_max);
+            % This is the title for the negative chord plot
             negative_title = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)",...
                 obj.edge_test_result.prob_max);
 
+            % There are some settings that need to be changed depending on the specific type of edge plot
             switch obj.edge_plot_type
                 case EdgeChordPlotMethod.COEFF
                     main_title = positive_title;
@@ -133,6 +146,7 @@ classdef ChordPlotter < handle
                     main_title = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", obj.edge_test_result.prob_max);
             end
 
+            % Filtering/Thresholding out values
             for network1 = 1:obj.network_atlas.numNets()
                 for network2 = 1:network1
                     if ~parameters.significance_plot.get(network1, network2)
