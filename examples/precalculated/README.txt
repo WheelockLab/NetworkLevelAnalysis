@@ -1,3 +1,4 @@
+
 The data in this folder were created via simulation using the Seitzman 15 network, 288 ROI parcellation. 
 	1. SIM_obs_coeff.mat contains Pearson correlation coefficients for the observed data
 	2. SIM_obs_p.mat contains the associated Pearson correlation p-values binarized and thresholded at 0.05 for the observed data
