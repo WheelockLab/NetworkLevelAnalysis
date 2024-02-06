@@ -16,9 +16,8 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
 
     import nla.* % required due to matlab package system quirks
  
-    % NET126: Muriah asked that fc not be considered when doing the brains, only the magnitude of the coeffs.
-    % fc_exists = isfield(edge_input_struct, 'func_conn');
-    fc_exists = false;
+    fc_exists = isfield(edge_input_struct, 'func_conn');
+
     color_fc = fc_exists;
 
     show_ROI_centroids = true;
@@ -211,14 +210,17 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     
     %% Display colormap
     if color_fc
-        legend(ax, 'Location', 'best');
-        colorbar_ax = subplot('Position',[.02,0,0.4,0.1]);
-        colorbar_image = imread('+nla/+gfx/+images/brain_vis_fc_colormap.png');
-        dims = size(colorbar_image);
-        image(colorbar_ax, colorbar_image);
-        gfx.hideAxes(colorbar_ax);
-        colorbar_ax.Units = 'pixels';
-        colorbar_ax.Position(3:4) = [dims(2), dims(1)];
+        % legend(ax, 'Location', 'best');
+        % colorbar_ax = subplot('Position',[.02,0,0.4,0.1]);
+        % colorbar_image = imread('+nla/+gfx/+images/brain_vis_fc_colormap.png');
+        % dims = size(colorbar_image);
+        % image(colorbar_ax, colorbar_image);
+        colormap(ax, color_map);
+        color_bar = colorbar(ax);
+        color_bar.Location = 'southoutside';
+        % gfx.hideAxes(colorbar_ax);
+        % colorbar_ax.Units = 'pixels';
+        % colorbar_ax.Position(3:4) = [dims(2), dims(1)];
     else
         num_ticks = 10;
         colormap(ax, color_map);
