@@ -78,6 +78,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.net.result.chord.ChordPlotter
             import nla.TriMatrix nla.TriMatrixDiag
 
+            % Tests that don't use correlation coefficients as inputs
+            significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
+
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
@@ -87,9 +90,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             % Cohen's D results for markers
             cohens_d_filter = TriMatrix(network_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-            cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
+            if ~significance_input
+                cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
+            end
 
-            significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
@@ -129,7 +133,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % Full Connectome Plotting
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
-                plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
+             
 
                 % This is the object that will do the calculations for the plots
                 result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
@@ -141,9 +145,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     nla.net.mcc.None(), false);
 
                 % Mark the probability trimatrix with cohen's d results
-                full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                    edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
-                    nla.net.mcc.None(), cohens_d_filter);
+                if ~significance_input
+                    plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
+                    full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+                        edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
+                        nla.net.mcc.None(), cohens_d_filter);
+                end
 
                 if flags.plot_type == nla.PlotType.FIGURE
                     full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
@@ -205,11 +212,13 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
                     edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction, false);
 
-                plot_title_cohensd = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
-                    updated_test_options.d_max);
-                within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                    edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title_cohensd,...
-                    updated_test_options.fdr_correction, cohens_d_filter);
+                if ~significance_input
+                    plot_title_cohensd = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
+                        updated_test_options.d_max);
+                    within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+                        edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title_cohensd,...
+                        updated_test_options.fdr_correction, cohens_d_filter);
+                end
 
                 if flags.plot_type == nla.PlotType.FIGURE
 
