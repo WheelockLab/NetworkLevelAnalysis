@@ -5,8 +5,7 @@ root_path = findRootPath();
 
 %% Create a pool of tests
 tests = TestPool();
-% tests.net_tests = genTests('net.test');
-tests.net_tests = {nla.net.test.WelchTTest(), nla.net.test.StudentTTest()};
+tests.net_tests = genTests('net.test');
 tests.edge_test = edge.test.Precalculated();
 
 % Example: Appending another net-level test

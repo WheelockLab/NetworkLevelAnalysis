@@ -58,11 +58,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
 
     methods (TestClassTeardown)
         function clearData(testCase)
-            clear testCase.root_path;
-            clear testCase.network_atlas;
-            clear testCase.edge_test_options;
-            clear testCase.edge_test_result;
-            clear testCase.tests;
+            clear 
         end
     end
 
