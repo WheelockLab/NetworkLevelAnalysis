@@ -46,8 +46,10 @@ classdef NetworkResultPlotParameter < handle
                 plot_title = sprintf("%s (-log_1_0(P))", plot_title);
             end
 
+            % Grab the data from the NetworkTestResult object
             statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
 
+            % Get the scale max and the labels
             p_value_max = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);
@@ -55,6 +57,7 @@ classdef NetworkResultPlotParameter < handle
             name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
                 p_value_max, p_value_breakdown_label);
 
+            % Filtering if there's a filter provided 
             significance_plot = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
             significance_plot.v = (statistic_input.v < p_value_max) & significance_filter.v;
 
@@ -78,7 +81,7 @@ classdef NetworkResultPlotParameter < handle
                     statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
                     statistic_matrix.v = -log10(statistic_input.v);
                     statistic_plot_matrix = statistic_matrix;
-                    if test_method == nla.Method.FULL_CONN || test_method == nla.Method.WITHIN_NET_PAIR
+                    if strcmp(test_method, "full_connectome") || strcmp(test_method, "within_network_pair")
                         p_value_plot_max = 2;
                     else
                         p_value_plot_max = 40;
@@ -88,7 +91,9 @@ classdef NetworkResultPlotParameter < handle
                     color_map = obj.getColormap(p_value_max);
             end
 
-            % callback function for brain image
+            % callback function for brain image. 
+            % Because of the way the plotting is done in drawMatrixOrg, this function can have only two inputs. Because
+            % edge_test_options and edge_test_result are "global", this needs to be an internal function and not a method
             function brainFigureButtonCallback(network1, network2)
                 wait_text = sprintf("Generating %s - %s network-pair brain plot", obj.network_atlas.nets(network1).name,...
                     obj.network_atlas.nets(network2).name);
