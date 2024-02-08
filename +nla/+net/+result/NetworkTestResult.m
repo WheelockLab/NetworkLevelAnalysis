@@ -71,10 +71,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
-            import nla.net.result.NetworkResultPlotParameter 
-            import nla.gfx.createFigure nla.net.result.plot.FullConnectomePlotter 
-            import nla.net.result.plot.WithinNetworkPairPlotter
-            import nla.net.result.chord.ChordPlotter
             import nla.TriMatrix nla.TriMatrixDiag
 
             % This is the object that will do the calculations for the plots
@@ -89,11 +85,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
 
             significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
+            flags.significance_input = significance_input;
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result,...
-                    updated_test_options, flags);
+                obj.noPermutationsPlotting(result_plot_parameters, p_value_vs_network_size_parameters, edge_test_options,...
+                    edge_test_result, updated_test_options, flags);
             end
             %%
 
@@ -212,7 +209,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
 
-        function histogram = createHistogram(obj, test_method, statistic)
+        function histogram = createHistogram(obj, statistic)
             if ~endsWith(statistic, "_permutations")
                 statistic = strcat(statistic, "_permutations");
             end
@@ -224,9 +221,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options,...
-                flags)
-            import nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
+        function noPermutationsPlotting(obj, plot_parameters, vs_network_plot_parameters, edge_test_options,...
+            edge_test_result, updated_test_options, flags)
+            import nla.gfx.createFigure nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
 
             % No permutations results
             if flags.plot_type == nla.PlotType.FIGURE
@@ -247,7 +244,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 % do need to create a reference here for the axes since this just uses matlab builtins
                 axes = subplot(2,1,2);
-                plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes,...
+                plotter.plotProbabilityVsNetworkSize(vs_network_plot_parameters, axes,...
                     "Non-permuted P-values vs. Network-Pair Size");
             elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                 if isfield(updated_test_options, 'edge_chord_plot_method')
@@ -259,7 +256,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function fullConnectomePlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
             import nla.net.result.chord.ChordPlotter
 
             plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
@@ -291,7 +288,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
                 % but then the plots get put under different layers. 
-                if significance_input
+                if flags.significance_input
                     plot_figure = createFigure(1000, 900);
                     plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
                         obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
@@ -313,9 +310,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 y_coordinate = 425;
                 [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
-                if ~significance_input
+                if ~flags.significance_input
                     plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
                 end
+
             elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                 if isfield(updated_test_options, 'edge_chord_plot_method')
                     full_connectome_p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
@@ -323,16 +321,17 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 end
 
                 chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+                if flags.significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
                 else
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
                 end
             end
+
         end
 
         function withinNetworkPairPlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
             import nla.net.result.chord.ChordPlotter
 
             plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
@@ -355,7 +354,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 plotter = WithinNetworkPairPlotter(network_atlas);
                 y_coordinate = 425;
-                if significance_input
+                if flags.significance_input
                     plot_figure = createFigure(500, 900);
                     x_coordinate = 0;
                     plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,1,2),...
@@ -369,6 +368,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                     plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
                 end
+
             elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                 if isfield(updated_test_options, 'edge_chord_plot_method')
                     within_network_pair_p_value_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
@@ -376,7 +376,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 end
 
                 chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+                if flags.significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
                     chord_plotter.generateChordFigure(within_network_pair_p_value_parameters_with_cohensd, flags.plot_type);
                 else
                     chord_plotter.generateChordFigure(within_network_pair_p_value_parameters, flags.plot_type);
