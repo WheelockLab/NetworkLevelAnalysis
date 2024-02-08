@@ -78,7 +78,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
-            import nla.NetworkLevelMethod
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 test_method = "no_permutations";
