@@ -21,6 +21,7 @@ classdef CohenDTest < handle
 
             for row = 1:number_of_networks
                 for column = 1:row
+
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(row).indexes,...
                         network_atlas.nets(column).indexes);
                     
