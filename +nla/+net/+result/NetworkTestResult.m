@@ -142,6 +142,32 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.last_index = obj.last_index + 1;
         end
 
+        function [test_number, sig_count_mat, names] = getSigMat(obj, network_test_options, network_atlas, flags)
+            import nla.TriMatrix nla.TriMatrixDiag
+
+            test_number = 0;
+            sig_count_mat = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            names = [];
+
+            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
+                title = "Non-Permuted";
+                p_values = obj.no_permutations.p_value;
+                fdr_method = network_test_options.fdr_correction; 
+            end
+            if isfield(flags, "show_full_conn") && flags.show_full_conn
+                title = "Full Connectome";
+                p_values = obj.full_connectome.p_value;
+                fdr_method = nla.net.mcc.None;
+            end
+            if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
+                title = "Within Network Pair";
+                p_values = obj.within_network_pair.single_sample_p_value;
+                fdr_method = network_test_options.fdr_correction;
+            end
+            [sig, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
+            [test_number, sig_count_mat, names] = obj.appendSigMat(test_number, sig_count_mat, names, sig, name);
+        end
+
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
@@ -425,6 +451,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             for permutation = 1:obj.permutation_count
                 histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
             end
+        end
+
+        function [sig, name] = singleSigMat(obj, network_atlas, network_test_options, p_values, mcc_method, title)
+            import nla.TriMatrix nla.TriMatrixDiag
+
+            p_max = mcc_method.correct(network_atlas, network_test_options, p_values);
+            p_breakdown_label = mcc_method.createLabel(network_atlas, network_test_options, p_values);
+
+            sig = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            sig.v = (p_values.v < p_max);
+
+            name = sprintf("%s %s P < %.2g (%s)", title, obj.test_name, p_max, p_breakdown_label);
+        end
+
+        function [test_number, sig_count_mat, names] = appendSigMat(obj, test_number, sig_count_mat, names, sig, name)
+            test_number = test_number + 1;
+            sig_count_mat.v = sig_count_mat.v + sig.v;
+            names = [names name];
         end
     end
 
