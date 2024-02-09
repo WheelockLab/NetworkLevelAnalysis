@@ -475,6 +475,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
             end
         end
+
+        function [sig, name] = singleSigMat(obj, network_atlas, network_test_options, p_values, mcc_method, title)
+            import nla.TriMatrix nla.TriMatrixDiag
+
+            p_max = mcc_method.correct(network_atlas, network_test_options, p_values);
+            p_breakdown_label = mcc_method.createLabel(network_atlas, network_test_options, p_values);
+
+            sig = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            sig.v = (p_values.v < p_max);
+
+            name = sprintf("%s %s P < %.2g (%s)", title, obj.test_name, p_max, p_breakdown_label);
+        end
+
+        function [test_number, sig_count_mat, names] = appendSigMat(obj, test_number, sig_count_mat, names, sig, name)
+            test_number = test_number + 1;
+            sig_count_mat.v = sig_count_mat.v + sig.v;
+            names = [names name];
+        end
     end
 
     methods (Static)
