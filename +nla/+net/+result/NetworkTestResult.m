@@ -142,11 +142,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.last_index = obj.last_index + 1;
         end
 
-        function [test_number, sig_count_mat, names] = getSigMat(obj, network_test_options, network_atlas, flags)
+        function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
+            % I'm assuming this is Get Significance Matrix
             import nla.TriMatrix nla.TriMatrixDiag
 
             test_number = 0;
-            sig_count_mat = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            significance_count_matrix = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
             names = [];
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
@@ -164,8 +165,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 p_values = obj.within_network_pair.single_sample_p_value;
                 fdr_method = network_test_options.fdr_correction;
             end
-            [sig, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
-            [test_number, sig_count_mat, names] = obj.appendSigMat(test_number, sig_count_mat, names, sig, name);
+            [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
+            [test_number, significance_count_matrix, names] = obj.appendSignificanceMatrix(test_number, significance_count_matrix,...
+                names, significance, name);
         end
 
         function value = get.permutation_count(obj)
@@ -453,21 +455,22 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function [sig, name] = singleSigMat(obj, network_atlas, network_test_options, p_values, mcc_method, title)
+        function [significance, name] = singleSignificanceMatrix(obj, network_atlas, network_test_options, p_values, mcc_method, title)
             import nla.TriMatrix nla.TriMatrixDiag
 
             p_max = mcc_method.correct(network_atlas, network_test_options, p_values);
             p_breakdown_label = mcc_method.createLabel(network_atlas, network_test_options, p_values);
 
-            sig = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            sig.v = (p_values.v < p_max);
+            significance = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            significance.v = (p_values.v < p_max);
 
             name = sprintf("%s %s P < %.2g (%s)", title, obj.test_name, p_max, p_breakdown_label);
         end
 
-        function [test_number, sig_count_mat, names] = appendSigMat(obj, test_number, sig_count_mat, names, sig, name)
+        function [test_number, significance_count_matrix, names] = appendSignificanceMatrix(obj, test_number,...
+            significance_count_matrix, names, significance, name)
             test_number = test_number + 1;
-            sig_count_mat.v = sig_count_mat.v + sig.v;
+            significance_count_matrix.v = significance_count_matrix.v + significance.v;
             names = [names name];
         end
     end
