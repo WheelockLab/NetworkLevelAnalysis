@@ -124,74 +124,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             obj.last_index = obj.last_index + 1;
         end
-
-        function histogram = createHistogram(obj, statistic)
-            if ~endsWith(statistic, "_permutations")
-                statistic = strcat(statistic, "_permutations");
-            end
-            permutation_data = obj.permutation_results.(statistic);
-            histogram = zeros(nla.HistBin.SIZE, "uint32");
-
-            for permutation = 1:obj.permutation_count
-                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
-            end
-        end
-
-        function runDiagnosticPlots(obj, edge_test_options, updated_test_options, edge_test_result, network_atlas, flags)
-            import nla.NetworkLevelMethod
-
-            diagnostics_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options,...
-                edge_test_result, network_atlas, obj);
-
-            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                test_method = "no_permutations";
-            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
-                test_method = "full_connectome";
-            elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                test_method = "within_network_pair";
-            end
-
-            diagnostics_plot.displayPlots(test_method);
-        end
-
-        % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
-        % Any help on renaming would be great.
-        function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            
-            import nla.TriMatrix nla.TriMatrixDiag
-
-            test_number = 0;
-            significance_count_matrix = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            names = [];
-
-            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                title = "Non-Permuted";
-                p_values = obj.no_permutations.uncorrected_two_sample_p_value;
-                fdr_method = network_test_options.fdr_correction; 
-            end
-            if isfield(flags, "show_full_conn") && flags.show_full_conn
-                title = "Full Connectome";
-                p_values = obj.full_connectome.uncorrected_two_sample_p_value;
-                fdr_method = network_test_options.fdr_correction;
-            end
-            if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                title = "Within Network Pair";
-                p_values = obj.within_network_pair.uncorrected_single_sample_p_value;
-                fdr_method = network_test_options.fdr_correction;
-            end
-            [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
-            [test_number, significance_count_matrix, names] = obj.appendSignificanceMatrix(test_number, significance_count_matrix,...
-                names, significance, name);
-        end
-
-        function table_new = generateSummaryTable(obj, table_old)
-            table_new = [table_old, table(...
-                obj.full_connectome.uncorrected_two_sample_p_value.v, 'VariableNames', [obj.test_display_name + "Full Connectome Two Sample p-value"]...
-            )];
-        end
-
-        %%
-        % getters for dependent properties
+        
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "two_sample_p_value_permutations") &&...
