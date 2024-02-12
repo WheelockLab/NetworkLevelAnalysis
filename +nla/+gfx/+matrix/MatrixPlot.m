@@ -111,7 +111,7 @@ classdef MatrixPlot < handle
         end
 
         function displayImage(obj)
-            % displayImage - Call this method to plot the data. 
+            % Call this method to plot the data. 
 
             % dependent props we're calling only once instead of many. Each call is a calculation.
             dimensions = obj.image_dimensions;
@@ -148,7 +148,9 @@ classdef MatrixPlot < handle
             % Title plot and center title
             if ~isempty(obj.name)
                 plot_title = title(obj.axes, ' ');
-                text(obj.axes, dimensions("plot_width") / 2 , dimensions("offset_y") / 2, obj.name, 'FontName', plot_title.FontName, 'FontSize', 14, 'FontWeight', plot_title.FontWeight, 'HorizontalAlignment', 'center');
+                text(obj.axes, dimensions("plot_width") / 2 , dimensions("offset_y") / 2, obj.name,...
+                    'FontName', plot_title.FontName, 'FontSize', 14, 'FontWeight', plot_title.FontWeight,...
+                    'HorizontalAlignment', 'center');
             end
 
             obj.fixRendering();
@@ -162,6 +164,7 @@ classdef MatrixPlot < handle
         end
 
         function value = get.network_matrix(obj)
+            % Is this a network matrix or an edge matrix
             value = (size(obj.as_matrix, 1) == obj.number_networks);
         end
 
@@ -180,9 +183,9 @@ classdef MatrixPlot < handle
                 for x = 1:numel(obj.networks)
                     display_matrix_size = display_matrix_size + obj.networks(x).numROIs();
                 end
-
             end
 
+            % The actual size of everything
             image_height = (display_matrix_size * obj.elementSize()) + obj.number_networks + label_size + 2;
             image_width = image_height;
 
@@ -193,7 +196,6 @@ classdef MatrixPlot < handle
             % image margins
             offset_x = 0;
             offset_y = 0;
-
             if obj.figure_margins == nla.gfx.FigMargins.WHITESPACE
                 offset_x = 50;
                 offset_y = 50;
@@ -203,7 +205,6 @@ classdef MatrixPlot < handle
 
             plot_width = image_width;
             plot_height = image_height;
-
             if ~isempty(obj.name)
                 image_height = image_height + 20;
             end
@@ -214,6 +215,7 @@ classdef MatrixPlot < handle
             end
 
             dimensions = [image_height image_width offset_x offset_y plot_width plot_height display_matrix_size label_size];
+            % Matlab does not have a python-like dictionary. This is one, or a struct. 
             value = containers.Map(["image_height" "image_width" "offset_x" "offset_y" "plot_width" "plot_height" "display_matrix_size" "label_size"], dimensions);
         end
 
@@ -222,6 +224,7 @@ classdef MatrixPlot < handle
         end
 
         function value = get.matrix_type(obj)
+            % Is this a TriMatrix or square?
             import nla.gfx.MatrixType
             value = MatrixType.MATRIX;
             if isa(obj.matrix, 'nla.TriMatrix')
@@ -232,7 +235,7 @@ classdef MatrixPlot < handle
 
     methods (Access = protected)
         function element_size = elementSize(obj)
-            % elementSize - Basic method to calculate Element Size
+            % Basic method to calculate Element Size
             element_size = 1;
             if obj.network_matrix
                 element_size = floor(325 / obj.number_networks);
@@ -249,7 +252,7 @@ classdef MatrixPlot < handle
         end
 
         function obj = drawAxes(obj)
-            % drawAxes - Creates the axes for the plot.
+            % Creates the axes for the plot.
             obj.axes = uiaxes(obj.figure, 'Position', [obj.x_position, obj.y_position, obj.image_dimensions("image_width"), obj.image_dimensions("image_height")]);
             axis(obj.axes, 'image');
             obj.axes.XAxis.TickLabels = {};
@@ -257,7 +260,7 @@ classdef MatrixPlot < handle
         end
 
         function clickCallback(obj, ~, ~)
-            % clickCallback - Method which determines which coordinates were clicked and runs 'network_clicked_callback'
+            %  Method which determines which coordinates were clicked and runs 'network_clicked_callback'
             if ~isequal(obj.network_clicked_callback, false)
                 % get point clicked
                 coordinates = get(obj.axes, 'CurrentPoint');
@@ -280,14 +283,14 @@ classdef MatrixPlot < handle
         end
         
         function addCallback(obj, x)
-            % addCallback - Needed to add callbacks that are clickable to parts of the plot
+            % Add callbacks that are clickable to parts of the plot
             if ~isequal(obj.network_clicked_callback, false)
                 x.ButtonDownFcn = @obj.clickCallback;
             end
         end
 
         function obj = embiggenMatrix(obj)
-            % embiggenMatrix - Enlarges data points of matrix for easier viewing. Also adds the network colorbars to the left axis and bottom axis.
+            % Enlarges data points of matrix for easier viewing. Also adds the network colorbars to the left axis and bottom axis.
             import nla.gfx.colorChunk nla.gfx.MatrixType nla.gfx.valToColor nla.gfx.drawLine
             number_of_networks = obj.number_networks;
             dimensions = obj.image_dimensions;
@@ -338,9 +341,13 @@ classdef MatrixPlot < handle
                     chunk = valToColor(chunk_raw, obj.lower_limit, obj.upper_limit, obj.color_map);
                     chunk(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
 
-                    obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) = repelem(chunk, obj.elementSize(), obj.elementSize());
-                    obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) = repelem(chunk(size(chunk, 1), 1:size(chunk, 2), :), 1, obj.elementSize());
-                    obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) = repelem(chunk(1:size(chunk, 1), size(chunk, 2), :), obj.elementSize(), 1);
+                    % Apply colors to chunks
+                    obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
+                        repelem(chunk, obj.elementSize(), obj.elementSize());
+                    obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
+                        repelem(chunk(size(chunk, 1), 1:size(chunk, 2), :), 1, obj.elementSize());
+                    obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
+                        repelem(chunk(1:size(chunk, 1), size(chunk, 2), :), obj.elementSize(), 1);
 
                     % plot signifance marker
                     if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
@@ -350,7 +357,7 @@ classdef MatrixPlot < handle
                     if ~isequal(obj.network_clicked_callback, false)
                         obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1, position_y, position_y + chunk_height - 1];
                     end
-                    
+                    % Add callbacks to all the squares
                     obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1], [position_y, position_y + chunk_height + 1]));
                     obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1], [position_y + chunk_height, position_y + chunk_height]));
 
@@ -359,16 +366,17 @@ classdef MatrixPlot < handle
                         obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width], [position_y - 1, position_y - 1]));
                     end
 
+                    % Is this the last network of a TriMatrix. Then we're done and need to add the bottom
                     if network == number_of_networks
                         top = position_y + chunk_height;
                         bottom = position_y + chunk_height + dimensions("label_size");
                         left = position_x;
                         right = position_x + chunk_width;
 
-                        obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x).color, dimensions("label_size") + 1, chunk_width + 1);
+                        obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x).color,...
+                            dimensions("label_size") + 1, chunk_width + 1);
                         obj.drawBottomLabels(chunk_width, chunk_height, position_x, position_y, x);
                     end
-
                     position_x = position_x + chunk_width + 1;
                 end
                 position_y = position_y + chunk_height + 1;
@@ -381,15 +389,16 @@ classdef MatrixPlot < handle
         end
         
         function obj = drawLeftLinesOnLabels(obj, top, bottom, left, right)
-            % drawLeftLinesOnLabels - Draws the left side lines on the plot
+            % Draws the left side lines on the plot
             import nla.gfx.drawLine
+
             drawLine(obj.axes, [left - 1, right], [top - 1, top - 1]);
             drawLine(obj.axes, [left - 1, right], [bottom, bottom]);
             drawLine(obj.axes, [left - 1, left - 1], [top - 1, bottom]);
         end
 
         function plotSignificanceMark(obj, chunk_width, chunk_height, position_x, position_y)
-            % plotSignifanceMark - Adds significance markers
+            % Adds significance markers
             cell_x = position_x + (chunk_width / 2);
             cell_y = position_y + (chunk_height / 2);
             marker = plot(obj.axes, cell_x, cell_y, 'x', 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k');
@@ -401,8 +410,9 @@ classdef MatrixPlot < handle
         end
 
         function obj = drawBottomLabels(obj, chunk_width, chunk_height, position_x, position_y, x_location)
-            % drawBottomLabels - Draws the bottom labels and lines
+            % Draws the bottom labels and lines
             import nla.gfx.colorChunk nla.gfx.drawLine
+
             dimensions = obj.image_dimensions;
             top = position_y + chunk_height;
             bottom = position_y + chunk_height + dimensions("label_size");
@@ -417,9 +427,9 @@ classdef MatrixPlot < handle
         end
 
         function fixRendering(obj)
-            % fixRendering - Fix some rendering options that we don't need/like (hiding options, toolbars, other things)
-            import nla.gfx.hideAxes
-            hideAxes(obj.axes);
+            % Fix some rendering options that we don't need/like (hiding options, toolbars, other things)
+
+            nla.gfx.hideAxes(obj.axes);
             obj.axes.DataAspectRatio = [1, 1, 1];
             obj.axes.Toolbar.Visible = 'off';
             disableDefaultInteractivity(obj.axes);
@@ -432,7 +442,7 @@ classdef MatrixPlot < handle
         end
 
         function createLegend(obj)
-            % createLegend - Creates the Legend
+            % Creates the Legend
             entries = [];
             for network = 1:obj.number_networks
                 entry = bar(obj.axes, NaN);
@@ -453,7 +463,7 @@ classdef MatrixPlot < handle
         end
 
         function createColorbar(obj)
-            % createColorbar - Creates the colorbar
+            % Creates the colorbar
             % Annoyance: obj.color_map is a property, colormap is a command. Same with color_bar and colorbar
             if obj.discrete_colorbar
                 number_of_ticks = double(obj.upper_limit - obj.lower_limit);
@@ -466,23 +476,27 @@ classdef MatrixPlot < handle
                 colormap(obj.axes, obj.color_map)
             end
 
-            color_bar = colorbar(obj.axes);
+            obj.color_bar = colorbar(obj.axes);
             
             ticks = [0:number_of_ticks];
-            color_bar.Ticks = double(ticks) ./ number_of_ticks;
+            obj.color_bar.Ticks = double(ticks) ./ number_of_ticks;
 
             labels = {};
             for tick = ticks
                 labels{tick + 1} = sprintf("%.2g", obj.lower_limit + (tick * ((double(obj.upper_limit - obj.lower_limit) / number_of_ticks))));
             end
-            color_bar.TickLabels = labels;
+            obj.color_bar.TickLabels = labels;
 
             dimensions = obj.image_dimensions;
-            color_bar.Units = 'pixels';
-            color_bar.Location = 'east';
-            color_bar.Position = [color_bar.Position(1) - dimensions("offset_x"), color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width, dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
+            obj.color_bar.Units = 'pixels';
+            obj.color_bar.Location = 'east';
+            % This tells the plot where to place the colorbar. It's a standard matlab position object, four coordinates.
+            % Formatting to try and keep 120 max line makes it ugly.
+            obj.color_bar.Position = [obj.color_bar.Position(1) - dimensions("offset_x"),...
+                obj.color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width,...
+                dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
+
             caxis(obj.axes, [0, 1]);
-            obj.color_bar = color_bar;
         end
     end
 end
