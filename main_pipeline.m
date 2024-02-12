@@ -88,7 +88,6 @@ clear fc_unordered fc_struct bx
 fc_avg = copy(input_struct.func_conn);
 fc_avg.v = mean(fc_avg.v, 2);
 fig_l = gfx.createFigure(800, 800);
-% [fig_l.Position(3), fig_l.Position(4)] = gfx.drawMatrixOrg(fig_l, 0, 0,  'FC Average', fc_avg, -0.3, 0.3, net_atlas.nets, gfx.FigSize.LARGE, gfx.FigMargins.WHITESPACE, true, true);
 obj = MatrixPlot(fig_l, "FC Average", fc_avg, net_atlas.nets, gfx.FigSize.LARGE);
 obj.displayImage()
 drawnow();

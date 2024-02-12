@@ -148,7 +148,6 @@ classdef BasePermResult < nla.TestResult
             
             %% trimatrix plot
             [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
-%             [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
             matrix_plot = gfx.matrix.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, gfx.FigSize.SMALL,...
                 'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', plot_sig, 'draw_legend', false,...
                 'color_map', cm, 'lower_limit', 0, 'upper_limit', plot_max, 'x_position', x, 'y_position', y);
@@ -317,7 +316,10 @@ classdef BasePermResult < nla.TestResult
                 waitbar(0.95);
                 close(f)
             end
-            gfx.drawMatrixOrg(fig, 25, bottom_text_height, name_label, plot_mat, coeff_bounds(1), coeff_bounds(2), net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            matrix_plot = nla.gfx.matrix.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, nla.gfx.FigSize.SMALL,...
+                'y_position', bottom_text_height, 'lower_limit', coeff_bounds(1), 'upper_limit', coeff_bounds(2), 'draw_legend', false,...
+                'color_map', cm, 'marked_networks', plot_sig, 'network_clicked_callback', @brainFigsButtonClickedCallback)
+            matrix_plot.displayImage();
 
             %% Plot names
             text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
