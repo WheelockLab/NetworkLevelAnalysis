@@ -71,6 +71,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
+            import nla.net.result.NetworkResultPlotParameter 
+            import nla.gfx.createFigure nla.net.result.plot.FullConnectomePlotter 
+            import nla.net.result.plot.WithinNetworkPairPlotter
             import nla.TriMatrix nla.TriMatrixDiag
 
             % This is the object that will do the calculations for the plots
@@ -85,12 +88,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
 
             significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
-            flags.significance_input = significance_input;
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, p_value_vs_network_size_parameters, edge_test_options,...
-                    edge_test_result, updated_test_options, flags);
+                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result,...
+                    updated_test_options, flags);
             end
             %%
 
@@ -209,7 +211,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
 
-        function histogram = createHistogram(obj, statistic)
+        function histogram = createHistogram(obj, test_method, statistic)
             if ~endsWith(statistic, "_permutations")
                 statistic = strcat(statistic, "_permutations");
             end
@@ -221,9 +223,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function noPermutationsPlotting(obj, plot_parameters, vs_network_plot_parameters, edge_test_options,...
-            edge_test_result, updated_test_options, flags)
-            import nla.gfx.createFigure nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
+        function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options,...
+                flags)
+            import nla.net.result.plot.NoPermutationPlotter nla.gfx.createFigure
 
             % No permutations results
             if flags.plot_type == nla.PlotType.FIGURE
@@ -231,9 +233,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 % Get the plot parameters (titles, stats, labels, max, min, etc)
                 plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
+                p_value = "p_value";
+                if ~any(strcmp(obj.test_name, obj.significance_test))
+                    p_value = "single_sample_p_value";
+                end
                 p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                    "no_permutations", "p_value", plot_title, updated_test_options.fdr_correction, false);
-                plotter = NoPermutationPlotter(network_atlas);
+                    "no_permutations", p_value, plot_title, updated_test_options.fdr_correction, false);
+                p_value_vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
+                    p_value);
+                plotter = NoPermutationPlotter(plot_parameters.network_atlas);
                 % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                 % plot the probability
 
@@ -244,27 +252,20 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 % do need to create a reference here for the axes since this just uses matlab builtins
                 axes = subplot(2,1,2);
-                plotter.plotProbabilityVsNetworkSize(vs_network_plot_parameters, axes,...
+                plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes,...
                     "Non-permuted P-values vs. Network-Pair Size");
-            elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                if isfield(updated_test_options, 'edge_chord_plot_method')
-                    p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                end
-                chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
             end
         end
 
         function fullConnectomePlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
-            import nla.net.result.chord.ChordPlotter
 
             plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
             plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
             if flags.plot_type == nla.PlotType.FIGURE
 
                 % This is the object that will do the calculations for the plots
-                result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
+                result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
                 % Get the plot parameters (titles, stats, labels, etc.)
                 %TODO: why do we use no fdr here?
@@ -277,18 +278,23 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
                     nla.net.mcc.None(), cohens_d_filter);
                 
-
+                p_value = "p_value";
+                if ~obj.significance_test
+                    p_value = "single_sample_p_value";
+                end
+                p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
+                    p_value);
                 full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
                     "full_connectome", "p_value");
 
                 % create a histogram
                 p_value_histogram = obj.createHistogram("full_connectome", "p_value");
 
-                plotter = FullConnectomePlotter(network_atlas);
+                plotter = FullConnectomePlotter(edge_test_options.net_atlas);
                 
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
                 % but then the plots get put under different layers. 
-                if flags.significance_input
+                if obj.significance_test
                     plot_figure = createFigure(1000, 900);
                     plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
                         obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
@@ -310,35 +316,20 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 y_coordinate = 425;
                 [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
-                if ~flags.significance_input
+                if ~obj.significance_test
                     plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
                 end
-
-            elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                if isfield(updated_test_options, 'edge_chord_plot_method')
-                    full_connectome_p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                    full_connectome_p_value_plot_parameters_with_cohensd.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                end
-
-                chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if flags.significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
-                    chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
-                else
-                    chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
-                end
             end
-
         end
 
         function withinNetworkPairPlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
-            import nla.net.result.chord.ChordPlotter
 
             plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
 
             if flags.plot_type == nla.PlotType.FIGURE
 
-                result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
+                result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
                 within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
                     "within_network_pair", "p_value");
@@ -352,9 +343,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title,...
                     updated_test_options.fdr_correction, cohens_d_filter);
 
-                plotter = WithinNetworkPairPlotter(network_atlas);
+                plotter = WithinNetworkPairPlotter(edge_test_options.net_atlas);
                 y_coordinate = 425;
-                if flags.significance_input
+                if obj.significance_test
                     plot_figure = createFigure(500, 900);
                     x_coordinate = 0;
                     plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,1,2),...
@@ -367,19 +358,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         "Within Net-Pair P-values vs. Net-Pair Size");
                     [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                     plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
-                end
-
-            elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                if isfield(updated_test_options, 'edge_chord_plot_method')
-                    within_network_pair_p_value_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                    within_network_pair_p_value_parameters_with_cohensd.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                end
-
-                chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if flags.significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
-                    chord_plotter.generateChordFigure(within_network_pair_p_value_parameters_with_cohensd, flags.plot_type);
-                else
-                    chord_plotter.generateChordFigure(within_network_pair_p_value_parameters, flags.plot_type);
                 end
             end
         end
