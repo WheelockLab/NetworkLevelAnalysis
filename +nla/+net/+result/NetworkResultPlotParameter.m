@@ -92,7 +92,7 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % callback function for brain image. 
-            % Because of the way the plotting is done in drawMatrixOrg, this function can have only two inputs. Because
+            % Because of the way the plotting is done in MatrixPlot, this function can have only two inputs. Because
             % edge_test_options and edge_test_result are "global", this needs to be an internal function and not a method
             function brainFigureButtonCallback(network1, network2)
                 wait_text = sprintf("Generating %s - %s network-pair brain plot", obj.network_atlas.nets(network1).name,...
