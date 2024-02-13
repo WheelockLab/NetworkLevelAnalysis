@@ -71,7 +71,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
-            import nla.TriMatrix nla.TriMatrixDiag
+            import nla.TriMatrix nla.TriMatrixDiag nla.net.result.NetworkResultPlotParameter
 
             % Tests that don't use correlation coefficients as inputs
             significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
@@ -325,7 +325,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     "full_connectome", "p_value");
 
                 % create a histogram
-                p_value_histogram = obj.createHistogram("full_connectome", "p_value");
+                p_value_histogram = obj.createHistogram("p_value");
 
                 plotter = FullConnectomePlotter(edge_test_options.net_atlas);
                 
