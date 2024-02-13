@@ -1,5 +1,4 @@
 import nla.*
-import nla.gfx.matrix.*
 
 %% Get path to NLA
 root_path = findRootPath();
@@ -88,7 +87,7 @@ clear fc_unordered fc_struct bx
 fc_avg = copy(input_struct.func_conn);
 fc_avg.v = mean(fc_avg.v, 2);
 fig_l = gfx.createFigure(800, 800);
-obj = MatrixPlot(fig_l, "FC Average", fc_avg, net_atlas.nets, gfx.FigSize.LARGE);
+obj = nla.gfx.plots.MatrixPlot(fig_l, "FC Average", fc_avg, net_atlas.nets, gfx.FigSize.LARGE);
 obj.displayImage()
 drawnow();
 

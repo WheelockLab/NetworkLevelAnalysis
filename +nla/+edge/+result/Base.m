@@ -35,7 +35,7 @@ classdef Base < nla.TestResult
             end
 
             fig = gfx.createFigure();
-            matrix_plot = gfx.matrix.MatrixPlot(fig, coeff_label, obj.coeff, net_atlas.nets, gfx.FigSize.LARGE, 'lower_limit', obj.coeff_range(1),...
+            matrix_plot = gfx.plots.MatrixPlot(fig, coeff_label, obj.coeff, net_atlas.nets, gfx.FigSize.LARGE, 'lower_limit', obj.coeff_range(1),...
                 'upper_limit', obj.coeff_range(2));
             matrix_plot.displayImage();
             w = matrix_plot.image_dimensions("image_width");
@@ -45,7 +45,7 @@ classdef Base < nla.TestResult
                 if ~exist('prob_label', 'var')
                     prob_label = [sprintf('Edge-level Significance (P < %g)', obj.prob_max), prob_label_appended];
                 end
-                matrix_plot2 = gfx.matrix.MatrixPlot(fig, prob_label, obj.prob_sig, net_atlas.nets, gfx.FigSize.LARGE,...
+                matrix_plot2 = gfx.plots.MatrixPlot(fig, prob_label, obj.prob_sig, net_atlas.nets, gfx.FigSize.LARGE,...
                     'draw_legend', false, 'draw_colorbar', false, 'color_map', [[1,1,1];[0,0,0]], 'x_position', w, 'lower_limit', 0, 'upper_limit', 1);
                 w2 = matrix_plot2.image_dimensions("image_width");
                 h2 = matrix_plot2.image_dimensions("image_height");
@@ -58,7 +58,7 @@ classdef Base < nla.TestResult
                 %prob_log.v = -1 * log10(obj.prob.v);
                 cm_base = parula(1000);
                 cm = flip(cm_base(ceil(logspace(-3, 0, 256) .* 1000), :));
-                matrix_plot2 = gfx.matrix.MatrixPlot(fig, prob_label, obj.prob, net_atlas.nets, gfx.FigSize.LARGE,...
+                matrix_plot2 = gfx.plots.MatrixPlot(fig, prob_label, obj.prob, net_atlas.nets, gfx.FigSize.LARGE,...
                     'draw_legend', false, 'color_map', cm, 'x_position', w, 'lower_limit', 0, 'upper_limit', 1);
                 w2 = matrix_plot2.image_dimensions("image_width");
                 h2 = matrix_plot2.image_dimensions("image_height");

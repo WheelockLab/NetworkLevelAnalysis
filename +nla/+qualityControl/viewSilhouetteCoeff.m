@@ -27,7 +27,7 @@ function viewSilhouetteCoeff(fig, input_struct, remove_index)
     %% Display FC average plot with average silhouette value in label
     plot_label = [plot_label sprintf('\nMean silhouette value = %2.3f', mean(si_vals))];
     fig = gfx.createFigure();
-    matrix_plot = nla.gfx.matrix.MatrixPlot(fig, plot_label, fc_avg, nets, nla.gfx.FigSize.LARGE);
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, plot_label, fc_avg, nets, nla.gfx.FigSize.LARGE);
     matrix_plot.displayImage();
     w = matrix_plot.image_dimensions("image_width");
     h = matrix_plot.image_dimensions("image_height");

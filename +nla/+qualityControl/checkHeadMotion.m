@@ -26,7 +26,7 @@ function checkHeadMotion(fig, input_struct, motion)
     ulimit = 0.3;
     
     fig = gfx.createFigure(1800, 900);
-    matrix_plot = nla.gfx.matrix.MatrixPlot(fig, "FC-motion correlation (Pearson's r)", r, input_struct.net_atlas.nets,...
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, "FC-motion correlation (Pearson's r)", r, input_struct.net_atlas.nets,...
         nla.gfx.FigSize.LARGE, 'lower_limit', llimit, 'upper_limit', ulimit);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions("image_width");
