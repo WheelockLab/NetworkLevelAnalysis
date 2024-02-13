@@ -38,7 +38,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
     properties (Dependent)
         permutation_count
-        significance_test
+        significance_test % is_significance_test 
     end
 
     properties (Constant)
@@ -108,7 +108,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     plot_figure = createFigure(500, 900);
 
                     plotter = NoPermutationPlotter(network_atlas);
-                    % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
+                    % don't need to create a reference to axis since MatrixPlot takes a figure as a reference
                     % plot the probability
 
                     % Hard-coding sucks, but to make this adaptable for every type of test and method, here we are
@@ -342,7 +342,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     methods (Access = private)
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
-            %   
 
             % Our 3 test methods. No permutations, Within-Network-Piar, Full Connectome
             % Creating an array of pairs status (yes/no) and name for the results (Find a better way, code-monkey)
