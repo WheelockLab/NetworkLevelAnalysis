@@ -38,12 +38,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
     properties (Dependent)
         permutation_count
-        significance_test % is_significance_test 
+        is_noncorrelation_input
     end
 
     properties (Constant)
-        test_methods = ["no_permutations", "within_network_pair", "full_connectome"]
-        significance_test_names = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
+        test_methods = ["no_permutations", "full_connectome", "within_network_pair"]
+        noncorrelation_input_tests = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
     end
 
     methods
@@ -73,9 +73,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
             import nla.TriMatrix nla.TriMatrixDiag nla.net.result.NetworkResultPlotParameter
 
-            % Tests that don't use correlation coefficients as inputs
-            significance_input = any(strcmp(obj.test_name, obj.significance_test_names));
-
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
@@ -85,7 +82,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             % Cohen's D results for markers
             cohens_d_filter = TriMatrix(network_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-            if ~significance_input
+            if ~obj.is_noncorrelation_input
                 cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
             end
 
@@ -145,7 +142,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            % I'm assuming this is Get Significance Matrix
+            % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
+            % Any help on renaming would be great.
             import nla.TriMatrix nla.TriMatrixDiag
 
             test_number = 0;
@@ -185,9 +183,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function value = get.significance_test(obj)
+        function value = get.is_noncorrelation_input(obj)
             % Convenience method to determine if inputs were correlation coefficients, or "significance" values
-            value = any(strcmp(obj.significance_test_names, obj.test_name));
+            value = any(strcmp(obj.noncorrelation_input_tests, obj.test_name));
         end
     end
 
@@ -195,19 +193,22 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
 
-            % Our 3 test methods. No permutations, Within-Network-Piar, Full Connectome
-            % Creating an array of pairs status (yes/no) and name for the results (Find a better way, code-monkey)
-            test_methods_and_names = struct("no_permutations", test_options.nonpermuted,...
-                "within_network_pair", test_options.within_net_pair,...
-                "full_connectome", test_options.full_conn);
-            
-            % Calling function to create results containers
-            for test_method_index = 1:numel(obj.test_methods)
-                if test_methods_and_names.(obj.test_methods(test_method_index))
-                    obj.createPValueTriMatrices(number_of_networks, (obj.test_methods(test_method_index)));
-                    obj.createTestSpecificResultsStorage(number_of_networks, test_specific_statistics);
-                end
+            % no_permutations always runs
+            setup_test_methods = ["no_permutations"];
+
+            % if within_network_pair is being run, than full connectome is/can also be done
+            % if only full_connectome is being run, then we don't run within_net_pair
+            if isfield(test_options, "within_net_pair") && test_options.within_net_pair
+                setup_test_methods = [setup_test_methods, "full_connectome", "within_network_pair"];
+            elseif isfield(test_options, "full_connectome") && test_options.full_connectome
+                setup_test_methods = [setup_test_methods, "full_connectome"];
             end
+            % create the results containers. This replaces the false boolean with a struct of TriMatrices
+            for test_method_index = 1:numel(setup_test_methods)
+                obj.createPValueTriMatrices(number_of_networks, setup_test_methods(test_method_index));
+            end
+            % This creates all the permutations and test specific stats (chi2, t, w, etc)
+            obj.createTestSpecificResultsStorage(number_of_networks, test_specific_statistics);
         end
 
         function createTestSpecificResultsStorage(obj, number_of_networks, test_specific_statistics)
@@ -264,9 +265,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 % Get the plot parameters (titles, stats, labels, max, min, etc)
                 plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
                 p_value = "p_value";
-                if ~any(strcmp(obj.test_name, obj.significance_test))
+                if ~obj.is_noncorrelation_input
                     p_value = "single_sample_p_value";
                 end
+
                 p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
                     "no_permutations", p_value, plot_title, updated_test_options.fdr_correction, false);
                 p_value_vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
@@ -282,8 +284,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 % do need to create a reference here for the axes since this just uses matlab builtins
                 axes = subplot(2,1,2);
-                plotter.plotProbabilityVsNetworkSize(vs_network_plot_parameters, axes,...
+                plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes,...
                     "Non-permuted P-values vs. Network-Pair Size");
+
             elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                 if isfield(updated_test_options, 'edge_chord_plot_method')
                     p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
@@ -316,7 +319,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     nla.net.mcc.None(), cohens_d_filter);
                 
                 p_value = "p_value";
-                if ~obj.significance_test
+                if ~obj.is_noncorrelation_input
                     p_value = "single_sample_p_value";
                 end
                 p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
@@ -331,7 +334,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
                 % but then the plots get put under different layers. 
-                if obj.significance_test
+                if obj.is_noncorrelation_input
                     plot_figure = createFigure(1000, 900);
                     plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
                         obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
@@ -353,7 +356,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 y_coordinate = 425;
                 [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
-                if ~obj.significance_test
+                if ~obj.is_noncorrelation_input
                     plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
                 end
 
@@ -364,13 +367,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 end
 
                 chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if flags.significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+                if obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
                 else
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
                 end
             end
-
         end
 
         function withinNetworkPairPlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
@@ -397,7 +399,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 plotter = WithinNetworkPairPlotter(edge_test_options.net_atlas);
                 y_coordinate = 425;
-                if obj.significance_test
+                if obj.is_noncorrelation_input
                     plot_figure = createFigure(500, 900);
                     x_coordinate = 0;
                     plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,1,2),...
@@ -419,7 +421,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 end
 
                 chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if flags.significance_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+                if obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
                     chord_plotter.generateChordFigure(within_network_pair_p_value_parameters_with_cohensd, flags.plot_type);
                 else
                     chord_plotter.generateChordFigure(within_network_pair_p_value_parameters, flags.plot_type);
