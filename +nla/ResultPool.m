@@ -51,7 +51,7 @@ classdef ResultPool
         function value = containsSignifiganceBasedNetworkResult(obj)
             if ~islogical(obj.permutation_network_test_results)
                 for i = 1:size(obj.permutation_network_test_results, 1)
-                    value = obj.permutation_network_test_results{i}.significance_test;
+                    value = obj.permutation_network_test_results{i}.is_noncorrelation_input;
                 end
             end
         end
