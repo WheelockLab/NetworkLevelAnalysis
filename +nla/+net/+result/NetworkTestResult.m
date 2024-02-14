@@ -143,7 +143,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            % I'm assuming this is Get Significance Matrix
+            % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
+            % Any help on renaming would be great.
             import nla.TriMatrix nla.TriMatrixDiag
 
             test_number = 0;
@@ -267,7 +268,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 % do need to create a reference here for the axes since this just uses matlab builtins
                 axes = subplot(2,1,2);
-                plotter.plotProbabilityVsNetworkSize(vs_network_plot_parameters, axes,...
+                plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes,...
                     "Non-permuted P-values vs. Network-Pair Size");
 
             elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
@@ -357,7 +358,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
                 end
             end
-
         end
 
         function withinNetworkPairPlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
