@@ -491,6 +491,7 @@ classdef MatrixPlot < handle
                             [position_y, position_y + chunk_height + 1]));
                         obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
                             [position_y + chunk_height, position_y + chunk_height]));
+                    end
 
                         if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
                             obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
@@ -647,14 +648,12 @@ classdef MatrixPlot < handle
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
             % Get color for the chunk (square)
-
             chunk_color = nla.gfx.valToColor(chunk_raw, lower_value, upper_value, obj.color_map);
             chunk_color(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
         end
 
         function applyColorToData(obj, position_x, position_y, chunk_height, chunk_width, chunk_color)
             % Fill in the chunks (squares) with color
-
             obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
                 repelem(chunk_color, obj.elementSize(), obj.elementSize());
             obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
