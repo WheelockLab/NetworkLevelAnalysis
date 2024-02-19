@@ -30,6 +30,7 @@ classdef MatrixPlot < handle
         axes % The axes of the plot
         image_display % The actual displayed values
         color_bar % The colorbar
+        colorbar_contextmenu % The right click menu for the colorbar
     end
 
     properties (Dependent)
@@ -289,9 +290,19 @@ classdef MatrixPlot < handle
             end
         end
 
-        function obj = embiggenMatrix(obj)
+        function obj = embiggenMatrix(obj, varargin)
             % Enlarges data points of matrix for easier viewing. Also adds the network colorbars to the left axis and bottom axis.
-            import nla.gfx.colorChunk nla.gfx.MatrixType nla.gfx.valToColor nla.gfx.drawLine
+            import nla.gfx.colorChunk nla.gfx.MatrixType nla.gfx.drawLine
+
+            % If there are no inputs (like initial rendering) then we use defaults
+            % If there were inputs, that means we're scaling the colorbar.
+            if isempty(varargin)
+                upper_value = obj.upper_limit;
+                lower_value = obj.lower_limit;
+            else
+                upper_value = str2num(varargin{2});
+                lower_value = str2num(varargin{1});
+            end
             number_of_networks = obj.number_networks;
             dimensions = obj.image_dimensions;
             network_matrix = obj.network_matrix;
@@ -313,12 +324,7 @@ classdef MatrixPlot < handle
                 chunk_height = numel(network_indexes) * obj.elementSize();
                 
                 % Left side of matrix color bars
-                top = position_y;
-                bottom = position_y + chunk_height;
-                left = dimensions("offset_x") + 2;
-                right = dimensions("offset_x") + dimensions("label_size") + 1;
-                obj.image_display.CData(top:bottom, left:right+1, :) = colorChunk(obj.networks(network).color, chunk_height + 1, dimensions("label_size") + 1);
-                obj = obj.drawLeftLinesOnLabels(top, bottom, left, right);
+                obj = obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
 
                 position_x = dimensions("label_size") + dimensions("offset_x") + 3;
                 starting_x = position_x;
@@ -336,18 +342,12 @@ classdef MatrixPlot < handle
 
                     chunk_width = numel(x_index) * obj.elementSize();
 
-                    % Fill the chunk with a color mapped to its value
+                    % Get color for chunks
                     chunk_raw = matrix_as_matrix(network_indexes, x_index);
-                    chunk = valToColor(chunk_raw, obj.lower_limit, obj.upper_limit, obj.color_map);
-                    chunk(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
+                    chunk_color = obj.getChunkColor(chunk_raw, upper_value, lower_value);
 
                     % Apply colors to chunks
-                    obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
-                        repelem(chunk, obj.elementSize(), obj.elementSize());
-                    obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
-                        repelem(chunk(size(chunk, 1), 1:size(chunk, 2), :), 1, obj.elementSize());
-                    obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
-                        repelem(chunk(1:size(chunk, 1), size(chunk, 2), :), obj.elementSize(), 1);
+                    obj.applyColorToData(position_x, position_y, chunk_height, chunk_width, chunk_color);
 
                     % plot signifance marker
                     if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
@@ -355,15 +355,20 @@ classdef MatrixPlot < handle
                     end
                     
                     if ~isequal(obj.network_clicked_callback, false)
-                        obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1, position_y, position_y + chunk_height - 1];
+                        obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1,...
+                            position_y, position_y + chunk_height - 1];
                     end
                     % Add callbacks to all the squares
-                    obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1], [position_y, position_y + chunk_height + 1]));
-                    obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1], [position_y + chunk_height, position_y + chunk_height]));
+                    obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1],...
+                        [position_y, position_y + chunk_height + 1]));
+                    obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
+                        [position_y + chunk_height, position_y + chunk_height]));
 
                     if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
-                        obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width], [position_y - 1, position_y + chunk_height + 1]));
-                        obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width], [position_y - 1, position_y - 1]));
+                        obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
+                            [position_y - 1, position_y + chunk_height + 1]));
+                        obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width],...
+                            [position_y - 1, position_y - 1]));
                     end
 
                     % Is this the last network of a TriMatrix. Then we're done and need to add the bottom
@@ -381,16 +386,24 @@ classdef MatrixPlot < handle
                 end
                 position_y = position_y + chunk_height + 1;
             end
-            
+
             if obj.matrix_type == MatrixType.TRIMATRIX && ~network_matrix
-                drawLine(obj.axes, [starting_x - 1, position_x - 1], [starting_y - 3 + obj.elementSize(), position_y - 2], 'w');
-                drawLine(obj.axes, [starting_x - 2, position_x - 1], [starting_y - 3 + obj.elementSize(), position_y - 1]);
+                drawLine(obj.axes, [starting_x - 1, position_x - 1],...
+                    [starting_y - 3 + obj.elementSize(), position_y - 2], 'w');
+                drawLine(obj.axes, [starting_x - 2, position_x - 1],...
+                    [starting_y - 3 + obj.elementSize(), position_y - 1]);
             end
         end
         
-        function obj = drawLeftLinesOnLabels(obj, top, bottom, left, right)
+        function obj = drawLeftLinesOnLabels(obj, position_y, chunk_height, dimensions, network)
             % Draws the left side lines on the plot
             import nla.gfx.drawLine
+
+            top = position_y;
+            bottom = position_y + chunk_height;
+            left = dimensions("offset_x") + 2;
+            right = dimensions("offset_x") + dimensions("label_size") + 1;
+            obj.image_display.CData(top:bottom, left:right+1, :) = colorChunk(obj.networks(network).color, chunk_height + 1, dimensions("label_size") + 1);
 
             drawLine(obj.axes, [left - 1, right], [top - 1, top - 1]);
             drawLine(obj.axes, [left - 1, right], [bottom, bottom]);
@@ -462,11 +475,23 @@ classdef MatrixPlot < handle
                 display_legend_width, display_legend_height];
         end
 
-        function createColorbar(obj)
+        function createColorbar(obj, varargin)
             % Creates the colorbar
             % Annoyance: obj.color_map is a property, colormap is a command. Same with color_bar and colorbar
+
+            % If there are arguments, it means that this came from changing the colorbar. If not, using defaults
+            if isempty(varargin)
+                upper_value = obj.upper_limit;
+                lower_value = obj.lower_limit;
+            else
+                obj.color_bar.TickLabels = {};
+                obj.color_bar.Ticks = [];
+                upper_value = str2double(varargin{2});
+                lower_value = str2double(varargin{1});
+            end
+
             if obj.discrete_colorbar
-                number_of_ticks = double(obj.upper_limit - obj.lower_limit);
+                number_of_ticks = double(upper_value - lower_value);
                 display_colormap = obj.color_map(floor((size(obj.color_map, 1) - 1) * [0:number_of_ticks] ./ number_of_ticks) + 1, :);
                 display_colormap = repelem(display_colormap, 2, 1);
                 display_colormap = display_colormap(2:((number_of_ticks + 1) * 2 - 1), :);
@@ -477,13 +502,13 @@ classdef MatrixPlot < handle
             end
 
             obj.color_bar = colorbar(obj.axes);
-            
+
             ticks = [0:number_of_ticks];
             obj.color_bar.Ticks = double(ticks) ./ number_of_ticks;
 
             labels = {};
             for tick = ticks
-                labels{tick + 1} = sprintf("%.2g", obj.lower_limit + (tick * ((double(obj.upper_limit - obj.lower_limit) / number_of_ticks))));
+                labels{tick + 1} = sprintf("%.2g", lower_value + (tick * ((double(upper_value - lower_value) / number_of_ticks))));
             end
             obj.color_bar.TickLabels = labels;
 
@@ -496,7 +521,43 @@ classdef MatrixPlot < handle
                 obj.color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width,...
                 dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
 
+            % Enables callback for clicking on colorbar to scale data
+            set(obj.color_bar, 'ButtonDownFcn', @changeColorLimits)
+
             caxis(obj.axes, [0, 1]);
+
+            % Callback for clicking on the colorbar.
+            function changeColorLimits(~, ~)
+                prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
+                upper_limit_inner = obj.color_bar.TickLabels(end);
+                lower_limit_inner = obj.color_bar.TickLabels(1);
+                current_limits = {lower_limit_inner{1}, upper_limit_inner{1}};
+                new_limits = inputdlg(prompt, "Colorbar Limits", 1, current_limits);
+                % If "cancel" is pressed or both values deleted use defaults
+                if isempty(new_limits)
+                    obj.embiggenMatrix();
+                    obj.createColorbar();
+                else
+                    obj.embiggenMatrix(new_limits{1}, new_limits{2});
+                    obj.createColorbar(new_limits{1}, new_limits{2});
+                end
+            end
+        end
+
+        function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
+            % Get color for the chunk (square)
+            chunk_color = nla.gfx.valToColor(chunk_raw, lower_value, upper_value, obj.color_map);
+            chunk_color(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
+        end
+
+        function applyColorToData(obj, position_x, position_y, chunk_height, chunk_width, chunk_color)
+            % Fill in the chunks (squares) with color
+            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
+                repelem(chunk_color, obj.elementSize(), obj.elementSize());
+            obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
+                repelem(chunk_color(size(chunk_color, 1), 1:size(chunk_color, 2), :), 1, obj.elementSize());
+            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
+                repelem(chunk_color(1:size(chunk_color, 1), size(chunk_color, 2), :), obj.elementSize(), 1);
         end
     end
 end
