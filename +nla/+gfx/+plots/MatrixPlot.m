@@ -554,6 +554,135 @@ classdef MatrixPlot < handle
             set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
+
+        function openModal(obj, source, ~)
+            % Callback for clicking on the colorbar.
+            % This opens a modal with the upper and lower bounds along with a radio selector between linear and 
+            % log.
+            import nla.gfx.ProbPlotMethod
+
+            % source is the colorbar, not the figure
+            d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2),...
+                source.Position(3) * 15, source.Position(4)/ 1.75]);
+            % These are the boxes that are the upper and lower end of the scale
+            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
+                'Position', [90, d.Position(4) - 30, 100, 30], "String", obj.upper_limit);
+            upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
+            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
+                'Position', [90, upper_limit_box.Position(2) - 30, 100, 30], "String", obj.lower_limit); 
+            lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
+            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
+                [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
+            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position',...
+                [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
+
+            % These are the buttons that make the scale log or linear
+            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, lower_limit_box.Position(2) - 40, 210, 30]);
+            linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels",...
+                "Position", [10, 5, 60, 20]);
+            log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels",...
+                "Position", [80, 5, 60, 20]);
+            neg_log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "-Log10", "Units", "pixels",...
+                "Position", [130, 5, 80, 20]);
+            % Here we're setting the initial setting for the linear or log button
+            if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == ProbPlotMethod.STATISTIC
+                selected_value = linear_button;
+            elseif obj.plot_scale == ProbPlotMethod.LOG || obj.plot_scale == ProbPlotMethod.LOG_STATISTIC
+                selected_value = log_button;
+            else
+                selected_value = neg_log_button;
+            end
+            scaleBaseButtons.SelectedObject = selected_value;
+            
+            % Color Map selector
+            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu 
+            uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
+                "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
+            color_map_select = uicontrol('Style', 'popupmenu',...
+                'Position', [100, scaleBaseButtons.Position(2) - 45, 242, 30]);
+            initial_colors = 16;
+            colormap_html = [];
+            for colors = 1:numel(obj.colormap_choices)
+                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors}), "(x)")));
+                CData = colormap_function(initial_colors);
+                new_html_start = '<HTML>';
+                new_html = '';
+                for color_iterator = initial_colors:-1:1
+                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
+                        CData(color_iterator, 3)]);
+                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
+                end
+                %new_html = new_html(1:end-2);
+                new_html_end = [new_html '</HTML>'];
+                new_html = [new_html_start new_html new_html_end]
+                colormap_html = [colormap_html; {new_html}];
+            end
+            set(color_map_select, "Value", 1, "String", colormap_html);
+
+            apply_button_position = [10, 10, 100, 30];
+            apply_button = uicontrol('String', 'Apply',...
+                'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
+                "Units", "pixels",...
+                'Position', apply_button_position);
+            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
+                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position',...
+                close_button_position);
+        end
+
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
+            % This callback gets the colormap/scale and then applies the new bounds to the data.
+            % Only works with APPLY button, will not work with only CLOSE
+        
+            import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
+
+            obj.matrix = obj.original_matrix;
+
+            button_group_value = get(get(button_group, "SelectedObject"), "String");
+
+            if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ismember(button_group_value, ["Linear", "Log"])
+                obj.matrix.v = 10.^(-obj.matrix.v);
+            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ~ismember(button_group_value, ["Linear", "Log"])
+                obj.matrix.v = -log10(obj.matrix.v);
+            end
+
+            discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
+            color_map = get(color_map_select, "Value");
+            if button_group_value == "Linear"
+                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
+                    obj.colormap_choices{color_map});
+                obj.plot_scale = ProbPlotMethod.DEFAULT;
+            elseif button_group_value == "Log"
+                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
+                obj.plot_scale = ProbPlotMethod.LOG;
+            else
+                color_map_name = str2func(lower(obj.colormap_choices{color_map}));
+                new_color_map = color_map_name(discrete_colors);
+                obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
+            end
+            obj.color_map = new_color_map;
+            obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+            obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+        end
+
+        function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
+            % Get color for the chunk (square)
+
+            chunk_color = nla.gfx.valToColor(chunk_raw, lower_value, upper_value, obj.color_map);
+            chunk_color(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
+        end
+
+        function applyColorToData(obj, position_x, position_y, chunk_height, chunk_width, chunk_color)
+            % Fill in the chunks (squares) with color
+
+            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
+                repelem(chunk_color, obj.elementSize(), obj.elementSize());
+            obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
+                repelem(chunk_color(size(chunk_color, 1), 1:size(chunk_color, 2), :), 1, obj.elementSize());
+            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
+                repelem(chunk_color(1:size(chunk_color, 1), size(chunk_color, 2), :), obj.elementSize(), 1);
         end
 
         function openModal(obj, source, ~)
