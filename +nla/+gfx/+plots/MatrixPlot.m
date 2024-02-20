@@ -569,7 +569,7 @@ classdef MatrixPlot < handle
                 current_limits = {lower_limit_inner{1}, upper_limit_inner{1}};
                 new_limits = inputdlg(prompt, "Colorbar Limits", 1, current_limits);
                 % If "cancel" is pressed or both values deleted use defaults
-                if isempty(new_limits)
+                if isempty(new_limits) || isempty(new_limits{1}) || isempty(new_limits{2})
                     obj.embiggenMatrix();
                     obj.createColorbar();
                 else
