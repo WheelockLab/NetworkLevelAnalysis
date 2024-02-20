@@ -324,7 +324,7 @@ classdef MatrixPlot < handle
                 chunk_height = numel(network_indexes) * obj.elementSize();
                 
                 % Left side of matrix color bars
-                obj = obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
+                obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
 
                 position_x = dimensions("label_size") + dimensions("offset_x") + 3;
                 starting_x = position_x;
@@ -395,9 +395,9 @@ classdef MatrixPlot < handle
             end
         end
         
-        function obj = drawLeftLinesOnLabels(obj, position_y, chunk_height, dimensions, network)
+        function drawLeftLinesOnLabels(obj, position_y, chunk_height, dimensions, network)
             % Draws the left side lines on the plot
-            import nla.gfx.drawLine
+            import nla.gfx.drawLine nla.gfx.colorChunk
 
             top = position_y;
             bottom = position_y + chunk_height;
@@ -534,7 +534,7 @@ classdef MatrixPlot < handle
                 current_limits = {lower_limit_inner{1}, upper_limit_inner{1}};
                 new_limits = inputdlg(prompt, "Colorbar Limits", 1, current_limits);
                 % If "cancel" is pressed or both values deleted use defaults
-                if isempty(new_limits)
+                if isempty(new_limits) || isempty(new_limits{1}) || isempty(new_limits{2})
                     obj.embiggenMatrix();
                     obj.createColorbar();
                 else
