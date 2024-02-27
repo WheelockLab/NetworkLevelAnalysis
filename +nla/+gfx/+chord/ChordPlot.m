@@ -1,20 +1,5 @@
 classdef ChordPlot < handle
-%CHORDPLOT - Class to construct and display chord plots for network and edge tests
-%
-%   obj = ChordPlot(network_atlas, axes, axis_width, plot_matrix, varargin)
-%   network_atlas - network atlas object used
-%   axes - the axis that the chord will be plotted in/on
-%   axis_width - the height and width of the plot. It will always be a square, just one number needed
-%   plot_matrix - the data to be shown
-%   
-%   named arguments:
-%   direction - value of nla.gfx.SigType: INCREASING (default), DECREASING, ABS_INCREASING
-%   color_map - a valid colormap. Can be either builtin or created/edited.
-%   chord_type - value of nla.PlotType: CHORD (default), CHORD_EDGE
-%   upper_limit - value that upper limits are clipped (default: 1)
-%   lower_limit - value that lower limits are clipped (default: 0)
-%   random_z_order - are the chords randomized (true) or sorted (false) (default: false)
-%
+
     properties
         axes
         network_atlas
@@ -26,7 +11,6 @@ classdef ChordPlot < handle
         lower_limit
         random_z_order
         color_map
-        network_start_radian_array = []
     end
 
     properties (Dependent)
@@ -39,10 +23,6 @@ classdef ChordPlot < handle
         network_size_radians
         network_pair_size_radians
         number_of_networks
-        ROI_size_radians
-        cumulative_network_size
-        network_size_radians_array
-        number_of_ROIs
     end
 
     properties (Constant)
@@ -53,18 +33,14 @@ classdef ChordPlot < handle
 
     methods
         function obj = ChordPlot(network_atlas, axes, axis_width, plot_matrix, varargin)
-            % Constructor with argument parsing
-            % network_atlas, axes, axis_width, plot_matrix required in that order
-            % named arguments go after in form of (..., "<argument_name>", <value>, ...);
             chord_input_parser = inputParser;
             addRequired(chord_input_parser, 'network_atlas');
             addRequired(chord_input_parser, 'axes');
             addRequired(chord_input_parser, 'axis_width');
             addRequired(chord_input_parser, 'plot_matrix');
             
-            validColorMap = @(x) size(x, 2) == 3;
             addParameter(chord_input_parser, 'direction', nla.gfx.SigType.INCREASING, @isenum);
-            addParameter(chord_input_parser, 'color_map', turbo(256), validColorMap);
+            addParameter(chord_input_parser, 'color_map', turbo(256));
             addParameter(chord_input_parser, 'chord_type', nla.PlotType.CHORD, @isenum);
             addParameter(chord_input_parser, 'upper_limit', 1, @isnumeric);
             addParameter(chord_input_parser, 'lower_limit', 0, @isnumeric);
@@ -80,7 +56,6 @@ classdef ChordPlot < handle
         end
 
         function drawChords(obj)
-            %DRAWCHORD - method to display chord plot
             obj.createAxis();
 
             obj.createNetworkCircle();
@@ -127,33 +102,11 @@ classdef ChordPlot < handle
         function value = get.number_of_networks(obj)
             value = obj.network_atlas.numNets();
         end
-
-        function value = get.ROI_size_radians(obj)
-            ROI_size_radians = 2 * pi / obj.number_of_ROIs;
-            value = ((2 * pi) - (obj.space_between_networks_radians * obj.number_of_networks)) ./ obj.number_of_ROIs;
-        end
-
-        function value = get.number_of_ROIs(obj)
-            value = obj.network_atlas.numROIs();
-        end
-
-        function value = get.network_size_radians_array(obj)
-            network_size = [];
-            for network = 1:obj.number_of_networks
-                network_size(network) = obj.network_atlas.nets(network).numROIs();
-            end
-            value = network_size .* obj.ROI_size_radians + obj.space_between_networks_radians;
-        end
-
-        function value = get.cumulative_network_size(obj)
-            value = cumsum(obj.network_size_radians_array);
-        end
         %%
     end
 
     methods (Access = protected)
         function createAxis(obj)
-            %CREATEAXIS - method that creates axis to square size of axis_width x axis_width
             axis(obj.axes, [-obj.axis_width / 2, obj.axis_width / 2, -obj.axis_width / 2, obj.axis_width / 2]);
             set(obj.axes, 'xtick', [], 'ytick', []);
             hold(obj.axes, 'on');
@@ -165,12 +118,11 @@ classdef ChordPlot < handle
         end
 
         function arc_points = generateArcSegmentWithCatch(obj, radius, angles, origin, arc_start, arc_end, points)
-            % Wrapper for generateArcSegment. Catches arcs with almost no angle or tiny radii
-
+            % Wrapper for generate ArcSegment. Catches arcs with almost no angle or tiny radii
             % ignore really tiny arcs
             if radius < 1e-10
                 arc_points = origin;
-            % Almost straight line/slope of 0
+            % Almost straight line
             elseif abs(angles(1) - angles(2)) < 1e-10
                 arc_points = [arc_start; arc_end];
             else
@@ -179,8 +131,6 @@ classdef ChordPlot < handle
         end
 
         function arc_points = generateArcSegment(obj, radius, angles, origin, points)
-            % generateArcSegment - creates arcs that make up sections of the network circle or the chords themselves
-
             if nargin <= 4
                 points = 50;
             end
@@ -198,13 +148,11 @@ classdef ChordPlot < handle
         end
 
         function arc = correctLoopedArc(obj, arc)
-            % Method used in conjunction with generateArcSegment to remove values over 2pi
             looped_around_indexes = arc > (2 * pi);
             arc(looped_around_indexes) = arc(looped_around_indexes) - (2 * pi);
         end
 
         function createNetworkCircle(obj)
-            % CREATENETWORKCIRCLE - creates the network circle that the chords will be drawn inside
             import nla.TriMatrix nla.TriMatrixDiag
             
             for network = 1:obj.number_of_networks
@@ -212,34 +160,23 @@ classdef ChordPlot < handle
                     network_start_radian = (network - 1) * obj.network_size_radians + (obj.space_between_networks_radians / 2);
                     network_end_radian = (network * obj.network_size_radians) - (obj.space_between_networks_radians / 2);
                 else
-                    network_outer_end_radians = obj.cumulative_network_size(network);
-                    network_start_radian = network_outer_end_radians - obj.network_size_radians_array(network) +...
-                        (obj.space_between_networks_radians / 2);
-                    obj.network_start_radian_array(network) = network_start_radian;
-                    network_end_radian = network_outer_end_radians - (obj.space_between_networks_radians / 2);
+                    
                 end
                 network_center_radian = (network_end_radian + network_start_radian) / 2;
-                % create outer and inner arcs
                 network_outer_arc = obj.generateArcSegment(obj.circle_radius, [network_start_radian, network_end_radian], [0, 0]);
                 network_inner_arc = obj.generateArcSegment(obj.inner_circle_radius, [network_start_radian, network_end_radian], [0, 0]);
-                % create polygon using the two arcs
                 polygon_points = [network_outer_arc; flip(network_inner_arc, 1)]; % flip inner around so that ends match up
                 polygon = polyshape(polygon_points(:, 1), polygon_points(:, 2));
-
                 network_color = obj.network_atlas.nets(network).color;
-                circle_plot = plot(obj.axes, polygon, "FaceColor", network_color, "EdgeColor", network_color, 'FaceAlpha', 1, 'EdgeAlpha', 1);
-                % If the network is white, outline it in black so that we can see it
-                if network_color == [1 1 1]
-                    circle_plot.EdgeColor = [0 0 0];
-                end
-
+                plot(obj.axes, polygon, "FaceColor", network_color, "EdgeColor", network_color, 'FaceAlpha', 1, 'EdgeAlpha', 1);
+                
                 % This arc is only three points, and we grab the middle one to center the name
                 text_position = obj.generateArcSegment(obj.text_radius, [network_start_radian, network_end_radian], [0, 0], 3);
                 text_position = text_position(2, :);
-                text_angle = network_center_radian + (pi / 2); % Want the name perpendicular to the arc
+                text_angle = network_center_radian + (pi / 2);
                 display_name = obj.network_atlas.nets(network).name;
 
-                obj.rotateNetworkNames(display_name, text_angle, text_position, network);
+                obj.rotateNetworkNames(display_name, text_angle, text_position);
             end
 
             % This is just a catch in case one of the connections goes a little over. This is a white circle around the interior of the
@@ -248,26 +185,13 @@ classdef ChordPlot < handle
                 'LineWidth', obj.space_between_networks_and_labels - 1);
         end
 
-        function rotateNetworkNames(obj, display_name, text_angle, text_position, network)
+        function rotateNetworkNames(obj, display_name, text_angle, text_position)
             % Rotates the network names to match the angle of the network circle and keep them right side up
             %   display_name - the display name for the network, usually some 3-4 letter abbreviation
             %   text_angle - the angle the name should be displayed
             %   text_position - where the name is displayed. A list or array of points
-            if obj.chord_type == nla.PlotType.CHORD_EDGE && (obj.network_size_radians_array(network) < 0.25) &&...
-                (strlength(display_name) > 5)
-                
-                if strlength(display_name) > 8
-                    display_name = sprintf("%.7s...", display_name);
-                end
-                text_angle = text_angle - (pi / 2);
-                if (text_angle > pi / 2) && (text_angle < 1.5 * pi)
-                    text_angle = text_angle - pi;
-                    text(text_position(1), text_position(2), display_name, 'HorizontalAlignment', 'right', 'Rotation',...
-                        rad2deg(text_angle));
-                else
-                    text(text_position(1), text_position(2), display_name, 'HorizontalAlignment', 'left', 'Rotation',...
-                        rad2deg(text_angle));
-                end
+            if obj.chord_type == nla.PlotType.CHORD_EDGE
+
             else
                 if text_position(2) > 0
                     text_angle = text_angle - pi;
@@ -282,7 +206,6 @@ classdef ChordPlot < handle
             % chords. I've tried to break it up in many functions and keep things organized.
             import nla.gfx.SigType nla.TriMatrix nla.TriMatrixDiag
 
-            % Sort the chords
             if obj.random_z_order
                 plot_network_indexes = randperm(numel(obj.plot_matrix.v));
             elseif obj.direction == SigType.INCREASING
@@ -293,25 +216,16 @@ classdef ChordPlot < handle
                 [~, plot_network_indexes] = sort(abs(obj.plot_matrix.v));
             end
 
-            % boolean array used to determine if networks connected
             networks_connected = false(obj.number_of_networks, obj.number_of_networks + 1);
 
-            if obj.chord_type == nla.PlotType.CHORD
-                % These two arrays are the networks individucally numbered. Taking the same index of both
-                % (in vector, network_array.v(idx)) gives the two networks we're testing
-                network_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-                network2_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-                % These two arrays set up the placement in each network arc the chords will begin and end.
-                % Again, taking the same index from both will give the start and end offsets within each arc
-                network_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-                network2_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            else
-                % These TriMatrix are to keep track of the ROIs for Edge Chord plots
-                row_matrix = TriMatrix(repelem(1:obj.number_of_ROIs, obj.number_of_ROIs, 1)');
-                column_matrix = TriMatrix(repelem(1:obj.number_of_ROIs, obj.number_of_ROIs, 1));
-                ROI_center_radians = [];
-                ROI_centers = [];
-            end
+            % These two arrays are the networks individucally numbered. Taking the same index of both
+            % (in vector, network_array.v(idx)) gives the two networks we're testing
+            network_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            network2_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            % These two arrays set up the placement in each network arc the chords will begin and end.
+            % Again, taking the same index from both will give the start and end offsets within each arc
+            network_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            network2_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
 
             for network = 1:obj.number_of_networks
                 if obj.chord_type == nla.PlotType.CHORD
@@ -329,14 +243,7 @@ classdef ChordPlot < handle
                         network2_indexes.set(network2, network, network2_index);
                     end
                 else
-                    for roi = 1:obj.network_atlas.nets(network).numROIs()
-                        ROI_center_radian = obj.network_start_radian_array(network) + (((roi - 1) * obj.ROI_size_radians)) +...
-                            (obj.ROI_size_radians / 2);
-                        ROI_center = obj.generateArcSegment((obj.inner_circle_radius + obj.chord_radius) / 2,...
-                            [ROI_center_radian, ROI_center_radian], [0, 0], 1);
-                        ROI_center_radians(obj.network_atlas.nets(network).indexes(roi)) = ROI_center_radian;
-                        ROI_centers(obj.network_atlas.nets(network).indexes(roi), :) = ROI_center;
-                    end
+
                 end
             end
 
@@ -393,8 +300,6 @@ classdef ChordPlot < handle
                         inner = obj.generateArcSegmentWithCatch(chord_inner_radius, chord_inner_start_end_radian,...
                             chord_inner_origin, chord2_start_cartesian, chord2_end_cartesian, 50);
                         % We reverse the end and start because we want them to be a continuous shape, not two seperate shapes
-                        % Without this, the arcs that are close to a straight line will be a straight line, and the other half of
-                        % it will be an arc. Putting two chords (half the size) in place of one
                         outer = obj.generateArcSegmentWithCatch(chord_outer_radius, [chord_outer_start_end_radian(2),...
                             chord_outer_start_end_radian(1)], chord_outer_origin, chord1_end_cartesian,...
                             chord1_start_cartesian, 50);
@@ -405,29 +310,8 @@ classdef ChordPlot < handle
                         plot(obj.axes, mesh, 'FaceAlpha', network_alpha, 'FaceColor', network_color,...
                             'EdgeAlpha', network_alpha, 'EdgeColor', network_color);
                     else
-                        column = column_matrix.v(index);
-                        row = row_matrix.v(index);
 
-                        column_center_radians = ROI_center_radians(column);
-                        row_center_radians = ROI_center_radians(row);
-
-                        column_arc = obj.generateArcSegment(obj.chord_radius + 1, [column_center_radians, column_center_radians],...
-                            [0, 0], 1);
-                        row_arc = obj.generateArcSegment(obj.chord_radius + 1, [row_center_radians, row_center_radians],...
-                            [0, 0], 1);
-
-                        [arc_origin, arc_radius, arc_start_end_radian] = obj.findChordParameters(row_arc, column_arc);
-                        arc = obj.generateArcSegmentWithCatch(arc_radius, arc_start_end_radian, arc_origin, row_arc, column_arc, 50);
-                        plot_color = [network_color(:); network_alpha];
-                        plot(obj.axes, arc(:, 1), arc(:, 2), 'LineWidth', 2, 'Color', plot_color);
                     end
-                end
-            end
-
-            if obj.chord_type == nla.PlotType.CHORD_EDGE
-                % This is the inner circle of dots for the rois on the edge chord circle
-                for roi = 1:obj.number_of_ROIs
-                    plot(obj.axes, ROI_centers(roi, 1), ROI_centers(roi, 2), '.k', 'MarkerSize', 3);
                 end
             end
         end
@@ -441,9 +325,7 @@ classdef ChordPlot < handle
             % Point1 and Point2 are cartesian coordinates both connected to [0, 0];
             % The slope of the tangent lines are then just y / x for both
             % The radius of the circle we're looking for is equidistant from both, 
-            % and the connections are perpendicular (tangents are always
-            % perpendicular to the radius). So their slopes are -x / y (perpendicular lines have
-            % negative-reciprocal slopes)
+            % and the connections are perpendicular. So their slopes are -x / y
             slope1 = point1(2) / point1(1);
             slope2 = point2(2) / point2(1);
             m1 = (-1 / slope1);
@@ -452,7 +334,7 @@ classdef ChordPlot < handle
             point1_center_y_intercept = point1(2) + (1 / slope1) * point1(1);
 
             % This is all basic geometry. y = mx + b. Since we're looking for the intersection
-            % we can set both lines equal to each other. Two equations, two unknownss, solve for x.
+            % we can set both lines equal to each. Solve for x. Then plug it back in for y
             % Geometry 101 FTW!!!
             x = (point2(2) - point1(2) + m1 * point1(1) - m2 * point2(1)) / (m1 - m2);
             y = m1 * x + point1_center_y_intercept;

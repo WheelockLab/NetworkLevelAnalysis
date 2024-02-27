@@ -135,7 +135,7 @@ classdef BasePermResult < nla.TestResult
             end
         end
         
-        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result)
+        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result, ax)
             import nla.* % required due to matlab package system quirks
             
             %% callback function
@@ -148,7 +148,12 @@ classdef BasePermResult < nla.TestResult
             
             %% trimatrix plot
             [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
-            [w, h] = gfx.drawMatrixOrg(fig, x, y, name_label, plot_mat, 0, plot_max, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
+            matrix_plot = gfx.plots.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, gfx.FigSize.SMALL,...
+                'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', plot_sig, 'draw_legend', false,...
+                'color_map', cm, 'lower_limit', 0, 'upper_limit', plot_max, 'x_position', x, 'y_position', y);
+            matrix_plot.displayImage();
+            w = matrix_plot.image_dimensions("image_width");
+            h = matrix_plot.image_dimensions("image_height");
         end
         
         function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
@@ -184,7 +189,10 @@ classdef BasePermResult < nla.TestResult
                 plot_mat2 = copy(plot_mat);
                 plot_mat2.v(~plot_sig.v) = insignificant;
                 
-                gfx.drawChord(ax, 500, net_atlas, plot_mat2, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
+%                 gfx.drawChord(ax, 500, net_atlas, plot_mat2, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
+                chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 500, plot_mat2, 'direction', sig_type, 'color_map', cm,...
+                    'lower_limit', coeff_bounds(1), 'upper_limit', coeff_bounds(2));
+                chord_plotter.drawChords();
             else
                 if isfield(input_struct, 'edge_chord_plot_method')
                     edge_plot_type = input_struct.edge_chord_plot_method;
@@ -311,8 +319,11 @@ classdef BasePermResult < nla.TestResult
                 waitbar(0.95);
                 close(f)
             end
-            gfx.drawMatrixOrg(fig, 25, bottom_text_height, name_label, plot_mat, coeff_bounds(1), coeff_bounds(2), net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, cm, plot_sig, false, @brainFigsButtonClickedCallback);
-            
+            matrix_plot = nla.gfx.plots.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, nla.gfx.FigSize.SMALL,...
+                'y_position', bottom_text_height, 'lower_limit', coeff_bounds(1), 'upper_limit', coeff_bounds(2), 'draw_legend', false,...
+                'color_map', cm, 'marked_networks', plot_sig, 'network_clicked_callback', @brainFigsButtonClickedCallback);
+            matrix_plot.displayImage();
+
             %% Plot names
             text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
             gfx.hideAxes(text_ax);
