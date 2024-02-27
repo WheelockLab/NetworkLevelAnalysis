@@ -1,3 +1,4 @@
+
 classdef BasePermResult < nla.TestResult
     %BASEPERMRESULT Permuted net-level result
     
