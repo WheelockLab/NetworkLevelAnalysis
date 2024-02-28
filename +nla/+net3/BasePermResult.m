@@ -273,7 +273,10 @@ classdef BasePermResult < nla.TestResult
                 
                 if split_plot
                     % plot positive chord
-                    gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                    positive_chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped_pos,...
+                        'direction', sig_type, 'color_map', cm_edge, 'chord_type', chord_type, 'upper_limit', coeff_max, 'lower_limit', coeff_min);
+                    positive_chord_plotter.drawChords();
+                    % gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
                     gfx.setTitle(ax, title_pos_main);
                     
                     % make new axes for other chord plot, shifted right
