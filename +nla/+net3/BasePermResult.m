@@ -282,7 +282,9 @@ classdef BasePermResult < nla.TestResult
                     ax.Visible = true; % to show title
                 end
 
-                gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped, 'direction', sig_type, 'color_map', cm_edge, 'upper_limit', coeff_max, 'lower_limit', coeff_min, 'chord_type', chord_type);
+                chord_plotter.drawChords();
+                % gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
                 gfx.setTitle(ax, title_main);
                 
                 colormap(ax, cm_edge);
