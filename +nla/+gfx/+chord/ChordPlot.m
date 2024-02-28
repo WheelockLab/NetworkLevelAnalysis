@@ -23,6 +23,10 @@ classdef ChordPlot < handle
         network_size_radians
         network_pair_size_radians
         number_of_networks
+        ROI_size_radians
+        cumulative_network_size
+        network_size_radians_array
+        number_of_ROIs
     end
 
     properties (Constant)
@@ -102,6 +106,27 @@ classdef ChordPlot < handle
         function value = get.number_of_networks(obj)
             value = obj.network_atlas.numNets();
         end
+
+        function value = get.ROI_size_radians(obj)
+            ROI_size_radians = 2 * pi / obj.number_of_ROIs;
+            value = ((2 * pi) - (obj.space_between_networks_radians * obj.number_of_networks)) ./ obj.number_of_ROIs;
+        end
+
+        function value = get.number_of_ROIs(obj)
+            value = obj.network_atlas.numROIs();
+        end
+
+        function value = get.network_size_radians_array(obj)
+            network_size = [];
+            for network = 1:obj.number_of_networks
+                network_size(network) = obj.network_atlas.nets(network).numROIs();
+            end
+            value = network_size .* obj.ROI_size_radians + obj.space_between_networks_radians;
+        end
+
+        function value = get.cumulative_network_size(obj)
+            value = cumsum(obj.network_size_radians_array);
+        end
         %%
     end
 
@@ -160,7 +185,10 @@ classdef ChordPlot < handle
                     network_start_radian = (network - 1) * obj.network_size_radians + (obj.space_between_networks_radians / 2);
                     network_end_radian = (network * obj.network_size_radians) - (obj.space_between_networks_radians / 2);
                 else
-                    
+                    network_outer_end_radians = obj.cumulative_network_size(network);
+                    network_start_radian = network_outer_end_radians - obj.network_size_radians_array;
+                    network_start_radian_array(network) = network_start_radian;
+                    network_end_radian = network_outer_end_radians - (obj.space_between_networks_radians / 2);
                 end
                 network_center_radian = (network_end_radian + network_start_radian) / 2;
                 network_outer_arc = obj.generateArcSegment(obj.circle_radius, [network_start_radian, network_end_radian], [0, 0]);
@@ -176,7 +204,7 @@ classdef ChordPlot < handle
                 text_angle = network_center_radian + (pi / 2);
                 display_name = obj.network_atlas.nets(network).name;
 
-                obj.rotateNetworkNames(display_name, text_angle, text_position);
+                obj.rotateNetworkNames(display_name, text_angle, text_position, network, network_size_radians_array);
             end
 
             % This is just a catch in case one of the connections goes a little over. This is a white circle around the interior of the
@@ -185,13 +213,26 @@ classdef ChordPlot < handle
                 'LineWidth', obj.space_between_networks_and_labels - 1);
         end
 
-        function rotateNetworkNames(obj, display_name, text_angle, text_position)
+        function rotateNetworkNames(obj, display_name, text_angle, text_position, network, network_size_radians_array)
             % Rotates the network names to match the angle of the network circle and keep them right side up
             %   display_name - the display name for the network, usually some 3-4 letter abbreviation
             %   text_angle - the angle the name should be displayed
             %   text_position - where the name is displayed. A list or array of points
-            if obj.chord_type == nla.PlotType.CHORD_EDGE
-
+            if obj.chord_type == nla.PlotType.CHORD_EDGE && (network_size_radians_array(network) < 0.25) &&...
+                (strlength(display_name) > 5)
+                
+                if strlength(display_name) > 8
+                    display_name = sprintf("%.7s...", display_name);
+                end
+                text_angle = text_angle - (pi / 2);
+                if (text_angle > pi / 2) && (text_angle < 1.5 * pi)
+                    text_angle = text_angle - pi;
+                    text(text_position(1), text_position(2), display_name, 'HorizontalAlignment', 'right', 'Rotation',...
+                        rad2deg(text_angle));
+                else
+                    text(text_position(1), text_position(2), display_name, 'HorizontalAlignment', 'left', 'Rotation',...
+                        rad2deg(text_angle));
+                end
             else
                 if text_position(2) > 0
                     text_angle = text_angle - pi;
@@ -227,6 +268,13 @@ classdef ChordPlot < handle
             network_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
             network2_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
 
+            if obj.chord_type == nla.PlotType.CHORD_EDGE
+                row_matrix = TriMatrix(repelem(1:obj.number_of_ROIs, obj.number_of_ROIs, 1)');
+                column_matrix = TriMatrix(repelem(1:obj.number_of_ROIs, obj.number_of_ROIs, 1));
+            end
+
+            ROI_center_radians = [];
+            ROI_centers = [];
             for network = 1:obj.number_of_networks
                 if obj.chord_type == nla.PlotType.CHORD
                     % These fill in the four networks above.
@@ -243,7 +291,14 @@ classdef ChordPlot < handle
                         network2_indexes.set(network2, network, network2_index);
                     end
                 else
-
+                    for roi = 1:obj.number_of_ROIs
+                        ROI_center_radian = obj.network_start_radian_array(network) + (((roi - 1) * obj.ROI_size_radians)) +...
+                            (obj.ROI_size_radians / 2);
+                        ROI_center = obj.generateArcSegment((obj.inner_circle_radius + obj.chord_radius / 2),...
+                            [ROI_center_radians, ROI_center_radians], [0, 0]);
+                        ROI_centers_radians(obj.network_atlas(network).indexes(roi)) = ROI_center_radian;
+                        ROI_centers(obj.network_atlas(network).indexes(roi), :) = ROI_center;
+                    end
                 end
             end
 
@@ -310,7 +365,21 @@ classdef ChordPlot < handle
                         plot(obj.axes, mesh, 'FaceAlpha', network_alpha, 'FaceColor', network_color,...
                             'EdgeAlpha', network_alpha, 'EdgeColor', network_color);
                     else
+                        column = column_matrix.v(index);
+                        row = row_matrix.v(index);
 
+                        column_center_radians = ROI_center_radians(column);
+                        row_center_radians = ROI_center_radians(row);
+
+                        column_arc = obj.generateArcSegment(obj.chord_radius + 1, [column_center_radians, column_center_radians],...
+                            [0, 0], 1);
+                        row_arc = obj.generateArcSegment(obj.chord_radius + 1, [row_center_radians, row_center_radians],...
+                            [0, 0], 1);
+
+                        [arc_origin, arc_radius, arc_start_end_radian] = obj.findChordParameters(row_arc, column_arc);
+                        arc = obj.generateArcSegmentWithCatch(arc_radius, arc_start_end_radian, arc_origin, row_arc, column_arc, 50);
+                        plot_color = [network_color(:); network_alpha];
+                        plot(obj.axes, arc(:, 1), arc(:, 2), 'LineWidth', 2, 'Color', network_color);
                     end
                 end
             end
