@@ -165,11 +165,12 @@ classdef ChordPlot < handle
         end
 
         function arc_points = generateArcSegmentWithCatch(obj, radius, angles, origin, arc_start, arc_end, points)
-            % Wrapper for generate ArcSegment. Catches arcs with almost no angle or tiny radii
+            % Wrapper for generateArcSegment. Catches arcs with almost no angle or tiny radii
+
             % ignore really tiny arcs
             if radius < 1e-10
                 arc_points = origin;
-            % Almost straight line
+            % Almost straight line/slope of 0
             elseif abs(angles(1) - angles(2)) < 1e-10
                 arc_points = [arc_start; arc_end];
             else
@@ -440,7 +441,9 @@ classdef ChordPlot < handle
             % Point1 and Point2 are cartesian coordinates both connected to [0, 0];
             % The slope of the tangent lines are then just y / x for both
             % The radius of the circle we're looking for is equidistant from both, 
-            % and the connections are perpendicular. So their slopes are -x / y
+            % and the connections are perpendicular (tangents are always
+            % perpendicular to the radius). So their slopes are -x / y (perpendicular lines have
+            % negative-reciprocal slopes)
             slope1 = point1(2) / point1(1);
             slope2 = point2(2) / point2(1);
             m1 = (-1 / slope1);
@@ -449,7 +452,7 @@ classdef ChordPlot < handle
             point1_center_y_intercept = point1(2) + (1 / slope1) * point1(1);
 
             % This is all basic geometry. y = mx + b. Since we're looking for the intersection
-            % we can set both lines equal to each. Solve for x. Then plug it back in for y
+            % we can set both lines equal to each other. Two equations, two unknownss, solve for x.
             % Geometry 101 FTW!!!
             x = (point2(2) - point1(2) + m1 * point1(1) - m2 * point2(1)) / (m1 - m2);
             y = m1 * x + point1_center_y_intercept;
