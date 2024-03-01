@@ -88,7 +88,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags);
+                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result,...
+                    updated_test_options, flags);
             end
             %%
 
@@ -170,6 +171,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 names, significance, name);
         end
 
+        %%
+        % getters for dependent properties
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
