@@ -88,7 +88,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags);
+                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result,...
+                    updated_test_options, flags);
             end
             %%
 
