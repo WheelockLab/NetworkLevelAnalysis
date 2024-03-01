@@ -76,10 +76,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
-            % We need the no-permutations vs. network size no matter what, so we're just doing it here.
-            p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
-                "p_value");
-
             % Cohen's D results for markers
             cohens_d_filter = TriMatrix(network_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
             if ~obj.is_noncorrelation_input
@@ -89,22 +85,21 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, p_value_vs_network_size_parameters, edge_test_options,...
-                    edge_test_result, updated_test_options, flags);
+                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags);
             end
             %%
 
             %%
             % Full Connectome Plotting
             if isfield(flags, "show_full_conn") && flags.show_full_conn
-                obj.fullConnectomePlotting(edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags);       
+                obj.fullConnectomePlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags);       
             end
             %%
 
             %%
             % Within network pair plotting
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                obj.withinNetworkPairPlotting(edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags);
+                obj.withinNetworkPairPlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags);
             end
             %%
         end
@@ -254,23 +249,23 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function noPermutationsPlotting(obj, plot_parameters, vs_network_plot_parameters, edge_test_options,...
-            edge_test_result, updated_test_options, flags)
+        function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
             import nla.gfx.createFigure nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
+            
+            % Get the plot parameters (titles, stats, labels, max, min, etc)
+            plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
+            p_value = "p_value";
+            if ~obj.is_noncorrelation_input
+                p_value = "single_sample_p_value";
+            end
+            
+            p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
+                "no_permutations", p_value, plot_title, updated_test_options.fdr_correction, false);
 
             % No permutations results
             if flags.plot_type == nla.PlotType.FIGURE
                 plot_figure = createFigure(500, 900);
 
-                % Get the plot parameters (titles, stats, labels, max, min, etc)
-                plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
-                p_value = "p_value";
-                if ~obj.is_noncorrelation_input
-                    p_value = "single_sample_p_value";
-                end
-
-                p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                    "no_permutations", p_value, plot_title, updated_test_options.fdr_correction, false);
                 p_value_vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                     p_value);
                 plotter = NoPermutationPlotter(plot_parameters.network_atlas);
@@ -291,32 +286,33 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 if isfield(updated_test_options, 'edge_chord_plot_method')
                     p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
                 end
-                chord_plotter = ChordPlotter(network_atlas, edge_test_result);
+                chord_plotter = ChordPlotter(plot_parameters.network_atlas, edge_test_result);
                 chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
             end
         end
 
-        function fullConnectomePlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
+        function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
             import nla.net.result.chord.ChordPlotter
 
             plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
             plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
+
+            % This is the object that will do the calculations for the plots
+            result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
+
+            % Get the plot parameters (titles, stats, labels, etc.)
+            %TODO: why do we use no fdr here?
+            full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
+                edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title,...
+                nla.net.mcc.None(), false);
+
+            % Mark the probability trimatrix with cohen's d results
+            full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+                edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
+                nla.net.mcc.None(), cohens_d_filter);
+
             if flags.plot_type == nla.PlotType.FIGURE
-
-                % This is the object that will do the calculations for the plots
-                result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
-
-                % Get the plot parameters (titles, stats, labels, etc.)
-                %TODO: why do we use no fdr here?
-                full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
-                    edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title,...
-                    nla.net.mcc.None(), false);
-
-                % Mark the probability trimatrix with cohen's d results
-                full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                    edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
-                    nla.net.mcc.None(), cohens_d_filter);
                 
                 p_value = "p_value";
                 if ~obj.is_noncorrelation_input
@@ -375,27 +371,27 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function withinNetworkPairPlotting(obj, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
+        function withinNetworkPairPlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
             import nla.net.result.chord.ChordPlotter
 
             plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
 
+            result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
+
+            within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
+                "within_network_pair", "p_value");
+
+            within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
+                edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction, false);
+
+            plot_title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
+                updated_test_options.d_max);
+            within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+                edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title,...
+                updated_test_options.fdr_correction, cohens_d_filter);
+
             if flags.plot_type == nla.PlotType.FIGURE
-
-                result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
-
-                within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
-                    "within_network_pair", "p_value");
-
-                within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                    edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction, false);
-
-                plot_title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
-                    updated_test_options.d_max);
-                within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                    edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title,...
-                    updated_test_options.fdr_correction, cohens_d_filter);
 
                 plotter = WithinNetworkPairPlotter(edge_test_options.net_atlas);
                 y_coordinate = 425;
