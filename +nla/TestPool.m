@@ -54,6 +54,15 @@ classdef TestPool < nla.DeepCopyable
             % passed in, is set from current date/time and thus will
             % produce different results, assuming you don't run it twice at
             % the same time
+            
+            %If precalculated, just build edge results from precalculated
+            %permuted results and combine in a PermBase object
+            
+            if isa(obj.edge_test, 'nla.edge.test.Precalculated')
+                edge_result_perm = obj.buildEdgePermResultFromPrecalcData(input_struct);
+                return;
+            end
+            
             if ~exist('perm_seed', 'var') || islogical(perm_seed)
                 rng(posixtime(datetime()));
                 perm_seed = randi(intmax('uint32'), 'uint32');
@@ -89,7 +98,7 @@ classdef TestPool < nla.DeepCopyable
             end
             
             network_result_blocks = {};
-            for process = 1:num_procs
+            parfor process = 1:num_procs
                 network_results = obj.runNetTestsPermBlock(net_input_struct, net_atlas, allEdgeResBlocks{process}, blocks(process));
                 network_result_blocks{process} = network_results;
             end
@@ -164,6 +173,32 @@ classdef TestPool < nla.DeepCopyable
         
         function val = numNetTests(obj)
             val = numel(obj.net_tests);
+        end
+        
+        function perm_edge_results = buildEdgePermResultFromPrecalcData(obj, input_struct)
+            perm_edge_results = nla.edge.result.PermBase();
+            
+            perm_edge_results.coeff = input_struct.precalc_perm_coeff;
+            perm_edge_results.prob_sig = input_struct.precalc_perm_p;
+            
+            %Make placeholder data for prob field. Since no actual values
+            %from input_struct, approximate using inverse of prob_sig
+            %(matches behavior in run function of precalculated edge test
+            perm_edge_results.prob = input_struct.precalc_perm_p.copy();
+            perm_edge_results.prob.v = ~perm_edge_results.prob.v;
+                        
+            %calc avg prob_sig for each subject
+            numSubj = size(perm_edge_results.coeff.v,2);
+            perm_edge_results.avg_prob_sig = zeros(1, numSubj);
+            for i = 1:numSubj
+                thisProbSig = perm_edge_results.prob_sig.v(:,i);
+                
+                perm_edge_results.avg_prob_sig(i) = sum(thisProbSig) / numel(thisProbSig);
+                
+            end      
+            
+            perm_edge_results.perm_count = size(input_struct.precalc_perm_coeff.v,2);
+            
         end
         
         function val = containsSigBasedNetworkTest(obj)
