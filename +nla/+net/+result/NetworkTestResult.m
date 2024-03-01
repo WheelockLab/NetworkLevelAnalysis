@@ -85,21 +85,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags);
+                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result,...
+                    updated_test_options, flags);
             end
             %%
 
             %%
             % Full Connectome Plotting
             if isfield(flags, "show_full_conn") && flags.show_full_conn
-                obj.fullConnectomePlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags);       
+                obj.fullConnectomePlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options,...
+                    cohens_d_filter, flags);       
             end
             %%
 
             %%
             % Within network pair plotting
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                obj.withinNetworkPairPlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags);
+                obj.withinNetworkPairPlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options,...
+                    cohens_d_filter, flags);
             end
             %%
         end
@@ -165,6 +168,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 names, significance, name);
         end
 
+        %%
+        % getters for dependent properties
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "p_value_permutations") &&...
@@ -182,6 +187,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % Convenience method to determine if inputs were correlation coefficients, or "significance" values
             value = any(strcmp(obj.noncorrelation_input_tests, obj.test_name));
         end
+        %%
     end
 
     methods (Access = private)
