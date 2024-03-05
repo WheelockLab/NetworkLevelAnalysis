@@ -188,8 +188,10 @@ classdef BasePermResult < nla.TestResult
                 % plots
                 plot_mat2 = copy(plot_mat);
                 plot_mat2.v(~plot_sig.v) = insignificant;
-                
-                gfx.drawChord(ax, 500, net_atlas, plot_mat2, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
+
+                chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 500, plot_mat2, 'direction', sig_type, 'color_map', cm,...
+                    'lower_limit', coeff_bounds(1), 'upper_limit', coeff_bounds(2));
+                chord_plotter.drawChords();
             else
                 if isfield(input_struct, 'edge_chord_plot_method')
                     edge_plot_type = input_struct.edge_chord_plot_method;
@@ -277,7 +279,9 @@ classdef BasePermResult < nla.TestResult
                 
                 if split_plot
                     % plot positive chord
-                    gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                    positive_chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped_pos,...
+                        'direction', sig_type, 'color_map', cm_edge, 'chord_type', chord_type, 'upper_limit', coeff_max, 'lower_limit', coeff_min);
+                    positive_chord_plotter.drawChords();
                     gfx.setTitle(ax, title_pos_main);
                     
                     % make new axes for other chord plot, shifted right
@@ -286,7 +290,8 @@ classdef BasePermResult < nla.TestResult
                     ax.Visible = true; % to show title
                 end
 
-                gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
+                chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped, 'direction', sig_type, 'color_map', cm_edge, 'upper_limit', coeff_max, 'lower_limit', coeff_min, 'chord_type', chord_type);
+                chord_plotter.drawChords();
                 gfx.setTitle(ax, title_main);
                 
                 colormap(ax, cm_edge);
@@ -318,7 +323,7 @@ classdef BasePermResult < nla.TestResult
             end
             matrix_plot = nla.gfx.plots.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, nla.gfx.FigSize.SMALL,...
                 'y_position', bottom_text_height, 'lower_limit', coeff_bounds(1), 'upper_limit', coeff_bounds(2), 'draw_legend', false,...
-                'color_map', cm, 'marked_networks', plot_sig, 'network_clicked_callback', @brainFigsButtonClickedCallback)
+                'color_map', cm, 'marked_networks', plot_sig, 'network_clicked_callback', @brainFigsButtonClickedCallback);
             matrix_plot.displayImage();
 
             %% Plot names

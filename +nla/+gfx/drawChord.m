@@ -21,7 +21,6 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_
     if ~exist('coeff_min', 'var'), coeff_min = 0; end
     if ~exist('coeff_max', 'var'), coeff_max = 1; end
     if ~exist('representative', 'var'), representative = false; end
-    
     axis(ax, [-ax_width / 2, ax_width / 2, -ax_width / 2, ax_width / 2]);
     set(ax,'xtick',[],'ytick',[])
     hold(ax, 'on');
@@ -198,11 +197,11 @@ function drawChord(ax, ax_width, net_atlas, sig_mat, color_map, sig_type, chord_
                 np2_end = np2_points(2,:);
 
                 %% generate connecting circles between inner/outer points
-                [inner_origin, inner_origin_rad, inner_radius] = gfx.findCircleFromTwoTangents(np2_start, np1_end, np2_start_rad + pi, np1_end_rad);
-                inner = gfx.genArcSegmentHandlePoorlyDefined(inner_origin, inner_origin_rad, inner_radius, np1_end, np2_start, 50);
-                
+                [inner_origin, inner_origin_rad, inner_radius] = nla.gfx.findCircleFromTwoTangents(np2_start, np1_end, np2_start_rad + pi, np1_end_rad);
+                inner = nla.gfx.genArcSegmentHandlePoorlyDefined(inner_origin, inner_origin_rad, inner_radius, np1_end, np2_start, 50);
+
                 [outer_origin, outer_origin_rad, outer_radius] = gfx.findCircleFromTwoTangents(np2_end, np1_start, np2_end_rad + pi, np1_start_rad);
-                outer = gfx.genArcSegmentHandlePoorlyDefined(outer_origin, outer_origin_rad, outer_radius, np1_start, np2_end, 50);
+                outer = nla.gfx.genArcSegmentHandlePoorlyDefined(outer_origin, outer_origin_rad, outer_radius, np1_start, np2_end, 50);
                 
                 %% construct mesh
                 poly_verts = [outer; flip(inner, 1)];
