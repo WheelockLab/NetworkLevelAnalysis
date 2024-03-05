@@ -1,0 +1,19 @@
+name: export-mlapp-files
+run-name: Exporting .mlapp files to .m files
+on: [push]
+jobs:
+  export-mlapp-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Matlab
+        uses: matlab-actions/setup-matlab@v2
+      - name: Export NLA_GUI.mlapp
+        uses: matlab-actions/run-command@v2
+        with:
+          command: type NLA_GUI.mlapp > NLA_GUI_exported.m
+      - name: Export NLAResult.mlapp
+        uses: matlab-actions/run-command@v2
+        with:
+          command: type NLAResult.mlapp > NLAResult_exported.m
