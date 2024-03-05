@@ -188,8 +188,7 @@ classdef BasePermResult < nla.TestResult
                 % plots
                 plot_mat2 = copy(plot_mat);
                 plot_mat2.v(~plot_sig.v) = insignificant;
-                
-%                 gfx.drawChord(ax, 500, net_atlas, plot_mat2, cm, sig_type, chord_type, coeff_bounds(1), coeff_bounds(2));
+
                 chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 500, plot_mat2, 'direction', sig_type, 'color_map', cm,...
                     'lower_limit', coeff_bounds(1), 'upper_limit', coeff_bounds(2));
                 chord_plotter.drawChords();
@@ -283,7 +282,6 @@ classdef BasePermResult < nla.TestResult
                     positive_chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped_pos,...
                         'direction', sig_type, 'color_map', cm_edge, 'chord_type', chord_type, 'upper_limit', coeff_max, 'lower_limit', coeff_min);
                     positive_chord_plotter.drawChords();
-                    % gfx.drawChord(ax, 450, net_atlas, vals_clipped_pos, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
                     gfx.setTitle(ax, title_pos_main);
                     
                     % make new axes for other chord plot, shifted right
@@ -294,7 +292,6 @@ classdef BasePermResult < nla.TestResult
 
                 chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped, 'direction', sig_type, 'color_map', cm_edge, 'upper_limit', coeff_max, 'lower_limit', coeff_min, 'chord_type', chord_type);
                 chord_plotter.drawChords();
-                % gfx.drawChord(ax, 450, net_atlas, vals_clipped, cm_edge, sig_type, chord_type, coeff_min, coeff_max);
                 gfx.setTitle(ax, title_main);
                 
                 colormap(ax, cm_edge);
