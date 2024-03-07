@@ -561,6 +561,7 @@ classdef MatrixPlot < handle
 
             caxis(obj.axes, [0, 1]);
 
+            
             % Callback for clicking on the colorbar.
             function changeColorLimits(~, ~)
                 prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
