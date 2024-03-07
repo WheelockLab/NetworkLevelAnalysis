@@ -300,8 +300,8 @@ classdef MatrixPlot < handle
                 upper_value = obj.upper_limit;
                 lower_value = obj.lower_limit;
             else
-                upper_value = str2num(varargin{2});
-                lower_value = str2num(varargin{1});
+                upper_value = str2double(varargin{2});
+                lower_value = str2double(varargin{1});
             end
             number_of_networks = obj.number_networks;
             dimensions = obj.image_dimensions;
@@ -511,7 +511,7 @@ classdef MatrixPlot < handle
                 labels{tick + 1} = sprintf("%.2g", lower_value + (tick * ((double(upper_value - lower_value) / number_of_ticks))));
             end
             obj.color_bar.TickLabels = labels;
-
+            
             dimensions = obj.image_dimensions;
             obj.color_bar.Units = 'pixels';
             obj.color_bar.Location = 'east';
@@ -520,12 +520,16 @@ classdef MatrixPlot < handle
             obj.color_bar.Position = [obj.color_bar.Position(1) - dimensions("offset_x"),...
                 obj.color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width,...
                 dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
+            obj.color_bar.Title.Position(2) = 0 - dimensions("offset_y") * 2 / 3;
+            obj.color_bar.Title.String = sprintf("Click to\nchange scale\n");
+            obj.color_bar.Title.FontSize = 7;
 
             % Enables callback for clicking on colorbar to scale data
             set(obj.color_bar, 'ButtonDownFcn', @changeColorLimits)
 
             caxis(obj.axes, [0, 1]);
 
+            
             % Callback for clicking on the colorbar.
             function changeColorLimits(~, ~)
                 prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
