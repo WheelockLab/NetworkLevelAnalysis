@@ -91,24 +91,24 @@ obj = nla.gfx.plots.MatrixPlot(fig_l, "FC Average", fc_avg, net_atlas.nets, gfx.
 obj.displayImage()
 drawnow();
 
-%% Visualize network/ROI locations
-gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
-gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 1, 4, true);
-drawnow();
+% %% Visualize network/ROI locations
+% gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
+% gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 1, 4, true);
+% drawnow();
 
-%% Run tests
-edge_result = tests.runEdgeTest(input_struct);
-net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false);
+% %% Run tests
+% edge_result = tests.runEdgeTest(input_struct);
+% net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false);
 
-% Run test pool, permuting data n times
-results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 100);
+% % Run test pool, permuting data n times
+% results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 100);
 
-%% Visualize results
-% Warning: Will produce a large amount of figures. You are advised to use
-% the GUI to visualize results, or to use the output calls of individual
-% result objects.
-results.output();
+% %% Visualize results
+% % Warning: Will produce a large amount of figures. You are advised to use
+% % the GUI to visualize results, or to use the output calls of individual
+% % result objects.
+% results.output();
 
-%% Save results
-% Should be able to visualize this result file by loading it into the GUI
-results.to_file('myresults.mat');
+% %% Save results
+% % Should be able to visualize this result file by loading it into the GUI
+% results.to_file('myresults.mat');
