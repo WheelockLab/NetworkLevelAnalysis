@@ -57,8 +57,7 @@ classdef ResultRank < handle
                 % statistic ranking
                 if obj.permuted_network_results.test ~= "Hypergeometric"
                     combined_statistics = [obj.permuted_network_results.(statistic).v(:); obj.nonpermuted_network_results.(nonpermuted_statistic).v(index)];
-                    [sorted_combined_statistics, ~] = sort(combined_statistics);
-                    ranking.perm_stat_ew.v(index) = sum(abs(squeeze(sorted_combined_statistics)) >= abs(obj.nonpermuted_network_results.(nonpermuted_statistic).v(index))) / (1 + obj.permutations * obj.number_of_network_pairs);
+                    ranking.perm_stat_ew.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(obj.nonpermuted_network_results.(nonpermuted_statistic).v(index))) / (1 + obj.permutations * obj.number_of_network_pairs);
                 end
                 % p-value ranking
                 combined_probabilities = [obj.permuted_network_results.(permuted_probabilites).v(:); obj.nonpermuted_network_results.(nonpermuted_probability).v(index)];
