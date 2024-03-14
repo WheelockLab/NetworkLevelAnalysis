@@ -56,7 +56,11 @@ classdef CohenD < nla.net.BasePermResult
                         obj.plotValsVsNetSize(net_atlas, subplot(2,1,2), obj.d, "Full Connectome Observed Cohen's D vs. Net-Pair Size", "Cohen's D", "Cohen's D effect sizes");
 
                         %% Matrix plot
-                        gfx.drawMatrixOrg(fig, 0, 525, name_label, obj.d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], d_sig, false, @brainFigsButtonClickedCallback);
+                        matrix_plot = gfx.plots.MatrixPlot(fig, name_label, obj.d, net_atlas.nets, gfx.FigSize.SMALL,...
+                        'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', d_sig,...
+                        'draw_legend', false, 'color_map', [1,1,1;parula(256)], 'lower_limit', input_struct.d_max,...
+                        'upper_limit', 1, 'x_position', 0, 'y_position', 525);
+                        matrix_plot.displayImage();
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, d_sig, obj.d, input_struct.d_max, [1,1,1;parula(256)], name_label, true, flags.plot_type);
                     end
@@ -70,7 +74,12 @@ classdef CohenD < nla.net.BasePermResult
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Within Net-Pair statistics (withinNP)
                         fig = gfx.createFigure();
-                        [fig.Position(3), fig.Position(4)] = gfx.drawMatrixOrg(fig, 0, 0, name_label, obj.within_np_d, input_struct.d_max, 1, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, [1,1,1;parula(256)], within_np_d_sig, false, @brainFigsButtonClickedCallback);
+                        matrix_plot2 = gfx.plots.MatrixPlot(fig, name_label, obj.within_np_d, net_atlas.nets, gfx.FigSize.SMALL,...
+                            'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', within_np_d_sig,...
+                            'draw_legend', false, 'color_map', [1,1,1;parula(256)], 'upper_limit', input_struct.d_max, 'lower_limit', 1);
+                        fig.Position(3) = matrix_plot2.image_dimensions("image_width");
+                        fig.Position(4) = matrix_plot2.image_dimensions("image_height");
+                        matrix_plot2.displayImage();
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         obj.genChordPlotFig(edge_input_struct, input_struct, net_atlas, edge_result, within_np_d_sig, obj.within_np_d, input_struct.d_max, [1,1,1;parula(256)], name_label, true, flags.plot_type);
                     end

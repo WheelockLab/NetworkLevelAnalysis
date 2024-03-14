@@ -27,7 +27,8 @@ function drawConvergenceMap(edge_input_struct, input_struct, net_atlas, sig_coun
     sig_mat = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
     sig_mat.v = sig_count_mat.v ./ num_tests;
     
-    gfx.drawChord(ax, 500, net_atlas, sig_mat, color_map);
+    chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 500, sig_mat, 'color_map', color_map);
+    chord_plotter.drawChords();
     
     %% Trimatrix plot
     function brainFigsButtonClickedCallback(net1, net2)
@@ -36,7 +37,10 @@ function drawConvergenceMap(edge_input_struct, input_struct, net_atlas, sig_coun
         waitbar(0.95);
         close(f)
     end
-    gfx.drawMatrixOrg(fig, 0, bottom_text_height, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, 0, num_tests, net_atlas.nets, gfx.FigSize.SMALL, gfx.FigMargins.WHITESPACE, false, true, color_map, false, true, @brainFigsButtonClickedCallback);
+    matrix_plot = gfx.plots.MatrixPlot(fig, sprintf('Convergence map\nSignificant Tests Per Net-Pair'), sig_count_mat, net_atlas.nets, gfx.FigSize.SMALL,...
+        'y_position', bottom_text_height, 'lower_limit', 0, 'upper_limit', num_tests, 'discrete_colorbar', true, 'network_clicked_callback', @brainFigsButtonClickedCallback,...
+        'draw_legend', false, 'color_map', color_map);
+    matrix_plot.displayImage();
 
     %% Plot names
     text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
