@@ -11,9 +11,11 @@ classdef BasePermResult < nla.TestResult
         perm_rank_ew
         perm_prob
         perm_prob_ew
+        perm_stat_ew
         perm_count = uint32(0)
         within_np_rank
         within_np_prob
+        within_np_stat
     end
     
     methods
@@ -24,10 +26,12 @@ classdef BasePermResult < nla.TestResult
             obj.perm_rank_ew = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
             obj.perm_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
             obj.perm_prob_ew = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
+            obj.perm_stat_ew = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
             
             %% Within Net-Pair (withinNP)
             obj.within_np_rank = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
             obj.within_np_prob = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
+            obj.within_np_stat = TriMatrix(size, TriMatrixDiag.KEEP_DIAGONAL);
         end
         
         % merged is a function which merges 2 results from the same test
