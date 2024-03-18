@@ -48,6 +48,12 @@ classdef BaseCorrResult < nla.net.BaseResult
                     
                     name_label = sprintf('Full Connectome Method\nNetwork vs. Connectome Significance');
                     name_label_thresh = sprintf('%s (D > %g)', name_label, input_struct.d_max);
+
+                    plot_matrix = obj.perm_prob_ew;
+                    if input_struct.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC
+                        plot_matrix = obj.perm_stat_ew;
+                    end
+
                     if flags.plot_type == nla.PlotType.FIGURE
                         fig = gfx.createFigure(1200, 900);
 
@@ -59,8 +65,8 @@ classdef BaseCorrResult < nla.net.BaseResult
                         obj.plotPermProbVsNetSize(net_atlas, subplot(2,3,6));
 
                         %% Matrix with significant networks marked
-                        [w, ~] = obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 75, 425, obj.perm_prob_ew, false, name_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result);
-                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, w + 50, 425, obj.perm_prob_ew, d_sig, name_label_thresh, net.mcc.None(), nla.Method.FULL_CONN, edge_result);
+                        [w, ~] = obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 75, 425, plot_matrix, false, name_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, w + 50, 425, plot_matrix, d_sig, name_label_thresh, net.mcc.None(), nla.Method.FULL_CONN, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                         d_thresh = false;
                         chord_label = name_label;
@@ -68,7 +74,8 @@ classdef BaseCorrResult < nla.net.BaseResult
                             d_thresh = d_sig;
                             chord_label = name_label_thresh;
                         end
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, d_thresh, chord_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
+
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, plot_matrix, d_thresh, chord_label, net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
                     end
                 end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
@@ -81,10 +88,16 @@ classdef BaseCorrResult < nla.net.BaseResult
                         fig = gfx.createFigure(1000, 900);
 
                         obj.plotWithinNetPairProbVsNetSize(net_atlas, subplot(2,2,3));
-                        [w, ~] = obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 25, 425, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
-                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, w - 50, 425, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
+
+                        plot_matrix = obj.within_np_prob;
+                        if net_input_struct == nla.gfx.ProbPlotMethod.STATISTIC
+                            plot_matrix = obj.within_np_stat;
+                        end
+
+                        [w, ~] = obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 25, 425, plot_matrix, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, w - 50, 425, plot_matrix, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, plot_matrix, within_np_d_sig, name_label, input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
                     end
                 end
             end
