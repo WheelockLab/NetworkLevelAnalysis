@@ -1,19 +1,20 @@
 name: export-mlapp-files
 run-name: Exporting .mlapp files to .m files
 on: [push]
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
 jobs:
   export-mlapp-files:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up Matlab
-        uses: matlab-actions/setup-matlab@v2
-      - name: Export NLA_GUI.mlapp
-        uses: matlab-actions/run-command@v2
+      - name: Run python extract script
+        uses: actions/setup-python@v5
         with:
-          command: type NLA_GUI.mlapp > NLA_GUI_exported.m
-      - name: Export NLAResult.mlapp
-        uses: matlab-actions/run-command@v2
-        with:
-          command: type NLAResult.mlapp > NLAResult_exported.m
+          python-version: '3.10' 
+      - name: Export mlapp files
+        run: python export_mlapp.py
