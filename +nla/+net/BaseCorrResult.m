@@ -50,7 +50,7 @@ classdef BaseCorrResult < nla.net.BaseResult
                     name_label_thresh = sprintf('%s (D > %g)', name_label, input_struct.d_max);
 
                     plot_matrix = obj.perm_prob_ew;
-                    if input_struct.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC
+                    if input_struct.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC || (isfield(flags, 'prob_plot_method') && flags.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC)
                         plot_matrix = obj.perm_stat_ew;
                     end
 
@@ -90,7 +90,7 @@ classdef BaseCorrResult < nla.net.BaseResult
                         obj.plotWithinNetPairProbVsNetSize(net_atlas, subplot(2,2,3));
 
                         plot_matrix = obj.within_np_prob;
-                        if net_input_struct == nla.gfx.ProbPlotMethod.STATISTIC
+                        if input_struct.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC || (isfield(flags, 'prob_plot_method') && flags.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC)
                             plot_matrix = obj.within_np_stat;
                         end
 

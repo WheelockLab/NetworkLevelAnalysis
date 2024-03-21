@@ -51,6 +51,6 @@ network_input_struct.d_max = 0.5;
 network_input_struct.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
 edge_result_nonperm = tests.runEdgeTest(input_struct);
 net_results_nonperm = tests.runNetTests(input_struct, edge_result_nonperm, network_atlas);
-edge_result_perm = tests.runEdgeTestPerm(input_struct, 10000, false);
+edge_result_perm = tests.runEdgeTestPerm(input_struct, 1000, false);
 net_results_perm = tests.runNetTestsPerm(network_input_struct, network_atlas, edge_result_perm);
 rankings = tests.rankResults(input_struct, net_results_nonperm, net_results_perm, network_atlas.numNetPairs());
