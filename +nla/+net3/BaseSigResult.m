@@ -21,6 +21,10 @@ classdef BaseSigResult < nla.net.BaseResult
             
             if obj.perm_count > 0
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
+                    plot_matrix = obj.perm_prob_ew;
+                    if input_struct.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC
+                        plot_matrix = obj.perm_stat_ew;
+                    end
                     if flags.plot_type == nla.PlotType.FIGURE
                         fig = gfx.createFigure(1000, 900);
 
@@ -32,19 +36,23 @@ classdef BaseSigResult < nla.net.BaseResult
                         obj.plotPermProbVsNetSize(net_atlas, subplot(2,2,4));
 
                         %% Matrix with significant networks marked
-                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 25, 425, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN, edge_result);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 25, 425, plot_matrix, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.perm_prob_ew, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, plot_matrix, false, sprintf('Full Connectome Method\nNetwork vs. Connectome Significance'), net.mcc.None(), nla.Method.FULL_CONN, edge_result, flags.plot_type);
                     end
                 end
                 if isfield(flags, 'show_within_net_pair') && flags.show_within_net_pair
+                    plot_matrix = obj.within_np_prob;
+                    if input_struct.prob_plot_method == nla.gfx.ProbPlotMethod.STATISTIC
+                        plot_matrix = obj.within_np_stat;
+                    end
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Within Net-Pair statistics (withinNP)
                         fig = gfx.createFigure(500, 900);
                         obj.plotWithinNetPairProbVsNetSize(net_atlas, subplot(2,1,2));
-                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 0, 425, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
+                        obj.plotProb(edge_input_struct, input_struct, net_atlas, fig, 0, 425, plot_matrix, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result);
                     elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                        obj.plotChord(edge_input_struct, input_struct, net_atlas, obj.within_np_prob, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
+                        obj.plotChord(edge_input_struct, input_struct, net_atlas, plot_matrix, false, sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair'), input_struct.fdr_correction, nla.Method.WITHIN_NET_PAIR, edge_result, flags.plot_type);
                     end
                 end
             end
