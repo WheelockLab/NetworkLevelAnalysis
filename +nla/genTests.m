@@ -4,17 +4,17 @@ function tests = genTests(subpackage)
     %       'net.test' for net-level tests
     import nla.* % required due to matlab package system quirks
     root_path = findRootPath();
-    rel_path = strrep(subpackage, '.', '/+');
-    path_to = [root_path '+nla/+' rel_path];
-    net_test_struct = dir(path_to);
-    net_test_folder_fnames = {net_test_struct.name};
-    net_test_fnames = net_test_folder_fnames(~[net_test_struct.isdir]);
+    relative_path = strrep(subpackage, '.', '/+');
+    path_to = [root_path '+nla/+' relative_path];
+    network_tests_struct = dir(path_to);
+    network_test_folder_contents = {network_tests_struct.name};
+    network_test_filenames = network_test_folder_contents(~[network_tests_struct.isdir]);
 
     tests = {};
-    for i = 1:numel(net_test_fnames)
-        fname_split = split(net_test_fnames{i}, '.');
-        if numel(fname_split) == 2 && strcmp(fname_split{2}, 'm')
-            test_name = [subpackage '.' fname_split{1}];
+    for i = 1:numel(network_test_filenames)
+        filename_split = split(network_test_filenames{i}, '.');
+        if numel(filename_split) == 2 && strcmp(filename_split{2}, 'm')
+            test_name = [subpackage '.' filename_split{1}];
             tests{end + 1} = nla.(test_name);
         end
     end
