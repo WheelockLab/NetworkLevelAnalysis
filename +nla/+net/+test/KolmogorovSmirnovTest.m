@@ -4,6 +4,7 @@ classdef KolmogorovSmirnovTest < handle
         name = "kolmogorov_smirnov"
         display_name = "Kolmogorov-Smirnov"
         statistics = ["ks_statistic", "single_sample_ks_statistic"]
+        ranking_statistic = "ks_statistic"
     end
 
     methods
@@ -36,7 +37,7 @@ classdef KolmogorovSmirnovTest < handle
             end
 
             result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
-                obj.statistics);
+                obj.statistics, obj.ranking_statistic);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network

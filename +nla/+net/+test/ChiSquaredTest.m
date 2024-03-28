@@ -4,6 +4,7 @@ classdef ChiSquaredTest < handle
         name = "chi_squared"
         display_name = "Chi-Squared"
         statistics = ["chi2_statistic", "greater_than_expected"]
+        ranking_statistic = "chi2_statistic"
     end
 
     methods
@@ -33,7 +34,7 @@ classdef ChiSquaredTest < handle
 
             % Structure to pass results outside
             result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
-                obj.statistics);
+                obj.statistics, obj.ranking_statistic);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
