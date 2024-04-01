@@ -19,7 +19,7 @@ jobs:
       - name: Export mlapp files
         run: python export_mlapp.py
       - name: Remove temp files
-        run: rm -rf ./matla
+        run: rm -rf ./matlab
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
