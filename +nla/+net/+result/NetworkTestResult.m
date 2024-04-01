@@ -69,7 +69,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 obj.createResultsStorage(test_options, number_of_networks, test_specific_statistics)
             elseif nargin > 0
-                error("NetworkTestResults requires 4 arguments: Test Options, Number of Networks, Test Name, Test Statistics")
+                error("NetworkTestResults requires 5 arguments: Test Options, Number of Networks, Test Name, Test Statistics")
             end
         end
 
@@ -263,12 +263,14 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
             import nla.gfx.createFigure nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
             
+            plot_test_type = "no_permutations";
+
             % Get the plot parameters (titles, stats, labels, max, min, etc)
             plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
             
-            p_value = obj.choosePlottingMethod(updated_test_options);
+            p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
             p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                "no_permutations", p_value, plot_title, updated_test_options.fdr_correction, false);
+                plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
 
             % No permutations results
             if flags.plot_type == nla.PlotType.FIGURE
@@ -303,22 +305,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
             import nla.net.result.chord.ChordPlotter
 
+            plot_test_type = "full_connectome";
+
             plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
             plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
             
-            p_value = obj.choosePlottingMethod(updated_test_options);
+            p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
             
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
             % Get the plot parameters (titles, stats, labels, etc.)
             full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
-                edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title,...
+                edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
                 nla.net.mcc.None(), false);
 
             % Mark the probability trimatrix with cohen's d results
             full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                edge_test_options, edge_test_result, "full_connectome", "p_value", plot_title_threshold, ...
+                edge_test_options, edge_test_result, plot_test_type, p_value, plot_title_threshold, ...
                 nla.net.mcc.None(), cohens_d_filter);
 
             if flags.plot_type == nla.PlotType.FIGURE
@@ -327,10 +331,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                     p_value);
                 full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
-                    "full_connectome", "p_value");
+                    plot_test_type, p_value);
 
                 % create a histogram
-                p_value_histogram = obj.createHistogram("p_value");
+                p_value_histogram = obj.createHistogram(p_value);
 
                 plotter = FullConnectomePlotter(edge_test_options.net_atlas);
                 
@@ -381,20 +385,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
             import nla.net.result.chord.ChordPlotter
 
+            plot_test_type = "within_network_pair";
+
             plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
 
             result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
+            p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
+
             within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
-                "within_network_pair", "p_value");
+                plot_test_type, p_value);
 
             within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                edge_test_result, "within_network_pair", "p_value", plot_title, updated_test_options.fdr_correction, false);
+                edge_test_result, plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
 
             plot_title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
                 updated_test_options.d_max);
             within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                edge_test_options, edge_test_result, "within_network_pair", "p_value", plot_title,...
+                edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
                 updated_test_options.fdr_correction, cohens_d_filter);
 
             if flags.plot_type == nla.PlotType.FIGURE
@@ -431,12 +439,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function p_value = choosePlottingMethod(obj, test_options)
+        function p_value = choosePlottingMethod(obj, test_options, plot_test_type)
             p_value = "p_value";
             if test_options == nla.gfx.ProbPlotMethod.STATISTIC
                 p_value = strcat("statistic_", p_value);
             end
-            if ~obj.is_noncorrelation_input
+            if ~obj.is_noncorrelation_input && plot_test_type == "within_network_pair"
                 p_value = strcat("single_sample_", p_value);
             end
         end

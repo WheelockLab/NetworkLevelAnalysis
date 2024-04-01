@@ -15,11 +15,10 @@ classdef ResultRank < handle
     end
     
     methods
-        function obj = ResultRank(nonpermuted_network_results, permuted_network_results, statistical_ranking, number_of_network_pairs)
+        function obj = ResultRank(nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
             if nargin > 0
                 obj.nonpermuted_network_results = nonpermuted_network_results;
                 obj.permuted_network_results = permuted_network_results;
-                obj.statistical_ranking = statistical_ranking;
                 obj.number_of_network_pairs = number_of_network_pairs;
             end
         end
@@ -27,11 +26,11 @@ classdef ResultRank < handle
         function ranking_result = rank(obj)
             % Copy the nonpermuted network results to put the permuted results into after ranking
             ranking_result = obj.nonpermuted_network_results.copy();
-%             ranking_result.perm_prob_hist = zeros(nla.HistBin.SIZE, "uint32");
-            % Copying doesn"t copy all the properties? So we rewrite the permutations
-            % Also, permutations is as cast as an unsigned 32-bit int, so we have to do that here #LegacyCodeIssues
-            % ranking_result.perm_count = uint32(obj.permutations);
-            
+            if ~isequal(obj.permuted_network_results.full_connectome, false)
+                for fieldname = fieldnames(obj.permuted_network_results.permutation_results)'
+                    ranking_result.permutation_results.(fieldname{1}) = obj.permuted_network_results.permutation_results.(fieldname{1});
+                end
+            end
             % Experiment wide ranking
             if obj.permuted_network_results.test_display_name ~= "Cohen's D"
                ranking_result = obj.basicRank(ranking_result);
@@ -57,9 +56,12 @@ classdef ResultRank < handle
             end
 
             % Network Pair ranking
-            if isstruct(obj.permuted_network_results.within_network_pair) && isfield(obj.permuted_network_results.within_network_pair, "single_sample_p_value")
+            if ~any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 single_sample_probability = "single_sample_p_value";
                 single_sample_statistic = strcat("single_sample_", ranking_statistic);
+                if obj.permuted_network_results.test_name == "wilcoxon"
+                    single_sample_statistic = "single_sample_ranksum_statistic";
+                end
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v)
                     % statistic ranking
                     combined_statistics = [obj.permuted_network_results.permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :), obj.nonpermuted_network_results.no_permutations.(single_sample_statistic).v(index)];
@@ -69,16 +71,15 @@ classdef ResultRank < handle
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
                     ranking.within_network_pair.single_sample_p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
                 end
-            elseif isstruct(obj.permuted_network_results.within_network_pair) && any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_test_names))
+            elseif isstruct(obj.permuted_network_results.within_network_pair) && any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 % This condition catches Chi-Squared and Hypergeometric tests. We do not do within network ranking for them, we just copy
                 % the full connectome ranking over. 
-                obj.permuted_network_results.within_network_pair.single_sample_p_value = obj.permuted_network_results.full_connectome.p_value;
+                ranking.permuted_network_results.within_network_pair.single_sample_p_value = ranking.permuted_network_results.full_connectome.p_value;
             end
         end
         
         function value = get.permutations(obj)
-            statistic = obj.permuted_network_results.ranking_statistic; % This is a string that is the statistic of measurement
-            value = size(obj.permuted_network_results.permutation_results.(strcat(statistic, "_permutations")).v, 2); % This takes the above statistic and gets the property to use its size to find the number of permutations
+            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2); % This takes the above statistic and gets the property to use its size to find the number of permutations
         end
     end
 end
