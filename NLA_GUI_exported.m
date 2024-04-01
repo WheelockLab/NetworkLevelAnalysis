@@ -209,20 +209,20 @@ classdef NLA_GUI < matlab.apps.AppBase
         % Value changed function: FullConnCheckBox, 
         % NonPermutedCheckBox, WithinNetPairCheckBox
         function MethodButtonGroupSelectionChanged(app, event)
-            if ~(app.net_input_struct.full_connectome == app.FullConnCheckBox.Value)
+            if ~(app.net_input_struct.full_conn == app.FullConnCheckBox.Value)
                 app.WithinNetPairCheckBox.Value = false;
-            elseif ~(app.net_input_struct.within_network_pair == app.WithinNetPairCheckBox.Value)
+            elseif ~(app.net_input_struct.within_net_pair == app.WithinNetPairCheckBox.Value)
                 app.FullConnCheckBox.Value = true;
             else
                 return
             end
             
-            app.net_input_struct.no_permutations = app.NonPermutedCheckBox.Value;
-            app.net_input_struct.full_connectome = app.FullConnCheckBox.Value;
-            app.net_input_struct.within_network_pair = app.WithinNetPairCheckBox.Value;
+            app.net_input_struct.nonpermuted = app.NonPermutedCheckBox.Value;
+            app.net_input_struct.full_conn = app.FullConnCheckBox.Value;
+            app.net_input_struct.within_net_pair = app.WithinNetPairCheckBox.Value;
             
             % remove permutation count when nonpermuted selected
-            if app.net_input_struct.full_connectome
+            if app.net_input_struct.full_conn
                 app.PermutationcountEditField.Enable = true;
                 app.PermutationcountEditField.Value = app.net_input_struct.perm_count;
             else
