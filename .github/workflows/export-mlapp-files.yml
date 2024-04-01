@@ -18,5 +18,10 @@ jobs:
           python-version: '3.10' 
       - name: Export mlapp files
         run: python export_mlapp.py
-      - name: Remove temp files
-        run: rm -rf ./matlab
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Github Action"
+          git commit -m "Add Changes" -a
+      - name: Push Changes
+        run: git push
