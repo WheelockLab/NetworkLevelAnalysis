@@ -12,6 +12,3 @@ for filename in [('./NLA_GUI.mlapp', './NLA_GUI_exported.m'), ('./NLAResult.mlap
         newfile.write(data[0][classdef_index:])
         newfile.writelines(data[1:-1])
         newfile.write('end')
-
-os.remove('./matlab/document.xml')
-os.rmdir('./matlab')
