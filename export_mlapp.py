@@ -7,6 +7,7 @@ for filename in [('./NLA_GUI.mlapp', './NLA_GUI_exported.m'), ('./NLAResult.mlap
         data = filedata.read().splitlines(True)
 
     classdef_index = data[0].find('classdef')
+    open(filename[1], 'w').close() # This deletes the contents of the file
     with open(filename[1], 'w') as newfile:
         newfile.write(data[0][classdef_index:])
         newfile.writelines(data[1:-1])
