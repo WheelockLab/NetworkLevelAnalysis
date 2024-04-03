@@ -20,13 +20,97 @@ classdef TestPool < nla.DeepCopyable
             obj.edge_test = nla.edge.test.Pearson();
         end
         
-        function result = runPerm(obj, input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
+        function result = runPerm(obj, edge_input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
+            if ~exist('perm_seed', 'var')
+                perm_seed = false;
+            end
+            
+            [edge_results_perm, net_results_perm] = obj.runEdgeAndNetPerm(edge_input_struct, net_input_struct, ...
+                net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed);
+            
+            result = nla.ResultPool(edge_input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
+            
+        end
+        
+        function result = runPermSeparateAllEdgeAndAllNet(obj, input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
+            %This is code that first runs all edge permutations, and then
+            %runs all net permutations
+            %NOTE: This currently involves saving all edge results from all
+            %permutations in the working results object
             if ~exist('perm_seed', 'var')
                 perm_seed = false;
             end
             edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
             net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, net_results_nonperm, edge_results_perm, edge_result_nonperm);
             result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
+        end
+        
+        function [edge_results_perm, net_results_perm] = runEdgeAndNetPerm(obj, edge_input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, num_perms, perm_seed)
+            if ~exist('perm_seed', 'var') || islogical(perm_seed)
+                rng(posixtime(datetime()));
+                perm_seed = randi(intmax('uint32'), 'uint32');
+            end
+            
+            % get current parallel pool or start a new one
+            p = gcp;
+            num_procs = p.NumWorkers;
+            %num_procs = 1;
+            
+            % blocks of iteration to be handled by each process
+            if num_perms < num_procs
+                blocks = 1:(num_perms+1);
+                num_procs = num_perms;
+            else
+                blocks = uint32(linspace(1, num_perms + 1, num_procs + 1));
+            end
+            
+            
+            parfor proc = 1:num_procs
+                net_result_block = cell(numNetTests(obj), 1);                
+                
+                for i = 1:numNetTests(obj)
+                    net_result_block{i} = copy(net_results_nonperm{i});
+                end
+                obj.runEdgeAndNetPermBlock(edge_input_struct, net_input_struct, net_atlas, net_result_block, blocks(proc), blocks(proc+1), perm_seed);
+                net_result_blocks{proc} = net_result_block;
+            end
+            
+            edge_results_perm = nla.edge.result.PermBase();
+            edge_results_perm.perm_count = num_perms;
+            % and net level result chunks
+            net_results_perm = {};
+            for test_index = 1:numNetTests(obj)
+                for proc_index = 1:num_procs
+                    cur_proc_net_results = net_result_blocks{proc_index};
+                    cur_test_net_results(proc_index) = cur_proc_net_results(test_index);
+                end
+                net_results_perm{test_index} = cur_test_net_results{1};
+                net_results_perm{test_index}.merge(net_input_struct, edge_result_nonperm, edge_results_perm, net_atlas, {cur_test_net_results{2:end}});
+            end
+            
+        end
+        
+        function net_result_block = runEdgeAndNetPermBlock(obj, edge_input_struct, net_input_struct, net_atlas, net_result_block, block_start, block_end, perm_seed)
+            
+            
+            for iteration = block_start:block_end - 1
+                % set RNG per-iteration based on the random seed and
+                % iteration number, so the # of processes doesn't impact
+                % the result(important for repeatability if running
+                % permutations with the same seed intentionally)
+                rng(bitxor(perm_seed, iteration));
+                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
+                permuted_input.iteration = iteration;
+                
+                single_edge_result = obj.runEdgeTest(permuted_input);
+                %net_input_struct.iteration = iteration;
+                obj.runNetTests(net_input_struct, single_edge_result, net_atlas, net_result_block);
+                
+                if ~islogical(obj.data_queue)
+                    send(obj.data_queue, iteration);
+                end
+            end
+            
         end
         
         function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
