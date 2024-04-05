@@ -30,7 +30,7 @@ classdef MatrixPlot < handle
         axes % The axes of the plot
         image_display % The actual displayed values
         color_bar % The colorbar
-        colorbar_contextmenu % The right click menu for the colorbar
+        plot_scale % The scale and values being plotted (Linear, log, -log10, p-value, statistic p-value)
     end
 
     properties (Dependent)
@@ -74,6 +74,7 @@ classdef MatrixPlot < handle
             % x_position = 0
             % y_position = 0
             % discrete_colorbar = false
+            % plot_scale = nla.gfx.ProbPlotMethod.DEFAULT
             import nla.gfx.createFigure
             matrix_input_parser = inputParser;
             addRequired(matrix_input_parser, 'figure');
@@ -95,11 +96,12 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'x_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'y_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
+            addParameter(matrix_input_parser, 'plot_scale', nla.gfx.ProbPlotMethod.DEFAULT, @isenum);
             
             parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
             properties = {'figure', 'name', 'matrix', 'networks', 'figure_size', 'network_clicked_callback',...
                 'marked_networks', 'figure_margins', 'draw_legend', 'draw_colorbar', 'color_map', 'lower_limit', 'upper_limit',...
-                'x_position', 'y_position', 'discrete_colorbar'};
+                'x_position', 'y_position', 'discrete_colorbar', 'plot_scale'};
             for property = properties
                 obj.(property{1}) = matrix_input_parser.Results.(property{1});
                 if property{1} == "marked_networks"
@@ -297,12 +299,15 @@ classdef MatrixPlot < handle
             % If there are no inputs (like initial rendering) then we use defaults
             % If there were inputs, that means we're scaling the colorbar.
             if isempty(varargin)
+                initial_render = true; % Controls whether or not to add the bars on the side and bottom
                 upper_value = obj.upper_limit;
                 lower_value = obj.lower_limit;
             else
+                initial_render = false;
                 upper_value = str2double(varargin{2});
                 lower_value = str2double(varargin{1});
             end
+
             number_of_networks = obj.number_networks;
             dimensions = obj.image_dimensions;
             network_matrix = obj.network_matrix;
@@ -324,8 +329,10 @@ classdef MatrixPlot < handle
                 chunk_height = numel(network_indexes) * obj.elementSize();
                 
                 % Left side of matrix color bars
-                obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
-
+                if isequal(initial_render, true)
+                   obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
+                end
+                
                 position_x = dimensions("label_size") + dimensions("offset_x") + 3;
                 starting_x = position_x;
                 maximum_x = number_of_networks;
@@ -349,45 +356,47 @@ classdef MatrixPlot < handle
                     % Apply colors to chunks
                     obj.applyColorToData(position_x, position_y, chunk_height, chunk_width, chunk_color);
 
-                    % plot signifance marker
-                    if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
-                        obj.plotSignificanceMark(chunk_width, chunk_height, position_x, position_y);
-                    end
-                    
-                    if ~isequal(obj.network_clicked_callback, false)
-                        obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1,...
-                            position_y, position_y + chunk_height - 1];
-                    end
-                    % Add callbacks to all the squares
-                    obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1],...
-                        [position_y, position_y + chunk_height + 1]));
-                    obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
-                        [position_y + chunk_height, position_y + chunk_height]));
+                    if isequal(initial_render, true)
+                        % plot signifance marker
+                        if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
+                            obj.plotSignificanceMark(chunk_width, chunk_height, position_x, position_y);
+                        end
+                        
+                        if ~isequal(obj.network_clicked_callback, false)
+                            obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1,...
+                                position_y, position_y + chunk_height - 1];
+                        end
+                        % Add callbacks to all the squares
+                        obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1],...
+                            [position_y, position_y + chunk_height + 1]));
+                        obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
+                            [position_y + chunk_height, position_y + chunk_height]));
 
-                    if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
-                        obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
-                            [position_y - 1, position_y + chunk_height + 1]));
-                        obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width],...
-                            [position_y - 1, position_y - 1]));
-                    end
+                        if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
+                            obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
+                                [position_y - 1, position_y + chunk_height + 1]));
+                            obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width],...
+                                [position_y - 1, position_y - 1]));
+                        end
 
-                    % Is this the last network of a TriMatrix. Then we're done and need to add the bottom
-                    if network == number_of_networks
-                        top = position_y + chunk_height;
-                        bottom = position_y + chunk_height + dimensions("label_size");
-                        left = position_x;
-                        right = position_x + chunk_width;
+                        % Is this the last network of a TriMatrix. Then we're done and need to add the bottom
+                        if network == number_of_networks
+                            top = position_y + chunk_height;
+                            bottom = position_y + chunk_height + dimensions("label_size");
+                            left = position_x;
+                            right = position_x + chunk_width;
 
-                        obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x).color,...
-                            dimensions("label_size") + 1, chunk_width + 1);
-                        obj.drawBottomLabels(chunk_width, chunk_height, position_x, position_y, x);
+                            obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x).color,...
+                                dimensions("label_size") + 1, chunk_width + 1);
+                            obj.drawBottomLabels(chunk_width, chunk_height, position_x, position_y, x);
+                        end
                     end
                     position_x = position_x + chunk_width + 1;
                 end
                 position_y = position_y + chunk_height + 1;
             end
 
-            if obj.matrix_type == MatrixType.TRIMATRIX && ~network_matrix
+            if obj.matrix_type == MatrixType.TRIMATRIX && ~network_matrix && initial_render
                 drawLine(obj.axes, [starting_x - 1, position_x - 1],...
                     [starting_y - 3 + obj.elementSize(), position_y - 2], 'w');
                 drawLine(obj.axes, [starting_x - 2, position_x - 1],...
@@ -525,11 +534,10 @@ classdef MatrixPlot < handle
             obj.color_bar.Title.FontSize = 7;
 
             % Enables callback for clicking on colorbar to scale data
-            set(obj.color_bar, 'ButtonDownFcn', @changeColorLimits)
+            set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
 
-            
             % Callback for clicking on the colorbar.
             function changeColorLimits(~, ~)
                 prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
@@ -546,6 +554,48 @@ classdef MatrixPlot < handle
                     obj.createColorbar(new_limits{1}, new_limits{2});
                 end
             end
+        end
+
+        function openModal(obj, source, ~)
+            import nla.gfx.ProbPlotMethod
+            % source is the colorbar, not the figure
+            d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2), source.Position(3) * 15, source.Position(4) / 2]);
+            % These are the boxes that are the upper and lower end of the scale
+            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 130, 100, 30], "String", obj.upper_limit);
+            upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
+            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 100, 100, 30], "String", obj.lower_limit); 
+            lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
+            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position', [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
+            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position', [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
+
+            % These are the buttons that make the scale log or linear
+            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, 60, 150, 30]);
+            linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels", "Position", [10, 5, 60, 20]);
+            log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels", "Position", [70, 5, 60, 20]);
+            if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == STATISITC
+                selected_value = linear_button;
+            else
+                selected_value = log_button;
+            end
+            scaleBaseButtons.SelectedObject = selected_value
+            
+            apply_button_position = [10, 10, 100, 30];
+            apply_button = uicontrol('String', 'Apply', 'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, selected_value}, "Units", "pixels", 'Position', apply_button_position);
+            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10, apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            close_button =  uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position', close_button_position);
+        end
+
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, initial_value)
+            import nla.net.result.NetworkResultPlotParameter
+           
+            discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
+            if get(get(button_group, "SelectedObject"), "String") == "Linear"
+                obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"));
+            else
+                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"));
+            end
+            obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+            obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
         end
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
