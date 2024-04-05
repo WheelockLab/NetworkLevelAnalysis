@@ -537,23 +537,6 @@ classdef MatrixPlot < handle
             set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
-
-            % Callback for clicking on the colorbar.
-            function changeColorLimits(~, ~)
-                prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
-                upper_limit_inner = obj.color_bar.TickLabels(end);
-                lower_limit_inner = obj.color_bar.TickLabels(1);
-                current_limits = {lower_limit_inner{1}, upper_limit_inner{1}};
-                new_limits = inputdlg(prompt, "Colorbar Limits", 1, current_limits);
-                % If "cancel" is pressed or both values deleted use defaults
-                if isempty(new_limits) || isempty(new_limits{1}) || isempty(new_limits{2})
-                    obj.embiggenMatrix();
-                    obj.createColorbar();
-                else
-                    obj.embiggenMatrix(new_limits{1}, new_limits{2});
-                    obj.createColorbar(new_limits{1}, new_limits{2});
-                end
-            end
         end
 
         function openModal(obj, source, ~)
@@ -577,15 +560,15 @@ classdef MatrixPlot < handle
             else
                 selected_value = log_button;
             end
-            scaleBaseButtons.SelectedObject = selected_value
+            scaleBaseButtons.SelectedObject = selected_value;
             
             apply_button_position = [10, 10, 100, 30];
-            apply_button = uicontrol('String', 'Apply', 'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, selected_value}, "Units", "pixels", 'Position', apply_button_position);
+            apply_button = uicontrol('String', 'Apply', 'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons}, "Units", "pixels", 'Position', apply_button_position);
             close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10, apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
-            close_button =  uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position', close_button_position);
+            uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position', close_button_position);
         end
 
-        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, initial_value)
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group)
             import nla.net.result.NetworkResultPlotParameter
            
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
