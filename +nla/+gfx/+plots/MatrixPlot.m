@@ -219,7 +219,8 @@ classdef MatrixPlot < handle
 
             dimensions = [image_height image_width offset_x offset_y plot_width plot_height display_matrix_size label_size];
             % Matlab does not have a python-like dictionary. This is one, or a struct. 
-            value = containers.Map(["image_height" "image_width" "offset_x" "offset_y" "plot_width" "plot_height" "display_matrix_size" "label_size"], dimensions);
+            value = containers.Map(["image_height" "image_width" "offset_x" "offset_y" "plot_width" "plot_height"...
+                 "display_matrix_size" "label_size"], dimensions);
         end
 
         function value = get.as_matrix(obj)
@@ -256,7 +257,8 @@ classdef MatrixPlot < handle
 
         function obj = drawAxes(obj)
             % Creates the axes for the plot.
-            obj.axes = uiaxes(obj.figure, 'Position', [obj.x_position, obj.y_position, obj.image_dimensions("image_width"), obj.image_dimensions("image_height")]);
+            obj.axes = uiaxes(obj.figure, 'Position', [obj.x_position, obj.y_position,...
+                obj.image_dimensions("image_width"), obj.image_dimensions("image_height")]);
             axis(obj.axes, 'image');
             obj.axes.XAxis.TickLabels = {};
             obj.axes.YAxis.TickLabels = {};
@@ -293,7 +295,8 @@ classdef MatrixPlot < handle
         end
 
         function obj = embiggenMatrix(obj, varargin)
-            % Enlarges data points of matrix for easier viewing. Also adds the network colorbars to the left axis and bottom axis.
+            % Enlarges data points of matrix for easier viewing. 
+            % Also adds the network colorbars to the left axis and bottom axis.
             import nla.gfx.colorChunk nla.gfx.MatrixType nla.gfx.drawLine
 
             % If there are no inputs (like initial rendering) then we use defaults
@@ -412,7 +415,8 @@ classdef MatrixPlot < handle
             bottom = position_y + chunk_height;
             left = dimensions("offset_x") + 2;
             right = dimensions("offset_x") + dimensions("label_size") + 1;
-            obj.image_display.CData(top:bottom, left:right+1, :) = colorChunk(obj.networks(network).color, chunk_height + 1, dimensions("label_size") + 1);
+            obj.image_display.CData(top:bottom, left:right+1, :) = colorChunk(obj.networks(network).color,...
+                chunk_height + 1, dimensions("label_size") + 1);
 
             drawLine(obj.axes, [left - 1, right], [top - 1, top - 1]);
             drawLine(obj.axes, [left - 1, right], [bottom, bottom]);
@@ -441,7 +445,8 @@ classdef MatrixPlot < handle
             left = position_x;
             right = position_x + chunk_width;
 
-            obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x_location).color, dimensions("label_size") + 1, chunk_width + 1);
+            obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x_location).color,...
+                dimensions("label_size") + 1, chunk_width + 1);
 
             obj.addCallback(drawLine(obj.axes, [left - 1, left - 1], [top, bottom]));
             obj.addCallback(drawLine(obj.axes, [right, right], [top, bottom]));
@@ -479,9 +484,11 @@ classdef MatrixPlot < handle
             display_legend.Units = 'pixels';
             display_legend_width = display_legend.Position(3);
             display_legend_height = display_legend.Position(4);
-            display_legend.Position = [obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
+            display_legend.Position = [...
+                obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
                 obj.y_position + dimensions("plot_height") - display_legend_height - dimensions("offset_y"),...
-                display_legend_width, display_legend_height];
+                display_legend_width, display_legend_height...
+            ];
         end
 
         function createColorbar(obj, varargin)
@@ -540,21 +547,33 @@ classdef MatrixPlot < handle
         end
 
         function openModal(obj, source, ~)
+            % Callback for clicking on the colorbar.
+            % This opens a modal with the upper and lower bounds along with a radio selector between linear and 
+            % log. This only works for a "regular" log scale, not the -log10 scale. Still working on that one
             import nla.gfx.ProbPlotMethod
+
             % source is the colorbar, not the figure
-            d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2), source.Position(3) * 15, source.Position(4) / 2]);
+            d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2),...
+                source.Position(3) * 15, source.Position(4) / 2]);
             % These are the boxes that are the upper and lower end of the scale
-            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 130, 100, 30], "String", obj.upper_limit);
+            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 130, 100, 30], "String",...
+                obj.upper_limit);
             upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
-            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 100, 100, 30], "String", obj.lower_limit); 
+            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 100, 100, 30], "String",...
+                obj.lower_limit); 
             lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
-            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position', [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
-            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position', [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
+            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
+                [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
+            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position',...
+                [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
 
             % These are the buttons that make the scale log or linear
             scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, 60, 150, 30]);
-            linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels", "Position", [10, 5, 60, 20]);
-            log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels", "Position", [70, 5, 60, 20]);
+            linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels",...
+                "Position", [10, 5, 60, 20]);
+            log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels",...
+                "Position", [70, 5, 60, 20]);
+            % Here we're setting the initial setting for the linear or log button
             if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == STATISITC
                 selected_value = linear_button;
             else
@@ -563,19 +582,28 @@ classdef MatrixPlot < handle
             scaleBaseButtons.SelectedObject = selected_value;
             
             apply_button_position = [10, 10, 100, 30];
-            apply_button = uicontrol('String', 'Apply', 'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons}, "Units", "pixels", 'Position', apply_button_position);
-            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10, apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
-            uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position', close_button_position);
+            apply_button = uicontrol('String', 'Apply',...
+                'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons},...
+                "Units", "pixels",...
+                'Position', apply_button_position);
+            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
+                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position',...
+                close_button_position);
         end
 
         function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group)
+            % This callback gets the colormap/scale and then applies the new bounds to the data.
+            % Only works with APPLY button, will not work with only CLOSE
+        
             import nla.net.result.NetworkResultPlotParameter
-           
+
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
             if get(get(button_group, "SelectedObject"), "String") == "Linear"
                 obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"));
             else
-                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"));
+                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix,...
+                    get(upper_limit_box, "String"));
             end
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
