@@ -49,6 +49,7 @@ classdef MatrixPlot < handle
         colorbar_offset = 15; % Offset of the colorbar
         colorbar_text_w = 50; % Width of label on colorbar
         legend_offset = 5; % Offset of the Legend
+        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray", "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
     methods
@@ -554,12 +555,12 @@ classdef MatrixPlot < handle
 
             % source is the colorbar, not the figure
             d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2),...
-                source.Position(3) * 15, source.Position(4) / 2]);
+                source.Position(3) * 15, source.Position(4)/ 1.75]);
             % These are the boxes that are the upper and lower end of the scale
-            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 130, 100, 30], "String",...
+            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, d.Position(4) - 30, 100, 30], "String",...
                 obj.upper_limit);
             upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
-            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 100, 100, 30], "String",...
+            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, upper_limit_box.Position(2) - 30, 100, 30], "String",...
                 obj.lower_limit); 
             lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
             uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
@@ -568,7 +569,7 @@ classdef MatrixPlot < handle
                 [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
 
             % These are the buttons that make the scale log or linear
-            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, 60, 150, 30]);
+            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, lower_limit_box.Position(2) - 40, 150, 30]);
             linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels",...
                 "Position", [10, 5, 60, 20]);
             log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels",...
@@ -581,9 +582,30 @@ classdef MatrixPlot < handle
             end
             scaleBaseButtons.SelectedObject = selected_value;
             
+            % Color Map selector
+            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu
+            
+            uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels", "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
+            color_map_select = uicontrol('Style', 'popupmenu', 'Position', [100, scaleBaseButtons.Position(2) - 45, 250, 30]);
+            initial_colors = 16;
+            colormap_html = [];
+            for colors = 1:numel(obj.colormap_choices)
+                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors}), "(x)")));
+                CData = colormap_function(initial_colors);
+                new_html = '<HTML>';
+                for color_iterator = 1:initial_colors
+                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2), CData(color_iterator, 3)]);
+                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
+                end
+                %new_html = new_html(1:end-2);
+                new_html = [new_html '</HTML>'];
+                colormap_html = [colormap_html; {new_html}];
+            end
+            set(color_map_select, "Value", 1, "String", colormap_html);
+
             apply_button_position = [10, 10, 100, 30];
             apply_button = uicontrol('String', 'Apply',...
-                'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons},...
+                'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
                 "Units", "pixels",...
                 'Position', apply_button_position);
             close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
@@ -592,18 +614,19 @@ classdef MatrixPlot < handle
                 close_button_position);
         end
 
-        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group)
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
             % This callback gets the colormap/scale and then applies the new bounds to the data.
             % Only works with APPLY button, will not work with only CLOSE
         
             import nla.net.result.NetworkResultPlotParameter
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
+            color_map = get(color_map_select, "Value");
             if get(get(button_group, "SelectedObject"), "String") == "Linear"
-                obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"));
+                obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
             else
                 obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix,...
-                    get(upper_limit_box, "String"));
+                    get(upper_limit_box, "String"). obj.colormap_choices{color_map});
             end
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
