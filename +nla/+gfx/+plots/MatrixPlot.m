@@ -574,16 +574,20 @@ classdef MatrixPlot < handle
                 [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
 
             % These are the buttons that make the scale log or linear
-            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, lower_limit_box.Position(2) - 40, 150, 30]);
+            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, lower_limit_box.Position(2) - 40, 210, 30]);
             linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels",...
                 "Position", [10, 5, 60, 20]);
             log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels",...
-                "Position", [70, 5, 60, 20]);
+                "Position", [80, 5, 60, 20]);
+            neg_log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "-Log10", "Units", "pixels",...
+                "Position", [130, 5, 80, 20]);
             % Here we're setting the initial setting for the linear or log button
-            if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == STATISITC
+            if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == ProbPlotMethod.STATISTIC
                 selected_value = linear_button;
-            else
+            elseif obj.plot_scale == ProbPlotMethod.LOG || obj.plot_scale == ProbPlotMethod.LOG_STATISTIC
                 selected_value = log_button;
+            else
+                selected_value = neg_log_button;
             end
             scaleBaseButtons.SelectedObject = selected_value;
             
@@ -626,16 +630,30 @@ classdef MatrixPlot < handle
             % This callback gets the colormap/scale and then applies the new bounds to the data.
             % Only works with APPLY button, will not work with only CLOSE
         
-            import nla.net.result.NetworkResultPlotParameter
+            import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
+
+            button_group_value = get(get(button_group, "SelectedObject"), "String");
+
+            if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ismember(button_group_value, ["Linear", "Log"])
+                obj.matrix.v = 10.^(-obj.matrix.v);
+            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ~ismember(button_group_value, ["Linear", "Log"])
+                obj.matrix.v = -log10(obj.matrix.v);
+            end
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
             color_map = get(color_map_select, "Value");
-            if get(get(button_group, "SelectedObject"), "String") == "Linear"
+            if button_group_value == "Linear"
                 obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
                     obj.colormap_choices{color_map});
+                obj.plot_scale = ProbPlotMethod.DEFAULT;
+            elseif button_group_value == "Log"
+                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
+                obj.plot_scale = ProbPlotMethod.LOG;
             else
-                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix,...
-                    get(upper_limit_box, "String"). obj.colormap_choices{color_map});
+                obj.color_map = lower(colormap_choices{color_map}(discrete_colors));
+                obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
             end
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
