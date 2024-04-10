@@ -101,7 +101,7 @@ edge_result = tests.runEdgeTest(input_struct);
 net_results = tests.runNetTests(net_input_struct, edge_result, net_atlas, false);
 
 % Run test pool, permuting data n times
-results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 100);
+results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, net_results, 1000);
 
 %% Visualize results
 % Warning: Will produce a large amount of figures. You are advised to use
