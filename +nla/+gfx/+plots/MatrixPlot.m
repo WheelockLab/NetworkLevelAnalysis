@@ -652,7 +652,8 @@ classdef MatrixPlot < handle
                 obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
                 obj.plot_scale = ProbPlotMethod.LOG;
             else
-                obj.color_map = lower(colormap_choices{color_map}(discrete_colors));
+                color_map_name = str2func(lower(obj.colormap_choices{color_map}));
+                obj.color_map = color_map_name(discrete_colors);
                 obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
             end
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
