@@ -245,6 +245,16 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
         end
+
+        function p_value = choosePlottingMethod(obj, test_options, plot_test_type)
+            p_value = "p_value";
+            if test_options == nla.gfx.ProbPlotMethod.STATISTIC
+                p_value = strcat("statistic_", p_value);
+            end
+            if ~obj.is_noncorrelation_input && plot_test_type == "within_network_pair"
+                p_value = strcat("single_sample_", p_value);
+            end
+        end
     end
 
     methods (Static)
