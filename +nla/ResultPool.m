@@ -28,7 +28,6 @@ classdef ResultPool
         
         function output(obj)
             flags = struct();
-            flags.display_sig = obj.containsSignificanceBasedNetworkResult();
             obj.edge_test_results.output(obj.network_atlas, flags);
             if ~islogical(obj.permutation_edge_test_results)
                 obj.permutation_edge_test_results.output(obj.network_atlas, flags);

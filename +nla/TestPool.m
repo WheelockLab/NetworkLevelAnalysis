@@ -272,17 +272,12 @@ classdef TestPool < nla.DeepCopyable
 
         function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
             import nla.net.ResultRank
-            
-            stat_ranking = false;
-            if ~isfield(input_options, 'ranking_method') || input_options.ranking_method == nla.RankingMethod.TEST_STATISTIC
-                stat_ranking = true;
-            end
 
             ranked_results = cell(1, numNetTests(obj));
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
-                ranked_results{test} = ranked_results_object.permuted_network_results;
+                ranked_results{test} = ranked_results_object;
             end
         end
     end
