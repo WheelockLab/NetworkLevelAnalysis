@@ -147,12 +147,10 @@ classdef ResultRank < handle
                     end
                     probability = strcat("single_sample_", probability);
                 end
-            elseif isstruct(obj.permuted_network_results.within_network_pair) &&...
-                any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_test_names))
+            elseif isstruct(obj.permuted_network_results.within_network_pair) && any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 % This condition catches Chi-Squared and Hypergeometric tests. We do not do within network ranking for them, we just copy
                 % the full connectome ranking over. 
-
-                obj.permuted_network_results.within_network_pair.single_sample_p_value = obj.permuted_network_results.full_connectome.p_value;
+                ranking.permuted_network_results.within_network_pair.single_sample_p_value = ranking.permuted_network_results.full_connectome.p_value;
             end
         end
 
