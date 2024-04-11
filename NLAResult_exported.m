@@ -2,6 +2,7 @@ classdef NLAResult < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
+<<<<<<< HEAD
         UIFigure                       matlab.ui.Figure
         FileMenu                       matlab.ui.container.Menu
         SaveButton                     matlab.ui.container.Menu
@@ -28,6 +29,34 @@ classdef NLAResult < matlab.apps.AppBase
         showROIcentroidsinbrainplotsCheckBox  matlab.ui.control.CheckBox
         CohensDthresholdchordplotsCheckBox  matlab.ui.control.CheckBox
         BranchLabel                    matlab.ui.control.Label
+=======
+        UIFigure                        matlab.ui.Figure
+        FileMenu                        matlab.ui.container.Menu
+        SaveButton                      matlab.ui.container.Menu
+        ResultTree                      matlab.ui.container.Tree
+        FlipNestingButton               matlab.ui.control.Button
+        EdgeLevelLabel                  matlab.ui.control.Label
+        ViewEdgeLevelButton             matlab.ui.control.Button
+        NetLevelLabel                   matlab.ui.control.Label
+        RunButton                       matlab.ui.control.Button
+        DisplaySelectedButton           matlab.ui.control.Button
+        NetlevelpvalueplottingDropDownLabel  matlab.ui.control.Label
+        NetlevelpvalueplottingDropDown  matlab.ui.control.DropDown
+        DisplayConvergenceButton        matlab.ui.control.Button
+        ConvergencecolormapDropDownLabel  matlab.ui.control.Label
+        ColormapDropDown                matlab.ui.control.DropDown
+        DisplayChordNet                 matlab.ui.control.Button
+        DisplayChordEdge                matlab.ui.control.Button
+        SaveSummaryTable                matlab.ui.control.Button
+        EdgelevelchordplottingLabel     matlab.ui.control.Label
+        EdgeLevelTypeDropDown           matlab.ui.control.DropDown
+        TweakNetParamsPanel             matlab.ui.container.Panel
+        MultiplecomparisonscorrectionLabel  matlab.ui.control.Label
+        FDRCorrection                   matlab.ui.control.DropDown
+        showROIcentroidsinbrainplotsCheckBox  matlab.ui.control.CheckBox
+        CohensDthresholdchordplotsCheckBox  matlab.ui.control.CheckBox
+        BranchLabel                     matlab.ui.control.Label
+>>>>>>> development
     end
 
     
@@ -92,16 +121,28 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, 'Non-permuted');
                     for i = 1:size(app.results.network_test_results, 2)
                         result = app.results.network_test_results{i};
+<<<<<<< HEAD
                         % All our tests have non-permuted data
                         flags = struct();
                         flags.show_nonpermuted = true;
                         app.createNode(root, result.test_display_name, {result, flags});
+=======
+                        if ~isequal(result.no_permutations, false)
+                            flags = struct();
+                            flags.show_nonpermuted = true;
+                            app.createNode(root, result.test_display_name, {result, flags});
+                        end
+>>>>>>> development
                     end
                 end
                 
                 if app.net_input_struct.full_conn
                     root = app.createNode(app.ResultTree, 'Full connectome');
                     for i = 1:size(app.results.permutation_network_test_results, 2)
+<<<<<<< HEAD
+=======
+                        app.results.permutation_network_test_results
+>>>>>>> development
                         result = app.results.permutation_network_test_results{i};
                         if ~isequal(result.full_connectome, false)
                             flags = struct();
@@ -127,13 +168,21 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, app.results.network_test_results{i}.test_display_name);
                     
                     result = app.results.network_test_results{i};
+<<<<<<< HEAD
                     if app.net_input_struct.nonpermuted 
+=======
+                    if app.net_input_struct.nonpermuted && ~isequal(result.no_permutations, false)
+>>>>>>> development
                         flags = struct();
                         flags.show_nonpermuted = true;
                         app.createNode(root, 'Non-permuted', {result, flags});
                     end
                     
+<<<<<<< HEAD
                     if app.net_input_struct.full_conn && result.has_full_conn
+=======
+                    if app.net_input_struct.full_conn && ~isequal(result.full_connectome, false)
+>>>>>>> development
                         perm_result = app.results.permutation_network_test_results{i};
                         if app.net_input_struct.full_conn && ~isequal(result.full_connectome, false)
                             flags = struct();
@@ -282,17 +331,29 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Enable = false;
             app.RunButton.Visible = false;
             
+<<<<<<< HEAD
             enableNetButtons(app, ~islogical(result.network_test_results));
             
             drawnow();
             
             if ~islogical(result.network_test_results)
+=======
+            enableNetButtons(app, ~islogical(result.net_results));
+            
+            drawnow();
+            
+            if ~islogical(result.net_results)
+>>>>>>> development
                 app.setNesting(true);
             else
                 app.results = false;
             end
             
+<<<<<<< HEAD
             if ~islogical(result.network_test_results)
+=======
+            if ~islogical(result.net_results)
+>>>>>>> development
                 app.genTweakableNetParams();
             end
         end
@@ -316,7 +377,11 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             % dropdowns that need net-level data to be used
+<<<<<<< HEAD
             net_dropdowns = {app.FDRCorrection, app.EdgeLevelTypeDropDown, app.NetlevelplottingDropDown};
+=======
+            net_dropdowns = {app.FDRCorrection, app.EdgeLevelTypeDropDown, app.NetlevelpvalueplottingDropDown};
+>>>>>>> development
             for i = 1:numel(net_dropdowns)
                 net_dropdowns{i}.Enable = val;
                 net_dropdowns{i}.ValueChangedFcn(app, true);
@@ -487,6 +552,7 @@ classdef NLAResult < matlab.apps.AppBase
             displayManyPlots(app, struct('plot_type', PlotType.FIGURE), 'figures');
         end
 
+<<<<<<< HEAD
         % Value changed function: NetlevelplottingDropDown
         function PValModeDropDownValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
@@ -502,6 +568,21 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEG_LOG_10;
             else
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.STATISTIC;
+=======
+        % Value changed function: NetlevelpvalueplottingDropDown
+        function PValModeDropDownValueChanged(app, event)
+            import nla.* % required due to matlab package system quirks
+            value = app.NetlevelpvalueplottingDropDown.Value;
+            if strcmp(value, 'linear')
+                % Plot p-values on linear scale
+                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
+            elseif strcmp(value, 'log')
+                % Plot p-values on logarithmic scale
+                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.LOG;
+            else
+                % Plot p-values on negative logarithmic scale
+                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEG_LOG_10;
+>>>>>>> development
             end
         end
 
@@ -551,7 +632,10 @@ classdef NLAResult < matlab.apps.AppBase
             close(prog);
             
             app.moveCurrFigToParentLocation();
+<<<<<<< HEAD
             %These mlapp files are really just the worst
+=======
+>>>>>>> development
         end
 
         % Button pushed function: DisplayChordNet
@@ -685,6 +769,7 @@ classdef NLAResult < matlab.apps.AppBase
             app.DisplaySelectedButton.Position = [434 62 81 22];
             app.DisplaySelectedButton.Text = 'View figures';
 
+<<<<<<< HEAD
             % Create NetlevelplottingDropDownLabel
             app.NetlevelplottingDropDownLabel = uilabel(app.UIFigure);
             app.NetlevelplottingDropDownLabel.HorizontalAlignment = 'right';
@@ -697,6 +782,20 @@ classdef NLAResult < matlab.apps.AppBase
             app.NetlevelplottingDropDown.ValueChangedFcn = createCallbackFcn(app, @PValModeDropDownValueChanged, true);
             app.NetlevelplottingDropDown.Position = [533 114 118 22];
             app.NetlevelplottingDropDown.Value = 'p-value linear';
+=======
+            % Create NetlevelpvalueplottingDropDownLabel
+            app.NetlevelpvalueplottingDropDownLabel = uilabel(app.UIFigure);
+            app.NetlevelpvalueplottingDropDownLabel.HorizontalAlignment = 'right';
+            app.NetlevelpvalueplottingDropDownLabel.Position = [434 114 141 22];
+            app.NetlevelpvalueplottingDropDownLabel.Text = 'Net-level p-value plotting:';
+
+            % Create NetlevelpvalueplottingDropDown
+            app.NetlevelpvalueplottingDropDown = uidropdown(app.UIFigure);
+            app.NetlevelpvalueplottingDropDown.Items = {'linear', 'log', '-log10'};
+            app.NetlevelpvalueplottingDropDown.ValueChangedFcn = createCallbackFcn(app, @PValModeDropDownValueChanged, true);
+            app.NetlevelpvalueplottingDropDown.Position = [581 114 70 22];
+            app.NetlevelpvalueplottingDropDown.Value = 'linear';
+>>>>>>> development
 
             % Create DisplayConvergenceButton
             app.DisplayConvergenceButton = uibutton(app.UIFigure, 'push');
