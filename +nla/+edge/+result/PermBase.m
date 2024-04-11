@@ -24,12 +24,17 @@ classdef PermBase < handle
         
         % merge results from a different PermBase object into this one
         function merge(obj, results)
-            for j = 1:numel(results)                
-                obj.coeff.v = [obj.coeff.v,results{j}.coeff.v];
-                obj.prob.v = [obj.prob.v, results{j}.prob.v];
-                obj.prob_sig.v = [obj.prob_sig.v, results{j}.prob_sig.v];
-                obj.avg_prob_sig = [obj.avg_prob_sig, results{j}.avg_prob_sig];
-                obj.perm_count = obj.perm_count + results{j}.perm_count;
+            for j = 1:numel(results)  
+                if iscell(results)
+                    thisResult = results{j};
+                else
+                    thisResult = results(j);
+                end
+                obj.coeff.v = [obj.coeff.v,thisResult.coeff.v];
+                obj.prob.v = [obj.prob.v, thisResult.prob.v];
+                obj.prob_sig.v = [obj.prob_sig.v, thisResult.prob_sig.v];
+                obj.avg_prob_sig = [obj.avg_prob_sig, thisResult.avg_prob_sig];
+                obj.perm_count = obj.perm_count + thisResult.perm_count;
             end
                         
             obj.lastResultIdx = obj.perm_count;

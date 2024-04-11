@@ -4,6 +4,7 @@ classdef WilcoxonTest < handle
         name = "wilcoxon"
         display_name = "Wilcoxon Rank Sum"
         statistics = ["ranksum_statistic", "single_sample_ranksum_statistic", "z_statistic"]
+        ranking_statistic = "z_statistic"
     end
 
     methods
@@ -37,7 +38,7 @@ classdef WilcoxonTest < handle
                 single_sample_ranksum_statistic = strcat(single_sample_ranksum_statistic, "_permutations");
             end
 
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics, obj.ranking_statistic);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
