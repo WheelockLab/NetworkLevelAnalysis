@@ -1,4 +1,6 @@
 import matlab.unittest.TestSuite
+import matlab.unittest.plugins.CodeCoveragePlugin
+import matlab.unittest.plugins.codecoverage.CoverageReport
 
 root_path = nla.findRootPath();
 
@@ -16,4 +18,9 @@ for folder = 2:numel(test_folders)
     test_suite = [test_suite TestSuite.fromFolder(test_folders(folder))];
 end
 
-test_results = run(test_suite);
+runner = testrunner("textoutput");
+report_format = CoverReport("coverageReport");
+plugin = CodeCoveragePlugin.forFolder(".", "Producing", report_format);
+runner.addPlugin(plugin);
+
+results = runner.run(test_suite);
