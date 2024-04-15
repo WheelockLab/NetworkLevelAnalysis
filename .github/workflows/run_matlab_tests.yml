@@ -26,4 +26,4 @@ jobs:
       - name: Run script
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(genpath(pwd)); runTests
+          command: addpath(genpath(pwd)); results = runTests(); assertSuccess(results)
