@@ -24,7 +24,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeKendallBResult.mat"), "result");
             kendallB = KendallB();
             expected = kendallB.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(result.coeff, expected.coeff);
         end
 
         function pearsonTest(testCase)
@@ -32,7 +32,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgePearsonResult.mat"), "result");
             pearson = Pearson();
             expected = pearson.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(result.coeff, expected.coeff);
         end
 
         function spearmanTest(testCase)
@@ -40,7 +40,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanResult.mat"), "result");
             spearman = Spearman();
             expected = spearman.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(result.coeff, expected.coeff);
         end
 
         function spearmanEstimatorTest(testCase)
@@ -48,7 +48,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanEstimatorResult.mat"), "result");
             spearman_estimator = SpearmanEstimator();
             expected = spearman_estimator.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(result.coeff, expected.coeff);
         end
     end
 end

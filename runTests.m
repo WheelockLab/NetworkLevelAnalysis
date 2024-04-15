@@ -18,9 +18,10 @@ for folder = 2:numel(test_folders)
     test_suite = [test_suite TestSuite.fromFolder(test_folders(folder))];
 end
 
-runner = testrunner("textoutput");
-report_format = CoverReport("coverageReport");
-plugin = CodeCoveragePlugin.forFolder(".", "Producing", report_format);
-runner.addPlugin(plugin);
+% runner = testrunner("textoutput");
+% report_format = CoverReport("coverageReport");
+% plugin = CodeCoveragePlugin.forFolder(".", "Producing", report_format);
+% runner.addPlugin(plugin);
 
-results = runner.run(test_suite);
+% results = runner.run(test_suite);
+run(test_suite);

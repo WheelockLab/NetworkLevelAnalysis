@@ -98,7 +98,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             results2.permutation_results.p_value_permutations.v = (testCase.test_data.v) .* 2;
 
             results.merge(results2);
-            results.permutation_results.single_sample_p_value_permutations.v
+            results.permutation_results.single_sample_p_value_permutations.v;
             testCase.verifyEqual(results.permutation_results.p_value_permutations.v,...
                 [testCase.test_data.v, (testCase.test_data.v) .* 2]);
         end
