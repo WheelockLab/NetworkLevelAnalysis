@@ -153,12 +153,10 @@ classdef NLAResult < matlab.apps.AppBase
         
         function updateProgPermStats(app, ~)
             if ~islogical(app.prog_bar)
+                
                 app.cur_iter = app.cur_iter + 1;
-                if app.cur_iter < app.net_input_struct.perm_count
-                    app.prog_bar.Message = sprintf('Running edge-level statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);
-                else
-                    app.prog_bar.Message = sprintf('Running net-level statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);
-                end
+                
+                app.prog_bar.Message = sprintf('Running permuted statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);                
                 
                 app.prog_bar.Value = mod(app.cur_iter, app.net_input_struct.perm_count) ./ app.net_input_struct.perm_count;
                 if app.prog_bar.CancelRequested
@@ -376,7 +374,7 @@ classdef NLAResult < matlab.apps.AppBase
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
-            prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running net-level statistics', 'Cancelable', 'on');
+            prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running permuted statistics', 'Cancelable', 'on');
             prog.Value = 0.02;
             drawnow;
             
@@ -388,7 +386,7 @@ classdef NLAResult < matlab.apps.AppBase
                 
                 gcp;
                 
-                prog.Message = sprintf('Running net-level statistics (0/%d permutations)', app.net_input_struct.perm_count);
+                prog.Message = sprintf('Running permuted statistics (0/%d permutations)', app.net_input_struct.perm_count);
                 prog.Value = 0;
                 
                 % Set handle reference
