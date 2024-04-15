@@ -1,27 +1,30 @@
-import matlab.unittest.TestSuite
-import matlab.unittest.plugins.CodeCoveragePlugin
-import matlab.unittest.plugins.codecoverage.CoverageReport
+function results = runTests()
 
-root_path = nla.findRootPath();
+    import matlab.unittest.TestSuite
+    import matlab.unittest.plugins.CodeCoveragePlugin
+    import matlab.unittest.plugins.codecoverage.CoverageReport
 
-% get all unittests folders
-filelist = dir(fullfile(root_path, '**/unittests'));
+    root_path = nla.findRootPath();
 
-% make cell array with extra check on if directory
-test_folders = {filelist([filelist.isdir]).folder};
+    % get all unittests folders
+    filelist = dir(fullfile(root_path, '**/unittests'));
 
-test_folders = convertCharsToStrings(unique(test_folders));
+    % make cell array with extra check on if directory
+    test_folders = {filelist([filelist.isdir]).folder};
 
-test_suite = TestSuite.fromFolder(test_folders(1));
+    test_folders = convertCharsToStrings(unique(test_folders));
 
-for folder = 2:numel(test_folders)
-    test_suite = [test_suite TestSuite.fromFolder(test_folders(folder))];
+    test_suite = TestSuite.fromFolder(test_folders(1));
+
+    for folder = 2:numel(test_folders)
+        test_suite = [test_suite TestSuite.fromFolder(test_folders(folder))];
+    end
+
+    % runner = testrunner("textoutput");
+    % report_format = CoverReport("coverageReport");
+    % plugin = CodeCoveragePlugin.forFolder(".", "Producing", report_format);
+    % runner.addPlugin(plugin);
+
+    % results = runner.run(test_suite);
+    results = run(test_suite);
 end
-
-% runner = testrunner("textoutput");
-% report_format = CoverReport("coverageReport");
-% plugin = CodeCoveragePlugin.forFolder(".", "Producing", report_format);
-% runner.addPlugin(plugin);
-
-% results = runner.run(test_suite);
-run(test_suite);
