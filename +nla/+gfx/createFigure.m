@@ -26,7 +26,7 @@ function fig = createFigure(w, h)
     function saveButtonPressed(src, ~)
         fig_handle = src.Parent.Parent;
         file_name_default = sprintf('nla_figure_%s.png', datetime(datetime, 'Format', 'yyyy-MM-dd-HH-mm-ss-SS'));
-        [file, path] = uiputfile({'*.png', 'Image (*.png)'}, 'Save Figure', file_name_default);
+        [file, path] = uiputfile({'*.png', 'Image (*.png)'; '*.svg', 'Scalable Vector Graphic (*.svg)'}, 'Save Figure', file_name_default);
         if file ~= 0
             saveas(fig_handle, fullfile(path, file));
         end

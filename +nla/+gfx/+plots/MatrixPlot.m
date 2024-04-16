@@ -592,8 +592,7 @@ classdef MatrixPlot < handle
             scaleBaseButtons.SelectedObject = selected_value;
             
             % Color Map selector
-            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu
-            
+            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu 
             uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
                 "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
             color_map_select = uicontrol('Style', 'popupmenu',...
@@ -627,6 +626,7 @@ classdef MatrixPlot < handle
         end
 
         function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
+
             % This callback gets the colormap/scale and then applies the new bounds to the data.
             % Only works with APPLY button, will not work with only CLOSE
         

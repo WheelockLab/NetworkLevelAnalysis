@@ -29,7 +29,6 @@ function drawConvergenceMap(edge_input_struct, input_struct, net_atlas, sig_coun
     
     chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 500, sig_mat, 'color_map', color_map);
     chord_plotter.drawChords();
-    % gfx.drawChord(ax, 500, net_atlas, sig_mat, color_map);
     
     %% Trimatrix plot
     function brainFigsButtonClickedCallback(net1, net2)
