@@ -52,6 +52,14 @@ classdef MatrixPlot < handle
         colorbar_offset = 15; % Offset of the colorbar
         colorbar_text_w = 50; % Width of label on colorbar
         legend_offset = 5; % Offset of the Legend
+        colormap_choices = {"Jet", "Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+            "Bone", "Copper", "Pink"}; % Colorbar choices
+    end
+
+    properties (SetAccess = immutable)
+        original_matrix % The original matrix for scaling purposes. Despite it saying "immutable",
+        % this property is mutable since it's a mutable object type and not a static value.
+        default_settings
     end
 
     properties (Constant)
