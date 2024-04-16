@@ -32,6 +32,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgePearsonResult.mat"), "result");
             pearson = Pearson();
             expected = pearson.run(testCase.variables.input_struct);
+            max(abs(result.coeff.v - expected.coeff.v))
             testCase.verifyEqual(result.coeff, expected.coeff);
         end
 
@@ -40,6 +41,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanResult.mat"), "result");
             spearman = Spearman();
             expected = spearman.run(testCase.variables.input_struct);
+            max(abs(result.coeff.v - expected.coeff.v))
             testCase.verifyEqual(result.coeff, expected.coeff);
         end
 
