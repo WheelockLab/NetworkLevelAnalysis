@@ -1,6 +1,6 @@
 function results = runTests()
 
-    import matlab.unittest.TestSuite
+    import matlab.unittest.TestSuite matlab.unittest.TestRunner
     import matlab.unittest.plugins.CodeCoveragePlugin
     import matlab.unittest.plugins.codecoverage.CoverageReport
 
@@ -20,11 +20,10 @@ function results = runTests()
         test_suite = [test_suite TestSuite.fromFolder(test_folders(folder))];
     end
 
-    % runner = testrunner("textoutput");
-    % report_format = CoverReport("coverageReport");
-    % plugin = CodeCoveragePlugin.forFolder(".", "Producing", report_format);
-    % runner.addPlugin(plugin);
+    runner = TestRunner.withTextOutput;
+    report_format = CoverageReport("coverageReport");
+    plugin = CodeCoveragePlugin.forFolder(root_path, "IncludingSubfolders", true, "Producing", report_format);
+    runner.addPlugin(plugin);
 
-    % results = runner.run(test_suite);
-    results = run(test_suite);
+    results = runner.run(test_suite);
 end
