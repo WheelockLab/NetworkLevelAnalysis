@@ -172,14 +172,19 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods(Static)
-        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max)
+        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max, color_map)
             log_minimum = log10(min(nonzeros(probabilities_input.v)));
             log_minimum = max([-40, log_minimum]);
+
+            color_map_base = parula(default_discrete_colors);
+            if nargin > 3
+                color_map_name = str2func(lower(color_map));
+                color_map_base = color_map_name(default_discrete_colors);
+            end
 
             % Relevant for BenjaminYekutieli/BenjaminHochberg fdr correction
             default_color_map = [1 1 1];
             if p_value_max ~= 0
-                color_map_base = parula(default_discrete_colors);
                 color_map = flip(color_map_base(ceil(logspace(log_minimum, 0, default_discrete_colors) .*...
                     default_discrete_colors), :));
                 color_map = [color_map; default_color_map];
@@ -188,12 +193,17 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function color_map = getColormap(default_discrete_colors, p_value_max)
+        function color_map = getColormap(default_discrete_colors, p_value_max, color_map)
+            color_map_base = parula(default_discrete_colors);
+            if nargin > 2
+                color_map_name = str2func(lower(color_map));
+                color_map_base = color_map_name(default_discrete_colors);
+            end
             default_color_map = [1 1 1];
             if p_value_max == 0
                 color_map = default_color_map;
             else
-                color_map = flip(parula(default_discrete_colors));
+                color_map = flip(color_map_base);
                 color_map = [color_map; default_color_map];
             end
         end
