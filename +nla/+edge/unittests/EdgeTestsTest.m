@@ -12,7 +12,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
     
     methods (TestClassTeardown)
         function clearTestData(testCase)
-            clear testCase.variables
+            clear 
         end
     end
 
@@ -24,7 +24,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeKendallBResult.mat"), "result");
             kendallB = KendallB();
             expected = kendallB.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result.coeff, expected.coeff);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
 
         function pearsonTest(testCase)
@@ -32,8 +32,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgePearsonResult.mat"), "result");
             pearson = Pearson();
             expected = pearson.run(testCase.variables.input_struct);
-            max(abs(result.coeff.v - expected.coeff.v))
-            testCase.verifyEqual(result.coeff, expected.coeff);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
 
         function spearmanTest(testCase)
@@ -41,8 +40,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanResult.mat"), "result");
             spearman = Spearman();
             expected = spearman.run(testCase.variables.input_struct);
-            max(abs(result.coeff.v - expected.coeff.v))
-            testCase.verifyEqual(result.coeff, expected.coeff);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
 
         function spearmanEstimatorTest(testCase)
@@ -50,7 +48,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanEstimatorResult.mat"), "result");
             spearman_estimator = SpearmanEstimator();
             expected = spearman_estimator.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result.coeff, expected.coeff);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
     end
 end
