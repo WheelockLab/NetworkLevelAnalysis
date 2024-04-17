@@ -1,41 +1,37 @@
 classdef ResultPool
-    %RESULTPOOL Pool of results (observed, permuted, edge and net level)
+    %RESULTPOOL Summary of this class goes here
+    %   TODO Detailed explanation goes here
     
     properties
-        net_atlas
-        input_struct
-        net_input_struct
-        edge_result
-        net_results
-        perm_edge_result
-        perm_net_results
+        network_atlas
+        test_options
+        network_test_options
+        edge_test_results
+        network_test_results
+        permutation_edge_test_results
+        permutation_network_test_results
         version
-        commit
-        commit_short
     end
     
     methods
-        function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results)
-            import nla.* % required due to matlab package system quirks
-            obj.input_struct = input_struct;
-            obj.net_input_struct = net_input_struct;
-            obj.net_atlas = net_atlas;
-            obj.edge_result = edge_result;
-            obj.perm_edge_result = perm_edge_result;
-            obj.net_results = net_results;
-            obj.perm_net_results = perm_net_results;
-            obj.version = VERSION;
-            obj.commit = helpers.git.commitString(true);
-            obj.commit_short = helpers.git.commitString();
+        function obj = ResultPool(test_options, network_test_options, network_atlas, edge_test_results,...
+                network_test_results, permutation_edge_test_results, permutation_network_test_results)
+            obj.test_options = test_options;
+            obj.network_test_options = network_test_options;
+            obj.network_atlas = network_atlas;
+            obj.edge_test_results = edge_test_results;
+            obj.permutation_edge_test_results = permutation_edge_test_results;
+            obj.network_test_results = network_test_results;
+            obj.permutation_network_test_results = permutation_network_test_results;
+            obj.version = nla.VERSION;
         end
         
         function output(obj)
-            import nla.* % required due to matlab package system quirks
             flags = struct();
-            flags.display_sig = obj.containsSigBasedNetworkResult();
-            obj.edge_result.output(obj.net_atlas, flags);
-            if ~islogical(obj.perm_edge_result)
-                obj.perm_edge_result.output(obj.net_atlas, flags);
+            flags.display_sig = obj.containsSignificanceBasedNetworkResult();
+            obj.edge_test_results.output(obj.network_atlas, flags);
+            if ~islogical(obj.permutation_edge_test_results)
+                obj.permutation_edge_test_results.output(obj.network_atlas, flags);
             end
             flags = struct();
             flags.show_nonpermuted = true;
@@ -43,56 +39,46 @@ classdef ResultPool
             flags.show_within_net_pair = true;
             %Add to display net results as nla.PlotType.FIGURE (ADE 20221121)
             flags.plot_type = nla.PlotType.FIGURE;
-            if ~islogical(obj.net_results)
-                for i = 1:numel(obj.net_results)
-                    obj.net_results{i}.output(obj.input_struct, obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
-                    obj.perm_net_results{i}.output(obj.input_struct, obj.net_input_struct, obj.net_atlas, obj.edge_result, flags);
+            if ~islogical(obj.network_test_results)
+                for i = 1:numel(obj.network_test_results)
+                    obj.network_test_results{i}.output(obj.network_test_options, obj.network_atlas, obj.edge_test_results, flags);
+                    obj.permutation_network_test_results{i}.output(obj.network_test_options,...
+                        obj.network_atlas, obj.edge_test_results, flags);
                 end
             end
         end
         
-        function val = containsSigBasedNetworkResult(obj)
-            import nla.* % required due to matlab package system quirks
-            val = false;
-            if ~islogical(obj.perm_net_results)
-                for i = 1:size(obj.perm_net_results, 1)
-                    if isa(obj.perm_net_results{i}, 'net.BaseSigResult')
-                        val = true;
-                    end
+        function value = containsSignifiganceBasedNetworkResult(obj)
+            if ~islogical(obj.permutation_network_test_results)
+                for i = 1:size(obj.permutation_network_test_results, 1)
+                    value = obj.permutation_network_test_results{i}.significance_test;
                 end
             end
         end
         
         function to_file(obj, filename)
-            import nla.* % required due to matlab package system quirks
             results = obj;
             % also create a struct version of the results for compatibility
-            results_as_struct = helpers.classToStructRecursive(obj);
+            results_as_struct = nla.helpers.classToStructRecursive(obj);
             save(filename, 'results', 'results_as_struct', '-nocompression','-v7.3');
         end
         
         function saveSummaryTable(obj, filename)
-            import nla.* % required due to matlab package system quirks
+            import nla.TriMatrix nla.TriMatrixDiag
 
-            for n = 1:obj.net_atlas.numNets()
-                net_name = obj.net_atlas.nets(n).name;
-                for n2 = n:obj.net_atlas.numNets()
-                    net2_name = obj.net_atlas.nets(n2).name;
-                    net_pairs_mat(n2, n) = string(net_name);
-                    net_pairs2_mat(n2, n) = string(net2_name);
-                    if n == n2
-                        net_pair_size_mat(n2, n) = nla.helpers.triNum(obj.net_atlas.nets(n).numROIs);
-                    else
-                        net_pair_size_mat(n2, n) = obj.net_atlas.nets(n).numROIs * obj.net_atlas.nets(n2).numROIs;
-                    end
+            for network = 1:obj.network_atlas.numNets()
+                network_name = obj.network_atlas.nets(network).name;
+                for network2 = network:obj.network_atlas.numNets()
+                    network2_name = obj.network_atlas.nets(network2).name;
+                    network_pairs_matrix(network2, network) = string(network_name);
+                    network_pairs2_matrix(network2, network) = string(network2_name);
                 end
             end
-            net_pairs = TriMatrix(net_pairs_mat, TriMatrixDiag.KEEP_DIAGONAL);
-            net_pairs2 = TriMatrix(net_pairs2_mat, TriMatrixDiag.KEEP_DIAGONAL);
-            net_pair_size = TriMatrix(net_pair_size_mat, TriMatrixDiag.KEEP_DIAGONAL);
-            summary_table = table(net_pairs.v, net_pairs2.v, net_pair_size.v, 'VariableNames', ["Network 1", "Network 2", "Net-Pair Size"]);
-            for i = 1:numel(obj.perm_net_results)
-                summary_table = obj.perm_net_results{i}.genSummaryTable(summary_table);
+            network_pairs = TriMatrix(network_pairs_matrix, TriMatrixDiag.KEEP_DIAGONAL);
+            network_pairs2 = TriMatrix(network_pairs2_matrix, TriMatrixDiag.KEEP_DIAGONAL);
+            summary_table = table(network_pairs.v, network_pairs2.v, 'VariableNames', ["Network 1", "Network 2"]);
+            for i = 1:numel(obj.permutation_network_test_results)
+                summary_table = obj.permutation_network_test_results{i}.genSummaryTable(summary_table);
             end
 
             writetable(summary_table, filename, 'Delimiter', '\t');

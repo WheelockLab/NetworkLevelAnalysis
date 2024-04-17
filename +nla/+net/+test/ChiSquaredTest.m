@@ -2,6 +2,7 @@ classdef ChiSquaredTest < handle
     %CHISQUARED Chi-squared test to determine how far a result is from expectation
     properties (Constant)
         name = "chi_squared"
+        display_name = "Chi-Squared"
         statistics = ["chi2_statistic", "greated_than_expected"]
     end
 
@@ -9,7 +10,7 @@ classdef ChiSquaredTest < handle
         function obj = ChiSquaredTest()
         end
 
-        function result = run(obj, test_options, edge_test_results, network_atlas)
+        function result = run(obj, test_options, edge_test_results, network_atlas, permutations)
             %RUN runs the chi-squared test
             %  test_options: The selected values for the test to be run. Formerly input_struct. Options are in nla.net.genBaseInputs
             %  edge_test_results: Non-permuted edge test results. Formerly edge_result
@@ -17,13 +18,20 @@ classdef ChiSquaredTest < handle
 
             import nla.TriMatrix nla.TriMatrixDiag
 
+            % Store results in the 'no_permutations' structure if this is the no-permutation test
+            permutation_results = "no_permutations";
+            if permutations
+                % Otherwise, add it on to the back of the 'permutation_results' structure
+                permutation_results = "permutation_results";
+            end
+
             number_of_networks = network_atlas.numNets();
 
             % Structure to pass results outside
-            result = nla.net2.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
 
             % Empty this out since it is not needed
-            result.permutation_results.single_sample_p_value = false;
+            result.(permutation_results).single_sample_p_value = false;
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -35,20 +43,26 @@ classdef ChiSquaredTest < handle
                     observed_significance = sum(network_pair_ROI_significance);
                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
                     chi2_value = ((observed_significance - expected_significance) .^ 2) ./ expected_significance;
-                    result.permutation_results.chi2_statistic.set(network, network2, chi2_value);
-                    result.permutation_results.greater_than_expected.set(network, network2, observed_significance > expected_significance);
+                    result.(permutation_results).chi2_statistic.set(network, network2, chi2_value);
+                    result.(permutation_results).greater_than_expected.set(network, network2, observed_significance > expected_significance);
                 end
             end
 
             % If the observed value is not greater than the expected, we zero out the result
             % This just results in a p-value of 1. Which means no difference between chance and null
             % hypothesis. We also zero anything that isn't finite to be safe
-            result.permutation_results.chi2_statistic.v(~result.permutation_results.greater_than_expected.v) = 0;
-            result.permutation_results.chi2_statistic.v(~isfinite(result.permutation_results.chi2_statistic.v)) = 0;
+            result.(permutation_results).chi2_statistic.v(~result.(permutation_results).greater_than_expected.v) = 0;
+            result.(permutation_results).chi2_statistic.v(~isfinite(result.(permutation_results).chi2_statistic.v)) = 0;
 
             % Matlab function for chi-squared cdf to get p-value. "Upper" calculates the upper tail instead of
             % using 1 - lower tail
-            result.permutations_results.p_value.v = chi2cdf(result.permutation_results.chi2_statistic.v, 1, "upper");
+            result.permutations_results.p_value.v = chi2cdf(result.(permutation_results).chi2_statistic.v, 1, "upper");
+        end
+    end
+
+    methods (Static)
+        function inputs = requiredInputs()
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
 end

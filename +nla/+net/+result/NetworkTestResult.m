@@ -28,7 +28,7 @@ classdef NetworkTestResult < handle
         within_network_pair = false % Results for within-network-pair tests
         full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
         no_permutations = false % Results for the network tests with no permutations (the 'observed' results)    
-        permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods    
+        permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods   
     end
 
     properties (Access = private)
@@ -37,10 +37,12 @@ classdef NetworkTestResult < handle
 
     properties (Dependent)
         permutation_count
+        significance_test
     end
 
     properties (Constant)
         test_methods = ["no_permutations", "within_network_pair", "full_connectome"]
+        significance_test_names = ["chi_squared", "hypergeometric"]
     end
 
     methods
@@ -86,12 +88,12 @@ classdef NetworkTestResult < handle
             %CONCATENATERESULT Add a result to the back of a TriMatrix. Used to keep permutation data. Ordered
 
             % Check to make sure we've created an object and create one if we haven't
-            if ~isfield(obj.permutation_results, 'p_value_permutations')
-                obj = nla.net2.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
-                    other_object.test_name, fieldnames(other_object.(test_method)));
-                % Set last index to zero since this is the concatenated data will be the initial data
-                obj.last_index = 0;
-            end
+            % if ~isfield(obj.permutation_results, 'p_value_permutations')
+            %     obj = nla.net.result.NetworkTestResult(other_object.test_options, other_object.(test_method).p_value.size,...
+            %         other_object.test_name, fieldnames(other_object.(test_method)));
+            %     % Set last index to zero since this is the concatenated data will be the initial data
+            %     obj.last_index = 0;
+            % end
 
             statistics = fieldnames(obj.permutation_results);
             for statistic_index = 1:numel(statistics)
@@ -104,12 +106,33 @@ classdef NetworkTestResult < handle
             obj.last_index = obj.last_index + 1;
         end
 
+        function object_copy = copy(obj)
+            object_copy = nla.net.result.NetworkTestResult();
+            fields = fieldnames(obj);
+            for field_index = 1:size(fields, 2)
+                field_name = fields{field_index};
+                if isstruct(obj.(field_name))
+                    object_copy.(field_name) = cell2struct(struct2cell(obj.(field_name)), fieldnames(obj.(field_name)));
+                else
+                    object_copy.(field_name) = obj.(field_name);
+                end
+            end
+        end
+
         function value = get.permutation_count(obj)
-            if isfield(obj.permutation_results, 'p_value_permutations')
-                value = size(obj.permutation_results.p_value_permutations.v, 2);
+            if isfield(obj.permutation_results, "p_value_permutations") &&...
+                ~isequal(obj.permutation_results.p_value_permutations, false)
+                value = size(obj.permutation_results.p_value_permutations.v, 2)
+            elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
+                ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
+                value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
             else
                 error("No permutation test results found.")
             end
+        end
+
+        function value = get.significance_test(obj)
+            value = any(strcmp(obj.significance_test_names, obj.test_name));
         end
     end
 
@@ -162,6 +185,17 @@ classdef NetworkTestResult < handle
             obj.(test_method) = struct();
             obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+        end
+    end
+
+    methods (Static)
+        function options = editableOptions()
+            % options that can be edited post-run (ie: are simple
+            % thresholds etc. for summary statistics, or generally can be
+            % modified without requiring re-permutation)
+            import nla.inputField.Integer nla.inputField.Number 
+            options = {Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
 end
