@@ -160,6 +160,36 @@ classdef TestPool < nla.DeepCopyable
             end
             edge_result_perm.perm_seed = perm_seed;
         end
+                
+        function edge_result_perm = runEdgeTestPermBlock(obj, input_struct, block_start, block_end, perm_seed)
+            % set permutation method
+            edge_result_perm = nla.edge.result.PermBase();
+            
+            for iteration = block_start:block_end - 1
+                % set RNG per-iteration based on the random seed and
+                % iteration number, so the # of processes doesn't impact
+                % the result(important for repeatability if running 
+                % permutations with the same seed intentionally)
+                rng(bitxor(perm_seed, iteration));
+                permuted_input = input_struct.permute_method.permute(input_struct);
+                permuted_input.iteration = iteration;
+                
+                single_edge_result = obj.runEdgeTest(permuted_input);
+                edge_result_perm.addSingleEdgeResult(single_edge_result);
+                
+                if ~islogical(obj.data_queue)
+                    send(obj.data_queue, iteration);
+                end
+            end
+        end
+                
+        function edge_result = runEdgeTest(obj, input_struct)
+            if ~isfield(input_struct, 'iteration')
+                input_struct.iteration = 0;
+            end
+            
+            edge_result = obj.edge_test.run(input_struct);
+        end
         
         function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, perm_edge_results)
             num_perms = perm_edge_results.perm_count;
@@ -192,28 +222,6 @@ classdef TestPool < nla.DeepCopyable
             end
         end
         
-        function edge_result_perm = runEdgeTestPermBlock(obj, input_struct, block_start, block_end, perm_seed)
-            % set permutation method
-            edge_result_perm = nla.edge.result.PermBase();
-            
-            for iteration = block_start:block_end - 1
-                % set RNG per-iteration based on the random seed and
-                % iteration number, so the # of processes doesn't impact
-                % the result(important for repeatability if running 
-                % permutations with the same seed intentionally)
-                rng(bitxor(perm_seed, iteration));
-                permuted_input = input_struct.permute_method.permute(input_struct);
-                permuted_input.iteration = iteration;
-                
-                single_edge_result = obj.runEdgeTest(permuted_input);
-                edge_result_perm.addSingleEdgeResult(single_edge_result);
-                
-                if ~islogical(obj.data_queue)
-                    send(obj.data_queue, iteration);
-                end
-            end
-        end
-        
         function network_results_permutation = runNetTestsPermBlock(obj, net_input_struct, net_atlas, perm_edge_results, block_start)
             network_results_permutation = obj.getNetworkResults(obj.net_tests);
             
@@ -229,16 +237,7 @@ classdef TestPool < nla.DeepCopyable
                 end
             end
         end
-                
-        
-        function edge_result = runEdgeTest(obj, input_struct)
-            if ~isfield(input_struct, 'iteration')
-                input_struct.iteration = 0;
-            end
-            
-            edge_result = obj.edge_test.run(input_struct);
-        end
-        
+                   
         function net_results = runNetTests(obj, input_struct, edge_result, net_atlas)
             net_results = {};
             for i = 1:numNetTests(obj)
