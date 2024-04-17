@@ -19,9 +19,13 @@ classdef NoPermutationPlotter < handle
             significance_plot = parameters.significance_plot;
             clickCallback = parameters.callback;
             
-            [w, h] = nla.gfx.drawMatrixOrg(plot_figure, x_coordinate, y_coordinate, plot_label, statistic_matrix, 0,...
-                p_value_max, obj.network_atlas.nets, nla.gfx.FigSize.SMALL, nla.gfx.FigMargins.WHITESPACE, false, true,...
-                color_map, significance_plot, false, clickCallback);
+            matrix_plot = nla.gfx.plots.MatrixPlot(plot_figure, plot_label, statistic_matrix, obj.network_atlas.nets,...
+                nla.gfx.FigSize.SMALL, 'x_position', x_coordinate, 'y_position', y_coordinate, 'lower_limit', 0,...
+                'upper_limit', p_value_max, 'color_map', color_map, 'network_clicked_callback', clickCallback,...
+                'marked_networks', significance_plot);
+            matrix_plot.displayImage();
+            w = matrix_plot.image_dimensions("image_width");
+            h = matrix_plot.image_dimensions("image_height");
         end
 
         function plotProbabilityVsNetworkSize(obj, parameters, axes, plot_title)
