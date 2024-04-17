@@ -121,6 +121,7 @@ classdef BaseResult < nla.net.BasePermResult
         end
         
         function plotProbVsNetSize(obj, net_atlas, ax)
+            % THIS IS THE SAME AS BasePermResult.plotValsVsNetSize!! YUCK
             import nla.* % required due to matlab package system quirks
             net_size = obj.getNetSizes(net_atlas);
             

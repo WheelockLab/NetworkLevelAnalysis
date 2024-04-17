@@ -22,16 +22,16 @@ classdef HyperGeometricTest < handle
 
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
+            greater_than_expected = "greater_than_expected";
             if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
+                greater_than_expected = strcat(greater_than_expected, "_permutations");
             end
 
             % Container to hold results
-            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.statistics);
-            % Empty this out since it is not needed
-            result.(permutation_results).single_sample_p_value = false;
-            result.(permutation_results).greated_than_expected = TriMatrix(number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
+            result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name,...
+                obj.statistics);
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network
@@ -42,18 +42,22 @@ classdef HyperGeometricTest < handle
                     network_ROI_count = numel(network_pair_ROI_significance);
                     observed_significance = sum(network_pair_ROI_significance);
                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
-                    result.(permutation_results).greated_than_expected.set(network, network2, observed_significance > expected_significance)
+                    result.(permutation_results).(greater_than_expected).set(network, network2, observed_significance > expected_significance)
                     % Matlab function for hypergeometric cdf to get p-value. "Upper" calculates the upper tail instead of
                     % using 1 - lower tail
-                    result.(permutation_results).p_value.set(network, network2, hygecdf(observed_significance, numel(edge_test_results.prob_sig.v),...
-                        sum(edge_test_results.prob), network_ROI_count, "upper"));
+                    result.(permutation_results).(p_value).set(network, network2, hygecdf(observed_significance, numel(edge_test_results.prob_sig.v),...
+                        sum(edge_test_results.prob_sig.v), network_ROI_count, "upper"));
                 end
             end
 
             % If the observed value is not greater than the expected, we zero out the result
             % This just results in a p-value of 1. Which means no difference between chance and null
             % hypothesis.
-            result.(permutation_results).p_value.v(~result.(permutation_results).greated_than_expected.v) = 1;
+            if permutations
+                result.permutation_results.p_value_permutations.v(~result.permutation_results.greater_than_expected_permutations.v) = 1;
+            else
+                result.no_permutations.p_value.v(~result.no_permutations.greater_than_expected.v) = 1;
+            end
         end
     end
 
