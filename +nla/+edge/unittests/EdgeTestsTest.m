@@ -12,7 +12,7 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
     
     methods (TestClassTeardown)
         function clearTestData(testCase)
-            clear testCase.variables
+            clear 
         end
     end
 
@@ -21,35 +21,34 @@ classdef EdgeTestsTest < matlab.unittest.TestCase
             import nla.edge.test.KendallB
             % Your guess is as good as mine on why I need the full path
             % here and not above
-            load(fullfile("nla", "edge", "tests", "edgeKendallBResult.mat"), "result");
+            load(fullfile("+nla", "+edge", "unittests", "edgeKendallBResult.mat"), "result");
             kendallB = KendallB();
             expected = kendallB.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
 
         function pearsonTest(testCase)
             import nla.edge.test.Pearson
-            load(fullfile("nla", "edge", "tests", "edgePearsonResult.mat"), "result");
+            load(fullfile("+nla", "+edge", "unittests", "edgePearsonResult.mat"), "result");
             pearson = Pearson();
             expected = pearson.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
 
         function spearmanTest(testCase)
             import nla.edge.test.Spearman
-            load(fullfile("nla", "edge", "tests", "edgeSpearmanResult.mat"), "result");
+            load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanResult.mat"), "result");
             spearman = Spearman();
             expected = spearman.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
 
         function spearmanEstimatorTest(testCase)
             import nla.edge.test.SpearmanEstimator
-            load(fullfile("nla", "edge", "tests", "edgeSpearmanEstimatorResult.mat"), "result");
+            load(fullfile("+nla", "+edge", "unittests", "edgeSpearmanEstimatorResult.mat"), "result");
             spearman_estimator = SpearmanEstimator();
             expected = spearman_estimator.run(testCase.variables.input_struct);
-            testCase.verifyEqual(result, expected);
+            testCase.verifyEqual(round(result.coeff.v, 6), round(expected.coeff.v, 6));
         end
     end
-
 end

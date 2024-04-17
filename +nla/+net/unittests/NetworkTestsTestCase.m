@@ -67,7 +67,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             import nla.net.test.ChiSquaredTest
 
             chi_squared_test = ChiSquaredTest();
-            load(strcat(testCase.root_path, fullfile('+nla', '+net', '+tests', 'ChiSquaredTestResult.mat')), 'chi_squared_result');
+            load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'ChiSquaredTestResult.mat')), 'chi_squared_result');
             test_result = chi_squared_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
             testCase.verifyEqual(test_result.no_permutations.chi2_statistic.v, chi_squared_result);
         end
@@ -76,7 +76,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             import nla.net.test.HyperGeometricTest
 
             hypergeometric_test = HyperGeometricTest();
-            load(strcat(testCase.root_path, fullfile('+nla', '+net', '+tests', 'HyperGeometricTestResult.mat')), 'hyper_geo_result');
+            load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'HyperGeometricTestResult.mat')), 'hyper_geo_result');
             test_result = hypergeometric_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
             testCase.verifyEqual(test_result.no_permutations.p_value.v, hyper_geo_result);
         end
@@ -85,7 +85,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             import nla.net.test.KolmogorovSmirnovTest
 
             ks_test = KolmogorovSmirnovTest();
-            load(strcat(testCase.root_path, fullfile('+nla', '+net', '+tests', 'KSTestResult.mat')), 'ks_result');
+            load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'KSTestResult.mat')), 'ks_result');
             test_result = ks_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
             testCase.verifyEqual(test_result.no_permutations.ks_statistic.v, ks_result);
         end
@@ -94,7 +94,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             import nla.net.test.StudentTTest
 
             student_t_test = StudentTTest();
-            load(strcat(testCase.root_path, fullfile('+nla', '+net', '+tests', 'StudentTTestResult.mat')), 'studentt_result');
+            load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'StudentTTestResult.mat')), 'studentt_result');
             test_result = student_t_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
             testCase.verifyEqual(test_result.no_permutations.t_statistic.v, studentt_result);
         end
@@ -103,7 +103,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             import nla.net.test.WelchTTest
 
             welch_t_test = WelchTTest();
-            load(strcat(testCase.root_path, fullfile('+nla', '+net', '+tests', 'WelchTTestResult.mat')), 'welcht_result');
+            load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'WelchTTestResult.mat')), 'welcht_result');
             test_result = welch_t_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
             testCase.verifyEqual(test_result.no_permutations.t_statistic.v, welcht_result);
         end
@@ -112,7 +112,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             import nla.net.test.WilcoxonTest
 
             wilcoxon_test = WilcoxonTest();
-            load(strcat(testCase.root_path, fullfile('+nla', '+net', '+tests', 'WilcoxonTestResult.mat')), 'wilconxon_result');
+            load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'WilcoxonTestResult.mat')), 'wilconxon_result');
             test_result = wilcoxon_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
             testCase.verifyEqual(test_result.no_permutations.ranksum_statistic.v, wilconxon_result);
         end

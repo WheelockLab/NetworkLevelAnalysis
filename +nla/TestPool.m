@@ -152,7 +152,7 @@ classdef TestPool < nla.DeepCopyable
             [num_procs, blocks] = obj.initializeParallelPool(num_perms);
             
             edge_result_blocks = cell(1, num_procs);
-            parfor proc = 1:num_procs
+            for proc = 1:num_procs
                 % it may be possible to wrap these up into a reduction w/ custom func(merge)
                 % and eliminate the chunk merging step
                 edge_result = obj.runEdgeTestPermBlock(input_struct, blocks(proc), blocks(proc+1), perm_seed);
@@ -259,17 +259,12 @@ classdef TestPool < nla.DeepCopyable
 
         function ranked_results = rankResults(obj, input_options, nonpermuted_network_test_results, permuted_network_results, number_of_network_pairs)
             import nla.net.ResultRank
-            
-            stat_ranking = false;
-            if ~isfield(input_options, 'ranking_method') || input_options.ranking_method == nla.RankingMethod.TEST_STATISTIC
-                stat_ranking = true;
-            end
 
             ranked_results = cell(1, numNetTests(obj));
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, stat_ranking, number_of_network_pairs);
+                ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
-                ranked_results{test} = ranked_results_object.permuted_network_results;
+                ranked_results{test} = ranked_results_object;
             end
         end
     end
