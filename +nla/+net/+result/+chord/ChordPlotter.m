@@ -1,9 +1,9 @@
 classdef ChordPlotter < handle
 % CHORDPLOTTER Draws network test results in Chord Figures
-% Object takes the brain network atlas and the edge test results to initialize
-% generateChordFigure creates the chord plots for the network test results
-% The parameters used as an input are fron NetworkResultPlotParameter
-% Chord type is coming from the test options/input_struct.
+%   Object takes the brain network atlas and the edge test results to initialize
+%   generateChordFigure creates the chord plots for the network test results
+%   The parameters used as an input are fron NetworkResultPlotParameter
+%   Chord type is coming from the test options/input_struct.
 
     properties (Constant)
         axis_width = 750; % Constant for the size of the chord
@@ -32,7 +32,7 @@ classdef ChordPlotter < handle
 
         function generateChordFigure(obj, parameters, chord_type)
             % generateChordFigure plots chords for a network test
-            import nla.gfx.SigType nla.gfx.drawChord nla.net.result.plot.NoPermutationPlotter nla.gfx.EdgeChordPlotMethod
+            import nla.gfx.SigType nla.net.result.plot.NoPermutationPlotter nla.gfx.EdgeChordPlotMethod
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
@@ -48,7 +48,7 @@ classdef ChordPlotter < handle
             end
 
             % Create the figure windows that all the plots will go in
-            if obj.split_plot
+            if obj.split_plot && chord_type == nla.PlotType.CHORD_EDGE
                 plot_figure = nla.gfx.createFigure((obj.axis_width * 2) + obj.trimatrix_width - 100, obj.axis_width);
             else
                 plot_figure = nla.gfx.createFigure(obj.axis_width + obj.trimatrix_width, obj.axis_width);
@@ -69,8 +69,10 @@ classdef ChordPlotter < handle
                 statistic_matrix = copy(parameters.statistic_plot_matrix);
                 statistic_matrix.v(~parameters.significance_plot.v) = insignificance;
 
-                drawChord(figure_axis, 500, obj.network_atlas, statistic_matrix, parameters.color_map,...
-                    parameters.significance_type, chord_type, coefficient_bounds(1), coefficient_bounds(2));
+                chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, figure_axis, 500, statistic_matrix,...
+                    'color_map', parameters.color_map, 'direction', parameters.significance_type, 'upper_limit',...
+                    coefficient_bounds(2), 'lower_limit', coefficient_bounds(1), 'chord_type', chord_type);
+                chord_plotter.drawChords();
             else
                 % Plot edge chord
                 obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
@@ -87,7 +89,7 @@ classdef ChordPlotter < handle
     methods (Access = protected)
         function generateEdgeChordFigure(obj, plot_figure, parameters, chord_type)
             % generateEdgeChordFigure generates the edge chord plotting
-            import nla.gfx.EdgeChordPlotMethod nla.gfx.drawChord nla.gfx.setTitle
+            import nla.gfx.EdgeChordPlotMethod nla.gfx.setTitle
 
             range_limit = std(obj.edge_test_result.coeff.v) * 5;
             coefficient_min = -range_limit;
@@ -143,7 +145,8 @@ classdef ChordPlotter < handle
                     coefficient_max = obj.edge_test_result.prob_max;
 
                     insignificance = 1;
-                    main_title = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", obj.edge_test_result.prob_max);
+                    main_title = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)",...
+                        obj.edge_test_result.prob_max);
             end
 
             % Filtering/Thresholding out values
@@ -160,14 +163,18 @@ classdef ChordPlotter < handle
                 end
             end
 
-            plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position',...
-                [obj.trimatrix_width, 0, obj.axis_width - 50, obj.axis_width - 50]);
+            plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width - 50,...
+                obj.axis_width - 50]);
             nla.gfx.hideAxes(plot_axis);
             plot_axis.Visible = true;
 
-            if obj.split_plot
-                drawChord(plot_axis, 450, obj.network_atlas, clipped_values_positive, color_map, significance_type,...
-                    chord_type, coefficient_min, coefficient_max);
+            if obj.split_plot && chord_type == nla.PlotType.CHORD_EDGE && (...
+                obj.edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT || obj.edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT...
+            )
+                positive_chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values_positive,...
+                    'direction', significance_type, 'chord_type', chord_type, 'color_map', color_map, 'lower_limit',...
+                    coefficient_min, 'upper_limit', coefficient_max);
+                positive_chord_plotter.drawChords();
                 setTitle(plot_axis, positive_main_title);
 
                 % create another axis, I hate this naming but we can overwrite the old one
@@ -177,7 +184,9 @@ classdef ChordPlotter < handle
                 plot_axis.Visible = true;
             end
 
-            drawChord(plot_axis, 450, obj.network_atlas, clipped_values, color_map, significance_type, chord_type, coefficient_min, coefficient_max);
+            chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values, 'chord_type', chord_type,...
+                'direction', significance_type, 'color_map', color_map, 'lower_limit', coefficient_min, 'upper_limit', coefficient_min);
+            chord_plotter.drawChords();
             setTitle(plot_axis, main_title);
 
             colormap(plot_axis, color_map);
