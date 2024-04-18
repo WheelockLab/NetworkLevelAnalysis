@@ -27,7 +27,7 @@ classdef StudentTTest < handle
             t_statistic = "t_statistic";
             single_sample_p_value = "single_sample_p_value";
             single_sample_t_statistic = "single_sample_t_statistic";
-            if permutations
+            if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 p_value = strcat(p_value, "_permutations");

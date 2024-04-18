@@ -80,7 +80,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
             % Cohen's D results for markers
-            cohens_d_filter = TriMatrix(network_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+            cohens_d_filter = TriMatrix(network_atlas.numNets, 'logical', TriMatrixDiag.KEEP_DIAGONAL);
             if ~obj.is_noncorrelation_input
                 cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
             end

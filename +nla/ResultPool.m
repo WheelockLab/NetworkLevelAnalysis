@@ -38,10 +38,11 @@ classdef ResultPool
             flags.show_within_net_pair = true;
             %Add to display net results as nla.PlotType.FIGURE (ADE 20221121)
             flags.plot_type = nla.PlotType.FIGURE;
-            if ~islogical(obj.network_test_results)
-                for i = 1:numel(obj.network_test_results)
-                    obj.network_test_results{i}.output(obj.network_test_options, obj.network_atlas, obj.edge_test_results, flags);
-                    obj.permutation_network_test_results{i}.output(obj.network_test_options,...
+            if ~islogical(obj.permutation_network_test_results)
+                for i = 1:numel(obj.permutation_network_test_results)
+                    obj.network_test_results{i}.output(obj.test_options, obj.network_test_options, obj.network_atlas,...
+                        obj.edge_test_results, flags);
+                    obj.permutation_network_test_results{i}.output(obj.test_options, obj.network_test_options,...
                         obj.network_atlas, obj.edge_test_results, flags);
                 end
             end
