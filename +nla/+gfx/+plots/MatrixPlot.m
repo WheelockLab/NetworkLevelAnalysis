@@ -30,7 +30,7 @@ classdef MatrixPlot < handle
         axes % The axes of the plot
         image_display % The actual displayed values
         color_bar % The colorbar
-        colorbar_contextmenu % The right click menu for the colorbar
+        plot_scale % The scale and values being plotted (Linear, log, -log10, p-value, statistic p-value)
     end
 
     properties (Dependent)
@@ -49,6 +49,8 @@ classdef MatrixPlot < handle
         colorbar_offset = 15; % Offset of the colorbar
         colorbar_text_w = 50; % Width of label on colorbar
         legend_offset = 5; % Offset of the Legend
+        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+            "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
     methods
@@ -74,6 +76,7 @@ classdef MatrixPlot < handle
             % x_position = 0
             % y_position = 0
             % discrete_colorbar = false
+            % plot_scale = nla.gfx.ProbPlotMethod.DEFAULT
             import nla.gfx.createFigure
             matrix_input_parser = inputParser;
             addRequired(matrix_input_parser, 'figure');
@@ -95,11 +98,12 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'x_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'y_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
+            addParameter(matrix_input_parser, 'plot_scale', nla.gfx.ProbPlotMethod.DEFAULT, @isenum);
             
             parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
             properties = {'figure', 'name', 'matrix', 'networks', 'figure_size', 'network_clicked_callback',...
-                'marked_networks', 'figure_margins', 'draw_legend', 'draw_colorbar', 'color_map', 'lower_limit', 'upper_limit',...
-                'x_position', 'y_position', 'discrete_colorbar'};
+                'marked_networks', 'figure_margins', 'draw_legend', 'draw_colorbar', 'color_map', 'lower_limit',...
+                'upper_limit', 'x_position', 'y_position', 'discrete_colorbar', 'plot_scale'};
             for property = properties
                 obj.(property{1}) = matrix_input_parser.Results.(property{1});
                 if property{1} == "marked_networks"
@@ -125,7 +129,8 @@ classdef MatrixPlot < handle
 
             % initialization of the data that's going to become the image 
             image_data = NaN(dimensions("image_height"), dimensions("image_width"), 3);
-            obj.image_display = image(obj.axes, image_data, 'XData', [1 obj.axes.Position(3)], 'YData', [1 obj.axes.Position(4)]);
+            obj.image_display = image(obj.axes, image_data, 'XData', [1 obj.axes.Position(3)],...
+                'YData', [1 obj.axes.Position(4)]);
             % add callback for clicking on image
             obj.addCallback(obj.image_display);
 
@@ -217,7 +222,8 @@ classdef MatrixPlot < handle
 
             dimensions = [image_height image_width offset_x offset_y plot_width plot_height display_matrix_size label_size];
             % Matlab does not have a python-like dictionary. This is one, or a struct. 
-            value = containers.Map(["image_height" "image_width" "offset_x" "offset_y" "plot_width" "plot_height" "display_matrix_size" "label_size"], dimensions);
+            value = containers.Map(["image_height" "image_width" "offset_x" "offset_y" "plot_width" "plot_height"...
+                 "display_matrix_size" "label_size"], dimensions);
         end
 
         function value = get.as_matrix(obj)
@@ -254,7 +260,8 @@ classdef MatrixPlot < handle
 
         function obj = drawAxes(obj)
             % Creates the axes for the plot.
-            obj.axes = uiaxes(obj.figure, 'Position', [obj.x_position, obj.y_position, obj.image_dimensions("image_width"), obj.image_dimensions("image_height")]);
+            obj.axes = uiaxes(obj.figure, 'Position', [obj.x_position, obj.y_position,...
+                obj.image_dimensions("image_width"), obj.image_dimensions("image_height")]);
             axis(obj.axes, 'image');
             obj.axes.XAxis.TickLabels = {};
             obj.axes.YAxis.TickLabels = {};
@@ -291,18 +298,22 @@ classdef MatrixPlot < handle
         end
 
         function obj = embiggenMatrix(obj, varargin)
-            % Enlarges data points of matrix for easier viewing. Also adds the network colorbars to the left axis and bottom axis.
+            % Enlarges data points of matrix for easier viewing. 
+            % Also adds the network colorbars to the left axis and bottom axis.
             import nla.gfx.colorChunk nla.gfx.MatrixType nla.gfx.drawLine
 
             % If there are no inputs (like initial rendering) then we use defaults
             % If there were inputs, that means we're scaling the colorbar.
             if isempty(varargin)
+                initial_render = true; % Controls whether or not to add the bars on the side and bottom
                 upper_value = obj.upper_limit;
                 lower_value = obj.lower_limit;
             else
+                initial_render = false;
                 upper_value = str2double(varargin{2});
                 lower_value = str2double(varargin{1});
             end
+
             number_of_networks = obj.number_networks;
             dimensions = obj.image_dimensions;
             network_matrix = obj.network_matrix;
@@ -324,8 +335,10 @@ classdef MatrixPlot < handle
                 chunk_height = numel(network_indexes) * obj.elementSize();
                 
                 % Left side of matrix color bars
-                obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
-
+                if isequal(initial_render, true)
+                   obj.drawLeftLinesOnLabels(position_y, chunk_height, dimensions, network);
+                end
+                
                 position_x = dimensions("label_size") + dimensions("offset_x") + 3;
                 starting_x = position_x;
                 maximum_x = number_of_networks;
@@ -349,45 +362,47 @@ classdef MatrixPlot < handle
                     % Apply colors to chunks
                     obj.applyColorToData(position_x, position_y, chunk_height, chunk_width, chunk_color);
 
-                    % plot signifance marker
-                    if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
-                        obj.plotSignificanceMark(chunk_width, chunk_height, position_x, position_y);
-                    end
-                    
-                    if ~isequal(obj.network_clicked_callback, false)
-                        obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1,...
-                            position_y, position_y + chunk_height - 1];
-                    end
-                    % Add callbacks to all the squares
-                    obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1],...
-                        [position_y, position_y + chunk_height + 1]));
-                    obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
-                        [position_y + chunk_height, position_y + chunk_height]));
+                    if isequal(initial_render, true)
+                        % plot signifance marker
+                        if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
+                            obj.plotSignificanceMark(chunk_width, chunk_height, position_x, position_y);
+                        end
+                        
+                        if ~isequal(obj.network_clicked_callback, false)
+                            obj.network_dimensions(x, network, :) = [position_x, position_x + chunk_width - 1,...
+                                position_y, position_y + chunk_height - 1];
+                        end
+                        % Add callbacks to all the squares
+                        obj.addCallback(drawLine(obj.axes, [position_x - 1, position_x - 1],...
+                            [position_y, position_y + chunk_height + 1]));
+                        obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
+                            [position_y + chunk_height, position_y + chunk_height]));
 
-                    if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
-                        obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
-                            [position_y - 1, position_y + chunk_height + 1]));
-                        obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width],...
-                            [position_y - 1, position_y - 1]));
-                    end
+                        if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
+                            obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
+                                [position_y - 1, position_y + chunk_height + 1]));
+                            obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width],...
+                                [position_y - 1, position_y - 1]));
+                        end
 
-                    % Is this the last network of a TriMatrix. Then we're done and need to add the bottom
-                    if network == number_of_networks
-                        top = position_y + chunk_height;
-                        bottom = position_y + chunk_height + dimensions("label_size");
-                        left = position_x;
-                        right = position_x + chunk_width;
+                        % Is this the last network of a TriMatrix. Then we're done and need to add the bottom
+                        if network == number_of_networks
+                            top = position_y + chunk_height;
+                            bottom = position_y + chunk_height + dimensions("label_size");
+                            left = position_x;
+                            right = position_x + chunk_width;
 
-                        obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x).color,...
-                            dimensions("label_size") + 1, chunk_width + 1);
-                        obj.drawBottomLabels(chunk_width, chunk_height, position_x, position_y, x);
+                            obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x).color,...
+                                dimensions("label_size") + 1, chunk_width + 1);
+                            obj.drawBottomLabels(chunk_width, chunk_height, position_x, position_y, x);
+                        end
                     end
                     position_x = position_x + chunk_width + 1;
                 end
                 position_y = position_y + chunk_height + 1;
             end
 
-            if obj.matrix_type == MatrixType.TRIMATRIX && ~network_matrix
+            if obj.matrix_type == MatrixType.TRIMATRIX && ~network_matrix && initial_render
                 drawLine(obj.axes, [starting_x - 1, position_x - 1],...
                     [starting_y - 3 + obj.elementSize(), position_y - 2], 'w');
                 drawLine(obj.axes, [starting_x - 2, position_x - 1],...
@@ -403,7 +418,8 @@ classdef MatrixPlot < handle
             bottom = position_y + chunk_height;
             left = dimensions("offset_x") + 2;
             right = dimensions("offset_x") + dimensions("label_size") + 1;
-            obj.image_display.CData(top:bottom, left:right+1, :) = colorChunk(obj.networks(network).color, chunk_height + 1, dimensions("label_size") + 1);
+            obj.image_display.CData(top:bottom, left:right+1, :) = colorChunk(obj.networks(network).color,...
+                chunk_height + 1, dimensions("label_size") + 1);
 
             drawLine(obj.axes, [left - 1, right], [top - 1, top - 1]);
             drawLine(obj.axes, [left - 1, right], [bottom, bottom]);
@@ -432,7 +448,8 @@ classdef MatrixPlot < handle
             left = position_x;
             right = position_x + chunk_width;
 
-            obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x_location).color, dimensions("label_size") + 1, chunk_width + 1);
+            obj.image_display.CData(top:bottom, left:right, :) = colorChunk(obj.networks(x_location).color,...
+                dimensions("label_size") + 1, chunk_width + 1);
 
             obj.addCallback(drawLine(obj.axes, [left - 1, left - 1], [top, bottom]));
             obj.addCallback(drawLine(obj.axes, [right, right], [top, bottom]));
@@ -470,9 +487,11 @@ classdef MatrixPlot < handle
             display_legend.Units = 'pixels';
             display_legend_width = display_legend.Position(3);
             display_legend_height = display_legend.Position(4);
-            display_legend.Position = [obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
+            display_legend.Position = [...
+                obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
                 obj.y_position + dimensions("plot_height") - display_legend_height - dimensions("offset_y"),...
-                display_legend_width, display_legend_height];
+                display_legend_width, display_legend_height...
+            ];
         end
 
         function createColorbar(obj, varargin)
@@ -492,7 +511,8 @@ classdef MatrixPlot < handle
 
             if obj.discrete_colorbar
                 number_of_ticks = double(upper_value - lower_value);
-                display_colormap = obj.color_map(floor((size(obj.color_map, 1) - 1) * [0:number_of_ticks] ./ number_of_ticks) + 1, :);
+                display_colormap = obj.color_map(floor(...
+                    (size(obj.color_map, 1) - 1) * [0:number_of_ticks] ./ number_of_ticks) + 1, :);
                 display_colormap = repelem(display_colormap, 2, 1);
                 display_colormap = display_colormap(2:((number_of_ticks + 1) * 2 - 1), :);
                 colormap(obj.axes, display_colormap);
@@ -508,7 +528,9 @@ classdef MatrixPlot < handle
 
             labels = {};
             for tick = ticks
-                labels{tick + 1} = sprintf("%.2g", lower_value + (tick * ((double(upper_value - lower_value) / number_of_ticks))));
+                labels{tick + 1} = sprintf(...
+                    "%.2g", lower_value + (tick * ((double(upper_value - lower_value) / number_of_ticks)))...
+                );
             end
             obj.color_bar.TickLabels = labels;
             
@@ -525,27 +547,117 @@ classdef MatrixPlot < handle
             obj.color_bar.Title.FontSize = 7;
 
             % Enables callback for clicking on colorbar to scale data
-            set(obj.color_bar, 'ButtonDownFcn', @changeColorLimits)
+            set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
+        end
 
-            
+        function openModal(obj, source, ~)
             % Callback for clicking on the colorbar.
-            function changeColorLimits(~, ~)
-                prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
-                upper_limit_inner = obj.color_bar.TickLabels(end);
-                lower_limit_inner = obj.color_bar.TickLabels(1);
-                current_limits = {lower_limit_inner{1}, upper_limit_inner{1}};
-                new_limits = inputdlg(prompt, "Colorbar Limits", 1, current_limits);
-                % If "cancel" is pressed or both values deleted use defaults
-                if isempty(new_limits) || isempty(new_limits{1}) || isempty(new_limits{2})
-                    obj.embiggenMatrix();
-                    obj.createColorbar();
-                else
-                    obj.embiggenMatrix(new_limits{1}, new_limits{2});
-                    obj.createColorbar(new_limits{1}, new_limits{2});
-                end
+            % This opens a modal with the upper and lower bounds along with a radio selector between linear and 
+            % log. This only works for a "regular" log scale, not the -log10 scale. Still working on that one
+            import nla.gfx.ProbPlotMethod
+
+            % source is the colorbar, not the figure
+            d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2),...
+                source.Position(3) * 15, source.Position(4)/ 1.75]);
+            % These are the boxes that are the upper and lower end of the scale
+            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
+                'Position', [90, d.Position(4) - 30, 100, 30], "String", obj.upper_limit);
+            upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
+            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
+                'Position', [90, upper_limit_box.Position(2) - 30, 100, 30], "String", obj.lower_limit); 
+            lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
+            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
+                [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
+            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position',...
+                [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
+
+            % These are the buttons that make the scale log or linear
+            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, lower_limit_box.Position(2) - 40, 210, 30]);
+            linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels",...
+                "Position", [10, 5, 60, 20]);
+            log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels",...
+                "Position", [80, 5, 60, 20]);
+            neg_log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "-Log10", "Units", "pixels",...
+                "Position", [130, 5, 80, 20]);
+            % Here we're setting the initial setting for the linear or log button
+            if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == ProbPlotMethod.STATISTIC
+                selected_value = linear_button;
+            elseif obj.plot_scale == ProbPlotMethod.LOG || obj.plot_scale == ProbPlotMethod.LOG_STATISTIC
+                selected_value = log_button;
+            else
+                selected_value = neg_log_button;
             end
+            scaleBaseButtons.SelectedObject = selected_value;
+            
+            % Color Map selector
+            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu 
+            uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
+                "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
+            color_map_select = uicontrol('Style', 'popupmenu',...
+                'Position', [100, scaleBaseButtons.Position(2) - 45, 250, 30]);
+            initial_colors = 16;
+            colormap_html = [];
+            for colors = 1:numel(obj.colormap_choices)
+                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors}), "(x)")));
+                CData = colormap_function(initial_colors);
+                new_html = '<HTML>';
+                for color_iterator = 1:initial_colors
+                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
+                        CData(color_iterator, 3)]);
+                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
+                end
+                %new_html = new_html(1:end-2);
+                new_html = [new_html '</HTML>'];
+                colormap_html = [colormap_html; {new_html}];
+            end
+            set(color_map_select, "Value", 1, "String", colormap_html);
+
+            apply_button_position = [10, 10, 100, 30];
+            apply_button = uicontrol('String', 'Apply',...
+                'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
+                "Units", "pixels",...
+                'Position', apply_button_position);
+            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
+                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position',...
+                close_button_position);
+        end
+
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
+
+            % This callback gets the colormap/scale and then applies the new bounds to the data.
+            % Only works with APPLY button, will not work with only CLOSE
+        
+            import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
+
+            button_group_value = get(get(button_group, "SelectedObject"), "String");
+
+            if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ismember(button_group_value, ["Linear", "Log"])
+                obj.matrix.v = 10.^(-obj.matrix.v);
+            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ~ismember(button_group_value, ["Linear", "Log"])
+                obj.matrix.v = -log10(obj.matrix.v);
+            end
+
+            discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
+            color_map = get(color_map_select, "Value");
+            if button_group_value == "Linear"
+                obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
+                    obj.colormap_choices{color_map});
+                obj.plot_scale = ProbPlotMethod.DEFAULT;
+            elseif button_group_value == "Log"
+                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
+                obj.plot_scale = ProbPlotMethod.LOG;
+            else
+                color_map_name = str2func(lower(obj.colormap_choices{color_map}));
+                obj.color_map = color_map_name(discrete_colors);
+                obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
+            end
+            obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+            obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
         end
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)

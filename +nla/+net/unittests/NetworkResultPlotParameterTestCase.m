@@ -159,5 +159,56 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             testCase.verifyEqual(expected_significance_type, probability_parameters.significance_type);
             testCase.verifyEqual(expected_color_map, probability_parameters.color_map);
         end
+
+        function getColormapTest(testCase)
+            import nla.net.result.NetworkResultPlotParameter
+            
+            default_colors = 1000;
+            p_value_max = 1;
+            default_color_map = [1 1 1];
+            parula_color_map = [flip(parula(default_colors)); default_color_map];
+
+            test_color_map = NetworkResultPlotParameter.getColormap(default_colors, p_value_max);
+            testCase.verifyEqual(parula_color_map, test_color_map);
+
+            test_color_map = NetworkResultPlotParameter.getColormap(default_colors, 0);
+            testCase.verifyEqual(default_color_map, test_color_map);
+
+            color_map_name = "cool";
+            color_map_function = str2func(color_map_name);
+            result_color_map = [flip(color_map_function(default_colors)); default_color_map];
+
+            test_color_map = NetworkResultPlotParameter.getColormap(default_colors, p_value_max, color_map_name);
+            testCase.verifyEqual(result_color_map, test_color_map);
+        end
+
+        function getLogColormapTest(testCase)
+            import nla.net.result.NetworkResultPlotParameter
+
+            permutation_result = testCase.permutation_results.permutation_network_test_results{1}.full_connectome.p_value;
+            log_min = max([-40, log10(min(nonzeros(permutation_result.v)))]);
+
+            default_colors = 1000;
+            p_value_max = 1;
+            default_color_map = [1 1 1];
+            parula_color_map = parula(default_colors);
+
+            result_color_map = flip(parula_color_map(ceil(logspace(log_min, 0, default_colors) .* default_colors), :));
+
+            test_color_map = NetworkResultPlotParameter.getLogColormap(default_colors, permutation_result, p_value_max);
+            testCase.verifyEqual(test_color_map, [result_color_map; default_color_map]);
+
+            color_map_name = "cool";
+            color_map_function = str2func(color_map_name);
+            cool_color_map = color_map_function(default_colors);
+            result_color_map = flip(cool_color_map(ceil(logspace(log_min, 0, default_colors) .* default_colors), :));
+            
+            test_color_map = NetworkResultPlotParameter.getLogColormap(default_colors, permutation_result, p_value_max,...
+                color_map_name);
+            testCase.verifyEqual(test_color_map, [result_color_map; default_color_map])
+
+            test_color_map = NetworkResultPlotParameter.getLogColormap(default_colors, permutation_result, 0);
+            testCase.verifyEqual(test_color_map, default_color_map);
+        end
     end
 end
