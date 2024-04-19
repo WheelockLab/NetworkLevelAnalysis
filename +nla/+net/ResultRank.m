@@ -42,6 +42,13 @@ classdef ResultRank < handle
                 ranking_statistic = obj.permuted_network_results.ranking_statistic;
             end
             % Experiment Wide ranking
+            ranking = obj.experimentWideRank(ranking, ranking_statistic);
+
+            % Network Pair ranking
+            ranking = obj.networkPairRank(ranking, ranking_statistic);
+        end
+        
+        function ranking = experimentWideRank(obj, ranking, ranking_statistic)
             probability = "p_value";
             for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(probability).v)
                 % statistic ranking
@@ -54,8 +61,9 @@ classdef ResultRank < handle
                 [~, sorted_combined_probabilites] = sort(combined_probabilities);
                 ranking.full_connectome.p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs) / (1 + obj.permutations * obj.number_of_network_pairs);
             end
+        end
 
-            % Network Pair ranking
+        function ranking = networkPairRank(obj, ranking, ranking_statistic)
             if ~any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 single_sample_probability = "single_sample_p_value";
                 single_sample_statistic = strcat("single_sample_", ranking_statistic);
@@ -77,7 +85,7 @@ classdef ResultRank < handle
                 ranking.permuted_network_results.within_network_pair.single_sample_p_value = ranking.permuted_network_results.full_connectome.p_value;
             end
         end
-        
+
         function value = get.permutations(obj)
             value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2); % This takes the above statistic and gets the property to use its size to find the number of permutations
         end

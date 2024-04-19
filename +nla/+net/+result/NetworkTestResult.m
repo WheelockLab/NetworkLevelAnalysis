@@ -69,7 +69,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 obj.createResultsStorage(test_options, number_of_networks, test_specific_statistics)
             elseif nargin > 0
-                error("NetworkTestResults requires 5 arguments: Test Options, Number of Networks, Test Name, Test Statistics")
+                error("NetworkTestResults requires 5 arguments: Test Options, Number of Networks, Test Name, Test Statistics, and Ranking Statistic")
             end
         end
 
