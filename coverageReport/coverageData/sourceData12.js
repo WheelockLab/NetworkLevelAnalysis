@@ -1,1 +1,0 @@
-var sourceData12 = {"FileContents":["classdef Dir","    enumeration","        X, Y, Z","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}

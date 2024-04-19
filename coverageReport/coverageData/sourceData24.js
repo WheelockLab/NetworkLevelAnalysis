@@ -1,1 +1,0 @@
-var sourceData24 = {"FileContents":["classdef TestResult < nla.DeepCopyable","    %TESTRESULT Base class of test results","end",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0]}}
