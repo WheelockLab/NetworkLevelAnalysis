@@ -43,8 +43,7 @@ classdef TestPool < nla.DeepCopyable
 
             if isequal(separate_network_and_edge_tests, false)
                 [permuted_edge_test_results, permuted_network_test_results] = obj.runEdgeAndNetPerm(edge_input_struct,...
-                    net_input_struct, network_atlas, nonpermuted_edge_test_results, nonpermuted_network_test_results,...
-                    num_perms, perm_seed);
+                    net_input_struct, network_atlas, nonpermuted_edge_test_results, num_perms, perm_seed);
             else
                 [permuted_edge_test_results, permuted_network_test_results] = obj.runPermSeparateEdgeAndNet(edge_input_struct,...
                     net_input_struct, network_atlas, num_perms, perm_seed);
@@ -98,7 +97,7 @@ classdef TestPool < nla.DeepCopyable
         end
         
         function [permuted_edge_results, permuted_network_results] = runEdgeAndNetPerm(obj, edge_input_struct, net_input_struct,...
-            net_atlas, edge_result_nonperm, nonpermuted_network_results, num_perms, perm_seed)
+            net_atlas, edge_result_nonperm, num_perms, perm_seed)
             
             % get current parallel pool or start a new one
             [number_of_processes, blocks] = obj.initializeParallelPool(num_perms);
@@ -132,7 +131,7 @@ classdef TestPool < nla.DeepCopyable
                 
                 single_edge_result = obj.runEdgeTest(permuted_input);
                 network_results = obj.runNetTests(net_input_struct, single_edge_result, net_atlas, true);
-
+                
                 % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
                 % indexes
                 if iteration - block_start + 1 == 1

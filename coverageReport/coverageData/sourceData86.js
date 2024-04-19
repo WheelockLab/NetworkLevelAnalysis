@@ -1,0 +1,1 @@
+var sourceData86 = {"FileContents":["classdef CovariatesEnabled","    enumeration","        NONE, ONLY_FC, ALL","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}

@@ -1,0 +1,1 @@
+var sourceData83 = {"FileContents":["function returned = triNumInv(x)","    %TRINUM Find n corresponding to the given triangular number","    returned = floor(sqrt(x*2));","end",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":3,"HitCount":[0,0,0,0,0]}}

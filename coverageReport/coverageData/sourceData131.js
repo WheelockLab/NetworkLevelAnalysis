@@ -1,0 +1,1 @@
+var sourceData131 = {"FileContents":["function hash = hash(fpath)","    %HASHFILE Generate hash of file contents","    f_str = fileread(fpath);","    hash = mlreportgen.utils.hash(f_str);","end","",""],"CoverageData":{"CoveredLineNumbers":[3,4],"UnhitLineNumbers":[],"HitCount":[0,0,1,1,0,0,0]}}
