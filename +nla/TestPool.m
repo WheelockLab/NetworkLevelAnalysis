@@ -78,7 +78,7 @@ classdef TestPool < nla.DeepCopyable
             [num_procs, blocks] = obj.initializeParallelPool(num_perms);
             
             edge_result_blocks = cell(1, num_procs);
-            parfor proc = 1:num_procs
+            for proc = 1:num_procs
                 % it may be possible to wrap these up into a reduction w/ custom func(merge)
                 % and eliminate the chunk merging step
                 edge_result = obj.runEdgeTestPermBlock(input_struct, blocks(proc), blocks(proc+1), perm_seed);
