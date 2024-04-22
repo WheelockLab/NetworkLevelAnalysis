@@ -3,8 +3,6 @@ classdef Precalculated < nla.edge.result.Base
     
     methods
         function obj = Precalculated(size, prob_max)
-            import nla.* % required due to matlab package system quirks
-            % hack because superclass constructor can't be optional??
             if nargin == 0
                 size = 2;
                 prob_max = -1;

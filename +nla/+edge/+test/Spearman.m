@@ -7,7 +7,6 @@ classdef Spearman < nla.edge.BaseTest
     
     methods
         function obj = Spearman()
-            import nla.* % required due to matlab package system quirks
             obj@nla.edge.BaseTest();
         end
         

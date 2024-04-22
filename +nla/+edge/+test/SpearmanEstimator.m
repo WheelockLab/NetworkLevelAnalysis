@@ -21,12 +21,10 @@ classdef SpearmanEstimator < nla.edge.BaseTest
     
     methods
         function obj = SpearmanEstimator()
-            import nla.* % required due to matlab package system quirks
             obj@nla.edge.BaseTest();
         end
         
         function result = run(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
             %% input
             y = input_struct.func_conn.v';
             
@@ -78,7 +76,7 @@ classdef SpearmanEstimator < nla.edge.BaseTest
             ok = (abs(rho_vec) < 1);
             t(ok) = rho_vec(ok) .* sqrt((n - 2) ./ (1 - rho_vec(ok) .^ 2));
             
-            result = obj.composeResult(input_struct.net_atlas, fisherR2Z(rho_vec), (2 * tcdf(-abs(t), n - 2)), input_struct.prob_max);
+            result = obj.composeResult(input_struct.net_atlas, nla.fisherR2Z(rho_vec), (2 * tcdf(-abs(t), n - 2)), input_struct.prob_max);
         end
     end
 end

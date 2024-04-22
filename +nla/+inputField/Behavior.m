@@ -29,7 +29,6 @@ classdef Behavior < nla.inputField.InputField
     
     methods
         function obj = Behavior()
-            import nla.* % required due to matlab package system quirks
             obj.covariates_enabled = nla.inputField.CovariatesEnabled.ALL;
             obj.resetSelectedCol();
         end
@@ -42,31 +41,31 @@ classdef Behavior < nla.inputField.InputField
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
-            import nla.* % required due to matlab package system quirks
-            
+            import nla.inputField.LABEL_H
+
             obj.fig = fig;
             
-            table_w = max(parent.Position(3) - (inputField.LABEL_GAP * 4), 500);
+            table_w = max(parent.Position(3) - (nla.inputField.LABEL_GAP * 4), 500);
             table_h = 300;
             
-            label_gap = inputField.LABEL_GAP;
-            h = inputField.LABEL_H + label_gap + table_h + label_gap + inputField.LABEL_H + label_gap + inputField.LABEL_H;
+            label_gap = LABEL_GAP;
+            h = LABEL_H + label_gap + table_h + label_gap + LABEL_H + label_gap + LABEL_H;
             
             %% Create label
             if ~isgraphics(obj.label)
                 obj.label = uilabel(parent);
             end
             obj.label.Text = 'Behavior:';
-            label_w = inputField.widthOfString(obj.label.Text, inputField.LABEL_H);
+            label_w = nla.inputField.widthOfString(obj.label.Text, LABEL_H);
             obj.label.HorizontalAlignment = 'left';
-            obj.label.Position = [x, y - inputField.LABEL_H, label_w + label_gap, inputField.LABEL_H];
+            obj.label.Position = [x, y - LABEL_H, label_w + label_gap, LABEL_H];
             
             %% Create button
             if ~isgraphics(obj.button)
                 obj.button = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.buttonClickedCallback());
             end
             button_w = 100;
-            obj.button.Position = [x + label_w + label_gap, y - inputField.LABEL_H, button_w, inputField.LABEL_H];
+            obj.button.Position = [x + label_w + label_gap, y - LABEL_H, button_w, LABEL_H];
             
             w = label_w + label_gap + button_w;
             
@@ -77,45 +76,52 @@ classdef Behavior < nla.inputField.InputField
                 obj.table.SelectionType = 'column';
                 obj.table.ColumnName = {'None'};
                 obj.table.RowName = {};
-                obj.table.Position = [x, y - (table_h + label_gap + inputField.LABEL_H), table_w, table_h];
+                obj.table.Position = [x, y - (table_h + label_gap + LABEL_H), table_w, table_h];
             end
             
             w2 = table_w;
             
             %% 'Set Behavior' button
-            [obj.button_set_bx, w3] = obj.createButton(obj.button_set_bx, 'Set Behavior', parent, x, y - h + inputField.LABEL_H + label_gap + inputField.LABEL_H, @(h,e)obj.button_set_bxClickedCallback());
+            [obj.button_set_bx, w3] = obj.createButton(obj.button_set_bx, 'Set Behavior', parent, x,...
+                y - h + LABEL_H + label_gap + LABEL_H, @(h,e)obj.button_set_bxClickedCallback());
             obj.button_set_bx.BackgroundColor = '#E3FDD8';
             
             %% 'Add Covariate' button
-            [obj.button_add_cov, w4] = obj.createButton(obj.button_add_cov, 'Add Covariate', parent, x + w3 + label_gap, y - h + inputField.LABEL_H + label_gap + inputField.LABEL_H, @(h,e)obj.button_add_covClickedCallback());
+            [obj.button_add_cov, w4] = obj.createButton(obj.button_add_cov, 'Add Covariate', parent, x + w3 + label_gap,...
+                y - h + LABEL_H + label_gap + LABEL_H, @(h,e)obj.button_add_covClickedCallback());
             obj.button_add_cov.BackgroundColor = '#FADADD';
             
             %% 'Remove Covariate' button
-            [obj.button_sub_cov, w5] = obj.createButton(obj.button_sub_cov, 'Remove Covariate', parent, x + w3 + label_gap + w4 + label_gap, y - h + inputField.LABEL_H + label_gap + inputField.LABEL_H, @(h,e)obj.button_sub_covClickedCallback());
+            [obj.button_sub_cov, w5] = obj.createButton(obj.button_sub_cov, 'Remove Covariate', parent,...
+                x + w3 + label_gap + w4 + label_gap, y - h + LABEL_H + label_gap + LABEL_H,...
+                @(h,e)obj.button_sub_covClickedCallback());
             obj.button_sub_cov.BackgroundColor = '#FADADD';
             
             %% 'View Design Matrix' button
-            [obj.button_view_design_mtx, w6] = obj.createButton(obj.button_view_design_mtx, 'View Design Matrix', parent, x + w3 + label_gap + w4 + label_gap + w5 + label_gap, y - h + inputField.LABEL_H + label_gap + inputField.LABEL_H, @(h,e)obj.button_view_design_mtxClickedCallback());
+            [obj.button_view_design_mtx, w6] = obj.createButton(obj.button_view_design_mtx, 'View Design Matrix', parent,...
+                x + w3 + label_gap + w4 + label_gap + w5 + label_gap, y - h + LABEL_H + label_gap + LABEL_H,...
+                @(h,e)obj.button_view_design_mtxClickedCallback());
             
             %% 'Partial Variance' options
             obj.select_partial_variance_label = uilabel(parent);
             obj.select_partial_variance_label.HorizontalAlignment = 'left';
             obj.select_partial_variance_label.Text = 'Remove shared variance from covariates:';
-            select_partial_variance_label_w = inputField.widthOfString(obj.select_partial_variance_label.Text, inputField.LABEL_H);
-            obj.select_partial_variance_label.Position = [x, y - h, select_partial_variance_label_w, inputField.LABEL_H];
+            select_partial_variance_label_w = nla.inputField.widthOfString(obj.select_partial_variance_label.Text, LABEL_H);
+            obj.select_partial_variance_label.Position = [x, y - h, select_partial_variance_label_w, LABEL_H];
             
             select_partial_variance_w = 100;
             obj.select_partial_variance = uidropdown(parent);
             obj.genPartialVarianceOpts();
-            obj.select_partial_variance.Position = [x + select_partial_variance_label_w + label_gap, y - h, select_partial_variance_w, inputField.LABEL_H];
-            obj.select_partial_variance.Value = PartialVarianceType.NONE;
+            obj.select_partial_variance.Position = [x + select_partial_variance_label_w + label_gap, y - h,...
+                select_partial_variance_w, LABEL_H];
+            obj.select_partial_variance.Value = nla.PartialVarianceType.NONE;
             w7 = x + select_partial_variance_label_w + label_gap + select_partial_variance_w;
             
             w = max([w, w2, w3 + label_gap + w4 + label_gap + w5 + label_gap + w6, w7]);
         end
         
         function undraw(obj)
-            import nla.* % required due to matlab package system quirks
+            
             if isgraphics(obj.button)
                 delete(obj.button)
             end
@@ -146,7 +152,7 @@ classdef Behavior < nla.inputField.InputField
         end
         
         function read(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
+            
             obj.loadField(input_struct, 'behavior_filename');
             obj.loadField(input_struct, 'behavior_full');
             obj.loadField(input_struct, 'behavior');
@@ -161,24 +167,24 @@ classdef Behavior < nla.inputField.InputField
             end
             
             if isfield(input_struct, 'partial_variance')
-                if obj.covariates_enabled == inputField.CovariatesEnabled.ALL
+                if obj.covariates_enabled == nla.inputField.CovariatesEnabled.ALL
                     obj.select_partial_variance.Value = input_struct.partial_variance;
-                elseif obj.covariates_enabled == inputField.CovariatesEnabled.ONLY_FC
-                    if input_struct.partial_variance == PartialVarianceType.NONE
-                        obj.select_partial_variance.Value = PartialVarianceType.NONE;
+                elseif obj.covariates_enabled == nla.inputField.CovariatesEnabled.ONLY_FC
+                    if input_struct.partial_variance == nla.PartialVarianceType.NONE
+                        obj.select_partial_variance.Value = nla.PartialVarianceType.NONE;
                     else
-                        obj.select_partial_variance.Value = PartialVarianceType.ONLY_FC;
+                        obj.select_partial_variance.Value = nla.PartialVarianceType.ONLY_FC;
                     end
                 end
             else
-                obj.select_partial_variance.Value = PartialVarianceType.NONE;
+                obj.select_partial_variance.Value = nla.PartialVarianceType.NONE;
             end
             
             obj.update();
         end
         
         function [input_struct, error] = store(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
+            
             input_struct.behavior_filename = obj.behavior_filename;
             input_struct.behavior_full = obj.behavior_full;
             input_struct.behavior = obj.behavior;
@@ -192,23 +198,23 @@ classdef Behavior < nla.inputField.InputField
     
     methods (Access = protected)
         function [button, w] = createButton(obj, button, label, parent, x, y, callback)
-            import nla.* % required due to matlab package system quirks
             
             %% Create button
             if ~isgraphics(button)
                 button = uibutton(parent, 'push', 'ButtonPushedFcn', callback);
             end
             button_w = 100;
-            button.Position = [x, y - inputField.LABEL_H, button_w, inputField.LABEL_H];
+            button.Position = [x, y - nla.inputField.LABEL_H, button_w, nla.inputField.LABEL_H];
             
             button.Text = label;
-            button.Position(3) = inputField.widthOfString(button.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
+            button.Position(3) = nla.inputField.widthOfString(button.Text, nla.inputField.LABEL_H) +...
+                inputField.widthOfString('  ', nla.inputField.LABEL_H + nla.inputField.LABEL_GAP);
             
             w = button.Position(3);
         end
         
         function buttonClickedCallback(obj, ~)
-            import nla.* % required due to matlab package system quirks
+            
             [file, path, idx] = uigetfile( ...
                 {'*.txt;*.dat;*.csv', 'Text (*.txt,*.dat,*.csv)'; ...
                 '*.xls;*.xlsb;*.xlsm;*.xlsx;*.xltm;*.xltx;*.ods', 'Spreadsheet (*.xls,*.xlsb,*.xlsm,*.xlsx,*.xltm,*.xltx,*.ods)'; ...
@@ -218,7 +224,8 @@ classdef Behavior < nla.inputField.InputField
                 '*.html;*.xhtml;*.htm', 'HTML (*.html,*.xhtml,*.htm)'}, 'Select Behavior File');
             if idx ~= 0
                 try
-                    prog = uiprogressdlg(obj.fig, 'Title', 'Loading behavior file', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
+                    prog = uiprogressdlg(obj.fig, 'Title', 'Loading behavior file', 'Message', sprintf('Loading %s', file),...
+                        'Indeterminate', true);
                     drawnow;
 
                     if idx == 5
@@ -258,7 +265,8 @@ classdef Behavior < nla.inputField.InputField
                     end
                     if numel(non_numerical_indexes) > 0
                         could_not_load_some_columns = true;
-                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing non-numerical values.", nla.helpers.humanReadableList(labels(non_numerical_indexes)))];
+                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing non-numerical values.",...
+                            nla.helpers.humanReadableList(labels(non_numerical_indexes)))];
                         obj.behavior_full(:, non_numerical_indexes) = [];
                     end
                     
@@ -270,7 +278,8 @@ classdef Behavior < nla.inputField.InputField
                     containsRepeatedNines = sum(repeatedNines & unusualValues) > 0;
                     if sum(containsNaN) > 0
                         could_not_load_some_columns = true;
-                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing NaN values.", nla.helpers.humanReadableList(labels(containsNaN)))];
+                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing NaN values.",...
+                            nla.helpers.humanReadableList(labels(containsNaN)))];
                         colindexes = [1:numel(labels)];
                         obj.behavior_full(:, colindexes(containsNaN)) = [];
                     end
@@ -280,7 +289,8 @@ classdef Behavior < nla.inputField.InputField
                     end
                     
                     if sum(containsRepeatedNines) > 0
-                        uialert(obj.fig, sprintf("Columns %s contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.", nla.helpers.humanReadableList(labels(containsRepeatedNines))), 'Warning', 'Icon', 'warning');
+                        uialert(obj.fig, sprintf("Columns %s contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.",...
+                            nla.helpers.humanReadableList(labels(containsRepeatedNines))), 'Warning', 'Icon', 'warning');
                     end
 
                     obj.update();
@@ -292,11 +302,12 @@ classdef Behavior < nla.inputField.InputField
         end
         
         function genPartialVarianceOpts(obj)
-            import nla.* % required due to matlab package system quirks
-            if obj.covariates_enabled == inputField.CovariatesEnabled.ALL
+            import nla.PartialVarianceType
+
+            if obj.covariates_enabled == nla.inputField.CovariatesEnabled.ALL
                 obj.select_partial_variance.Items = {'None', 'FC + BX', 'Only BX', 'Only FC'};
                 obj.select_partial_variance.ItemsData = [PartialVarianceType.NONE, PartialVarianceType.FCBX, PartialVarianceType.ONLY_BX, PartialVarianceType.ONLY_FC];
-            elseif obj.covariates_enabled == inputField.CovariatesEnabled.ONLY_FC
+            elseif obj.covariates_enabled == nla.inputField.CovariatesEnabled.ONLY_FC
                 obj.select_partial_variance.Items = {'None', 'Only FC'};
                 obj.select_partial_variance.ItemsData = [PartialVarianceType.NONE, PartialVarianceType.ONLY_FC];
             else
@@ -346,22 +357,22 @@ classdef Behavior < nla.inputField.InputField
         end
         
         function button_view_design_mtxClickedCallback(obj)
-            import nla.* % required due to matlab package system quirks
+            
             if ~islogical(obj.covariates_idx)
                 labels = {obj.table.ColumnName{obj.covariates_idx}};
-                gfx.drawDesignMtx(obj.covariates, labels);
+                nla.gfx.drawDesignMtx(obj.covariates, labels);
             end
         end
         
         function update(obj)
-            import nla.* % required due to matlab package system quirks
+            import nla.inputField.widthOfString nla.inputField.LABEL_H
                     
             if islogical(obj.behavior_filename)
                 obj.button.Text = 'Select';
             else
                 obj.button.Text = obj.behavior_filename;
             end
-            obj.button.Position(3) = inputField.widthOfString(obj.button.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
+            obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + inputField.LABEL_GAP);
             
             removeStyle(obj.table);
             if islogical(obj.behavior_full)
@@ -395,7 +406,7 @@ classdef Behavior < nla.inputField.InputField
                 obj.table.Enable = 'on';
                 obj.button_set_bx.Enable = true;
                 
-                enable_cov = (obj.covariates_enabled ~= inputField.CovariatesEnabled.NONE);
+                enable_cov = (obj.covariates_enabled ~= nla.inputField.CovariatesEnabled.NONE);
                 obj.button_add_cov.Enable = enable_cov;
                 obj.button_sub_cov.Enable = enable_cov;
                 obj.button_view_design_mtx.Enable = enable_cov;

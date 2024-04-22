@@ -6,19 +6,21 @@ function drawNetworkROIs(net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels
     %   ROI_radius: radius of spheres to display ROI centroids as
     %   surface_parcels: Boolean value, whether to display surface parcels
     %       (if supported by network atlas) instead of ROI centroids
-    import nla.* % required due to matlab package system quirks
+
+    import nla.gfx.drawROIsOnCortex nla.gfx.ViewPos nla.gfx.BrainColorMode
+
     %% Display figures 
-    fig = gfx.createFigure(1550, 750);
+    fig = nla.gfx.createFigure(1550, 750);
     fig.Name = net_atlas.name;
     
     ax = subplot('Position',[.45,0.455,.53,.45]);
-    gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, gfx.ViewPos.LAT, surface_parcels, gfx.BrainColorMode.DEFAULT_NETS);
+    drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, ViewPos.LAT, surface_parcels, BrainColorMode.DEFAULT_NETS);
     
     ax = subplot('Position',[.45,0.005,.53,.45]);
-    gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, gfx.ViewPos.MED, surface_parcels, gfx.BrainColorMode.DEFAULT_NETS);
+    drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, ViewPos.MED, surface_parcels, BrainColorMode.DEFAULT_NETS);
     
     ax = subplot('Position',[.075,0.025,.35,.9]);
-    gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.DORSAL, surface_parcels, gfx.BrainColorMode.DEFAULT_NETS);
+    drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, ViewPos.DORSAL, surface_parcels, BrainColorMode.DEFAULT_NETS);
     
     light('Position',[0,100,100],'Style','local');
 
@@ -31,5 +33,5 @@ function drawNetworkROIs(net_atlas, ctx, mesh_alpha, ROI_radius, surface_parcels
     end
     hold(ax, 'off');
     legend(ax);
-    gfx.hideAxes(ax);
+    nla.gfx.hideAxes(ax);
 end

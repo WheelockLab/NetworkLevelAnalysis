@@ -7,7 +7,6 @@ classdef BaseTest < nla.Test
     
     methods
         function obj = BaseTest()
-            import nla.* % required due to matlab package system quirks
         end
     end
     
@@ -33,8 +32,8 @@ classdef BaseTest < nla.Test
     
     methods (Static)
         function inputs = requiredInputs()
-            import nla.* % required due to matlab package system quirks
-            inputs = {inputField.Number('prob_max', 'Edge-level P threshold <', 0, 0.05, 1), inputField.NetworkAtlasFuncConn(), inputField.Behavior()};
+            inputs = {nla.inputField.Number('prob_max', 'Edge-level P threshold <', 0, 0.05, 1),...
+                nla.inputField.NetworkAtlasFuncConn(), nla.inputField.Behavior()};
         end
     end
 end

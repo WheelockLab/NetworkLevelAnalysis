@@ -10,7 +10,6 @@ classdef TestPool < nla.DeepCopyable
     methods
         
         function obj = TestPool()
-            import nla.* % required due to matlab package system quirks
             % this MUST be instantiated here it cannot be done in the
             % properties field because NLA cannot be imported when setting
             % things in the properties field, hence, NLA specific values

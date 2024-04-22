@@ -1,7 +1,7 @@
 function varargout = run(func_name, varargin)
     %RUN Run mex function, compiling if necessary
-    import nla.* % required due to matlab package system quirks
-    
+    import nla.findRootPath
+
     if isstring(func_name)
         func_name = char(func_name);
     end
@@ -10,7 +10,7 @@ function varargout = run(func_name, varargin)
         % hash the source file to check if we have an up-to-date binary
         % already compiled or not
         func_src_path = [findRootPath() '+nla/+mex/+src/' char(func_name) '.c'];
-        func_src_hash = char(helpers.file.hash(func_src_path));
+        func_src_hash = char(nla.helpers.file.hash(func_src_path));
 
         func_name_hashed = [func_name '_' func_src_hash];
         bin_path = [findRootPath() '+nla/+mex/+bin/'];
@@ -31,7 +31,7 @@ function varargout = run(func_name, varargin)
             delete(build_path);
 
             % delete outdated binaries of the same function
-            matching = helpers.file.findMatching([bin_path func_name '_*']);
+            matching = nla.helpers.file.findMatching([bin_path func_name '_*']);
             if size(matching, 1) > 0
                 for i = [1:size(matching, 1)]
                     outdated_bin_path = matching(i);

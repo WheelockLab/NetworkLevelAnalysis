@@ -10,12 +10,12 @@ function arc = genArcSegmentHandlePoorlyDefined(arc_origin, arc_origin_rad, arc_
     %   r1_center: starting position of arc, x-y coordinate
     %   r2_center: ending position of arc, x-y coordinate
     %   n: number of points to generate (more = smoother)
-    import nla.* % required due to matlab package system quirks
+    
     if arc_radius < 1e-10
         arc = arc_origin;
     elseif abs(arc_origin_rad(1) - arc_origin_rad(2)) < 1e-10
         arc = [r1_center; r2_center];
     else
-        arc = gfx.genArcSegment(arc_origin, arc_origin_rad, arc_radius, n);
+        arc = nla.gfx.genArcSegment(arc_origin, arc_origin_rad, arc_radius, n);
     end
 end
