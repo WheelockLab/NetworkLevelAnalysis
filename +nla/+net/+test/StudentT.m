@@ -38,7 +38,7 @@ classdef StudentT < nla.net.BaseCorrTest
             
             % if a previous result is passed in, add on to it
             if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @helpers.abs_ge, previous_result.t,...
+                result = obj.rank(net_atlas, previous_result, input_struct, @nla.helpers.abs_ge, previous_result.t,...
                     previous_result.prob, t, prob, previous_result.ss_t, previous_result.ss_prob, ss_t, ss_prob);
             else
                 result = nla.net.result.StudentT(num_nets);
