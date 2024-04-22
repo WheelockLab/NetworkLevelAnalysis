@@ -90,44 +90,42 @@ classdef NLAResult < matlab.apps.AppBase
             if nesting_by_method
                 if app.net_input_struct.nonpermuted
                     root = app.createNode(app.ResultTree, 'Non-permuted');
-                    for i = 1:size(app.results.net_results, 2)
-                        result = app.results.net_results{i};
-                        if result.has_nonpermuted
-                            flags = struct();
-                            flags.show_nonpermuted = true;
-                            app.createNode(root, result.name, {result, flags});
-                        end
+                    for i = 1:size(app.results.network_test_results, 2)
+                        result = app.results.network_test_results{i};
+                        flags = struct();
+                        flags.show_nonpermuted = true;
+                        app.createNode(root, result.test_display_name, {result, flags});
                     end
                 end
                 
                 if app.net_input_struct.full_conn
                     root = app.createNode(app.ResultTree, 'Full connectome');
-                    for i = 1:size(app.results.perm_net_results, 2)
-                        result = app.results.perm_net_results{i};
-                        if result.has_full_conn
+                    for i = 1:size(app.results.permutation_network_test_results, 2)
+                        result = app.results.permutation_network_test_results{i};
+                        if ~isequal(result.full_connectome, false)
                             flags = struct();
                             flags.show_full_conn = true;
-                            app.createNode(root, result.name, {result, flags});
+                            app.createNode(root, result.test_display_name, {result, flags});
                         end
                     end
                 end
                 
                 if app.net_input_struct.within_net_pair
                     root = app.createNode(app.ResultTree, 'Within Net-pair');
-                    for i = 1:size(app.results.perm_net_results, 2)
-                        result = app.results.perm_net_results{i};
-                        if result.has_within_net_pair
+                    for i = 1:size(app.results.permutation_network_test_results, 2)
+                        result = app.results.permutation_network_test_results{i};
+                        if ~isequal(result.within_network_pair, false)
                             flags = struct();
                             flags.show_within_net_pair = true;
-                            app.createNode(root, result.name, {result, flags});
+                            app.createNode(root, result.test_display_name, {result, flags});
                         end
                     end
                 end
             else
-                for i = 1:size(app.results.net_results, 2)
-                    root = app.createNode(app.ResultTree, app.results.net_results{i}.name);
+                for i = 1:size(app.results.network_test_results, 2)
+                    root = app.createNode(app.ResultTree, app.results.network_test_results{i}.test_display_name);
                     
-                    result = app.results.net_results{i};
+                    result = app.results.network_test_results{i};
                     if app.net_input_struct.nonpermuted && result.has_nonpermuted
                         flags = struct();
                         flags.show_nonpermuted = true;
@@ -135,13 +133,13 @@ classdef NLAResult < matlab.apps.AppBase
                     end
                     
                     if app.net_input_struct.full_conn && result.has_full_conn
-                        perm_result = app.results.perm_net_results{i};
-                        if app.net_input_struct.full_conn && result.has_full_conn
+                        perm_result = app.results.permutation_network_test_results{i};
+                        if app.net_input_struct.full_conn && ~isequal(result.full_connectome, false)
                             flags = struct();
                             flags.show_full_conn = true;
                             app.createNode(root, 'Full connectome', {perm_result, flags});
                         end
-                        if app.net_input_struct.within_net_pair && result.has_within_net_pair
+                        if app.net_input_struct.within_net_pair && ~isequal(result.within_network_pair, false)
                             flags = struct();
                             flags.show_within_net_pair = true;
                             app.createNode(root, 'Within Net-pair', {perm_result, flags});
@@ -175,12 +173,12 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
             end
             
-            results = app.results.net_results;
+            results = app.results.network_test__results;
             
             % required inputs to run these tests
             inputs = {};
             for i = 1:numel(results)
-                inputs = cat(2, inputs, results{i}.tweakableInputs());
+                inputs = cat(2, inputs, results{i}.editableOptions());
             end
             app.net_tweakable_fields = inputField.reduce(inputs);
             
@@ -281,17 +279,17 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Enable = false;
             app.RunButton.Visible = false;
             
-            enableNetButtons(app, ~islogical(result.net_results));
+            enableNetButtons(app, ~islogical(result.network_test_results));
             
             drawnow();
             
-            if ~islogical(result.net_results)
+            if ~islogical(result.network_test_results)
                 app.setNesting(true);
             else
                 app.results = false;
             end
             
-            if ~islogical(result.net_results)
+            if ~islogical(result.network_test_results)
                 app.genTweakableNetParams();
             end
         end
@@ -337,7 +335,7 @@ classdef NLAResult < matlab.apps.AppBase
                     result = selected_nodes(i).NodeData{1};
                     node_flags = selected_nodes(i).NodeData{2};
                     
-                    prog.Message = sprintf('Generating %s %s', result.name, plot_type);
+                    prog.Message = sprintf('Generating %s %s', result.test_display_name, plot_type);
                     
                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
                     
@@ -554,6 +552,7 @@ classdef NLAResult < matlab.apps.AppBase
         function DisplayChordNetButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             displayManyPlots(app, struct('plot_type', PlotType.CHORD), 'chord plots');
+            %These mlapp files are really just the worst
         end
 
         % Button pushed function: DisplayChordEdge
