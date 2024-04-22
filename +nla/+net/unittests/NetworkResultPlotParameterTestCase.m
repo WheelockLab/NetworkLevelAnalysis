@@ -28,6 +28,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             testCase.edge_test_options = struct();
             testCase.edge_test_options.coeff_max = 2;
             testCase.edge_test_options.coeff_min = -2;
+            testCase.edge_test_options.iteration = 0;
 
             precalculated_path = strcat(testCase.root_path, fullfile('examples', 'precalculated/'));
             
@@ -66,6 +67,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             testCase.edge_test_result = testCase.tests.runEdgeTest(testCase.edge_test_options);
             testCase.network_test_result = testCase.tests.runNetTests(testCase.network_test_options,...
                 testCase.edge_test_result, testCase.network_atlas, false);
+            testCase.edge_test_options.iteration = 1;
             testCase.permutation_results = testCase.tests.runPerm(testCase.edge_test_options, testCase.network_test_options,...
                 testCase.network_atlas, testCase.edge_test_result, testCase.network_test_result,...
                 permutations);
