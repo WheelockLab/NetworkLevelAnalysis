@@ -2,32 +2,32 @@ classdef NLAResult < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                        matlab.ui.Figure
-        FileMenu                        matlab.ui.container.Menu
-        SaveButton                      matlab.ui.container.Menu
-        ResultTree                      matlab.ui.container.Tree
-        FlipNestingButton               matlab.ui.control.Button
-        EdgeLevelLabel                  matlab.ui.control.Label
-        ViewEdgeLevelButton             matlab.ui.control.Button
-        NetLevelLabel                   matlab.ui.control.Label
-        RunButton                       matlab.ui.control.Button
-        DisplaySelectedButton           matlab.ui.control.Button
-        NetlevelpvalueplottingDropDownLabel  matlab.ui.control.Label
-        NetlevelpvalueplottingDropDown  matlab.ui.control.DropDown
-        DisplayConvergenceButton        matlab.ui.control.Button
+        UIFigure                       matlab.ui.Figure
+        FileMenu                       matlab.ui.container.Menu
+        SaveButton                     matlab.ui.container.Menu
+        ResultTree                     matlab.ui.container.Tree
+        FlipNestingButton              matlab.ui.control.Button
+        EdgeLevelLabel                 matlab.ui.control.Label
+        ViewEdgeLevelButton            matlab.ui.control.Button
+        NetLevelLabel                  matlab.ui.control.Label
+        RunButton                      matlab.ui.control.Button
+        DisplaySelectedButton          matlab.ui.control.Button
+        NetlevelplottingDropDownLabel  matlab.ui.control.Label
+        NetlevelplottingDropDown       matlab.ui.control.DropDown
+        DisplayConvergenceButton       matlab.ui.control.Button
         ConvergencecolormapDropDownLabel  matlab.ui.control.Label
-        ColormapDropDown                matlab.ui.control.DropDown
-        DisplayChordNet                 matlab.ui.control.Button
-        DisplayChordEdge                matlab.ui.control.Button
-        SaveSummaryTable                matlab.ui.control.Button
-        EdgelevelchordplottingLabel     matlab.ui.control.Label
-        EdgeLevelTypeDropDown           matlab.ui.control.DropDown
-        TweakNetParamsPanel             matlab.ui.container.Panel
+        ColormapDropDown               matlab.ui.control.DropDown
+        DisplayChordNet                matlab.ui.control.Button
+        DisplayChordEdge               matlab.ui.control.Button
+        SaveSummaryTable               matlab.ui.control.Button
+        EdgelevelchordplottingLabel    matlab.ui.control.Label
+        EdgeLevelTypeDropDown          matlab.ui.control.DropDown
+        TweakNetParamsPanel            matlab.ui.container.Panel
         MultiplecomparisonscorrectionLabel  matlab.ui.control.Label
-        FDRCorrection                   matlab.ui.control.DropDown
+        FDRCorrection                  matlab.ui.control.DropDown
         showROIcentroidsinbrainplotsCheckBox  matlab.ui.control.CheckBox
         CohensDthresholdchordplotsCheckBox  matlab.ui.control.CheckBox
-        BranchLabel                     matlab.ui.control.Label
+        BranchLabel                    matlab.ui.control.Label
     end
 
     
@@ -173,7 +173,7 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
             end
             
-            results = app.results.network_test__results;
+            results = app.results.network_test_results;
             
             % required inputs to run these tests
             inputs = {};
@@ -313,7 +313,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             % dropdowns that need net-level data to be used
-            net_dropdowns = {app.FDRCorrection, app.EdgeLevelTypeDropDown, app.NetlevelpvalueplottingDropDown};
+            net_dropdowns = {app.FDRCorrection, app.EdgeLevelTypeDropDown, app.NetlevelplottingDropDown};
             for i = 1:numel(net_dropdowns)
                 net_dropdowns{i}.Enable = val;
                 net_dropdowns{i}.ValueChangedFcn(app, true);
@@ -484,19 +484,21 @@ classdef NLAResult < matlab.apps.AppBase
             displayManyPlots(app, struct('plot_type', PlotType.FIGURE), 'figures');
         end
 
-        % Value changed function: NetlevelpvalueplottingDropDown
+        % Value changed function: NetlevelplottingDropDown
         function PValModeDropDownValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
-            value = app.NetlevelpvalueplottingDropDown.Value;
+            value = app.NetlevelplottingDropDown.Value;
             if strcmp(value, 'linear')
                 % Plot p-values on linear scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
-            elseif strcmp(value, 'log')
+            elseif strcmp(value, 'p-value log')
                 % Plot p-values on logarithmic scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.LOG;
-            else
+            elseif strcmp(value, 'p-value -log')
                 % Plot p-values on negative logarithmic scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEG_LOG_10;
+            else
+                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.STATISTIC;
             end
         end
 
@@ -680,18 +682,18 @@ classdef NLAResult < matlab.apps.AppBase
             app.DisplaySelectedButton.Position = [434 62 81 22];
             app.DisplaySelectedButton.Text = 'View figures';
 
-            % Create NetlevelpvalueplottingDropDownLabel
-            app.NetlevelpvalueplottingDropDownLabel = uilabel(app.UIFigure);
-            app.NetlevelpvalueplottingDropDownLabel.HorizontalAlignment = 'right';
-            app.NetlevelpvalueplottingDropDownLabel.Position = [434 114 141 22];
-            app.NetlevelpvalueplottingDropDownLabel.Text = 'Net-level p-value plotting:';
+            % Create NetlevelplottingDropDownLabel
+            app.NetlevelplottingDropDownLabel = uilabel(app.UIFigure);
+            app.NetlevelplottingDropDownLabel.HorizontalAlignment = 'right';
+            app.NetlevelplottingDropDownLabel.Position = [477 114 98 22];
+            app.NetlevelplottingDropDownLabel.Text = 'Net-level plotting:';
 
-            % Create NetlevelpvalueplottingDropDown
-            app.NetlevelpvalueplottingDropDown = uidropdown(app.UIFigure);
-            app.NetlevelpvalueplottingDropDown.Items = {'linear', 'log', '-log10'};
-            app.NetlevelpvalueplottingDropDown.ValueChangedFcn = createCallbackFcn(app, @PValModeDropDownValueChanged, true);
-            app.NetlevelpvalueplottingDropDown.Position = [581 114 70 22];
-            app.NetlevelpvalueplottingDropDown.Value = 'linear';
+            % Create NetlevelplottingDropDown
+            app.NetlevelplottingDropDown = uidropdown(app.UIFigure);
+            app.NetlevelplottingDropDown.Items = {'linear', 'log', '-log10'};
+            app.NetlevelplottingDropDown.ValueChangedFcn = createCallbackFcn(app, @PValModeDropDownValueChanged, true);
+            app.NetlevelplottingDropDown.Position = [581 114 70 22];
+            app.NetlevelplottingDropDown.Value = 'linear';
 
             % Create DisplayConvergenceButton
             app.DisplayConvergenceButton = uibutton(app.UIFigure, 'push');
