@@ -46,8 +46,8 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             testCase.edge_test_options.precalc_perm_coeff = TriMatrix(testCase.network_atlas.numROIs);
             testCase.edge_test_options.precalc_perm_coeff.v = permutation_coefficient_file.SIM_perm_coeff;
             % For unit tests, we're only going to use 10 permutations so they don't take forever
-            testCase.edge_test_options.precalc_perm_p.v = testCase.edge_test_options.precalc_perm_p.v(1:10);
-            testCase.edge_test_options.precalc_perm_coeff.v = testCase.edge_test_options.precalc_perm_coeff.v(1:10);
+            testCase.edge_test_options.precalc_perm_p.v = testCase.edge_test_options.precalc_perm_p.v(:, 1:10);
+            testCase.edge_test_options.precalc_perm_coeff.v = testCase.edge_test_options.precalc_perm_coeff.v(:, 1:10);
 
             testCase.edge_test_options.net_atlas = testCase.network_atlas;
             testCase.edge_test_options.prob_max = 0.05;

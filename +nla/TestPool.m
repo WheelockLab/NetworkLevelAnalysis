@@ -200,7 +200,11 @@ classdef TestPool < nla.DeepCopyable
             end
         end
                 
-        function edge_result = runEdgeTest(obj, input_struct)            
+        function edge_result = runEdgeTest(obj, input_struct)        
+            if ~isfield(input_struct, 'iteration')
+                input_struct.iteration = 0;
+            end
+            
             edge_result = obj.edge_test.run(input_struct);
         end
         
