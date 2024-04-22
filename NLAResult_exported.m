@@ -522,8 +522,7 @@ classdef NLAResult < matlab.apps.AppBase
                     result = selected_nodes(i).NodeData{1};
                     flags = selected_nodes(i).NodeData{2};
                     
-                    [num_tests_part, sig_count_mat_part, names_part] = result.getSigMat(app.net_input_struct,...
-                        app.input_struct.net_atlas, flags);
+                    [num_tests_part, sig_count_mat_part, names_part] = result.getSigMat(app.net_input_struct, app.input_struct.net_atlas, flags);
                     num_tests = num_tests + num_tests_part;
                     sig_count_mat.v = sig_count_mat.v + sig_count_mat_part.v;
                     names = [names names_part];
@@ -544,8 +543,7 @@ classdef NLAResult < matlab.apps.AppBase
                 color_map = [[1,1,1]; flip(copper())];
             end 
             
-            nla.gfx.drawConvergenceMap(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, sig_count_mat,...
-                num_tests, names, app.edge_result, color_map);
+            gfx.drawConvergenceMap(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, sig_count_mat, num_tests, names, app.edge_result, color_map);
             
             close(prog);
             
