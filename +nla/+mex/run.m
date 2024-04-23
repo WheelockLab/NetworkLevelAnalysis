@@ -48,7 +48,7 @@ function varargout = run(func_name, varargin)
 
         %% create function handle
         % does not error with invalid function names
-        func_name_full = ['mex.bin.' func_name_hashed];
+        func_name_full = ['nla.mex.bin.' func_name_hashed];
         func_handle = str2func(func_name_full);
 
         %% execute binary and return output

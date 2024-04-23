@@ -27,7 +27,7 @@ classdef BaseResult < nla.net.BasePermResult
                 if isfield(flags, 'show_nonpermuted') && flags.show_nonpermuted
                     if flags.plot_type == nla.PlotType.FIGURE
                         %% Non-permuted
-                        fig = gfx.createFigure(500, 900);
+                        fig = nla.gfx.createFigure(500, 900);
 
                         %% Check that network-pair size is not a confound
                         obj.plotProbVsNetSize(net_atlas, subplot(2,1,2));
@@ -59,7 +59,7 @@ classdef BaseResult < nla.net.BasePermResult
                 end
             else
                 if isfield(flags, 'show_full_conn') && flags.show_full_conn
-                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.perm_prob_ew, net.mcc.None,...
+                    [sig, name] = obj.singleSigMat(net_atlas, input_struct, obj.perm_prob_ew, nla.net.mcc.None,...
                         "Full Connectome");
                     [num_tests, sig_count_mat, names] = obj.appendSigMat(num_tests, sig_count_mat, names, sig, name);
                 end

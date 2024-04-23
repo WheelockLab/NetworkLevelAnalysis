@@ -30,7 +30,7 @@ classdef Precalculated < nla.edge.BaseTest
     
     methods (Static)
         function inputs = requiredInputs()
-            import nla.inputField.DimensionType nla.inputFieldNumberWithoutDefault nla.inputFieldEdgeLevelMatrix
+            import nla.inputField.DimensionType nla.inputField.NumberWithoutDefault nla.inputField.EdgeLevelMatrix
 
             npairs_x_nperms = [DimensionType.NROIPAIRS,DimensionType.NPERMS];
             npairs_x_1 = [DimensionType.NROIPAIRS, 1];

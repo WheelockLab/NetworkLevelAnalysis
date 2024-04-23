@@ -55,7 +55,7 @@ classdef NetworkAtlas < nla.DeepCopyable
             
             %% Regions of interest
             for i = 1:ROI_count
-                obj.ROIs = [obj.ROIs; ROI(ROI_positions(i, :)')];
+                obj.ROIs = [obj.ROIs; nla.ROI(ROI_positions(i, :)')];
             end
 
             %% ROI order(re-orders elements of func_conn)

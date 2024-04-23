@@ -11,7 +11,7 @@ classdef KendallB < nla.edge.BaseTest
         end
         
         function result = run(obj, input_struct)
-            [tau_vec, p_vec] = mex.run('kendallTauB', input_struct.behavior, input_struct.func_conn.v');
+            [tau_vec, p_vec] = nla.mex.run('kendallTauB', input_struct.behavior, input_struct.func_conn.v');
             result = obj.composeResult(input_struct.net_atlas, tau_vec', p_vec', input_struct.prob_max);
         end
     end

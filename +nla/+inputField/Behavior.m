@@ -48,7 +48,7 @@ classdef Behavior < nla.inputField.InputField
             table_w = max(parent.Position(3) - (nla.inputField.LABEL_GAP * 4), 500);
             table_h = 300;
             
-            label_gap = LABEL_GAP;
+            label_gap = nla.inputField.LABEL_GAP;
             h = LABEL_H + label_gap + table_h + label_gap + LABEL_H + label_gap + LABEL_H;
             
             %% Create label
@@ -208,7 +208,7 @@ classdef Behavior < nla.inputField.InputField
             
             button.Text = label;
             button.Position(3) = nla.inputField.widthOfString(button.Text, nla.inputField.LABEL_H) +...
-                inputField.widthOfString('  ', nla.inputField.LABEL_H + nla.inputField.LABEL_GAP);
+                nla.inputField.widthOfString('  ', nla.inputField.LABEL_H + nla.inputField.LABEL_GAP);
             
             w = button.Position(3);
         end
@@ -372,7 +372,7 @@ classdef Behavior < nla.inputField.InputField
             else
                 obj.button.Text = obj.behavior_filename;
             end
-            obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + inputField.LABEL_GAP);
+            obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + nla.inputField.LABEL_GAP);
             
             removeStyle(obj.table);
             if islogical(obj.behavior_full)
