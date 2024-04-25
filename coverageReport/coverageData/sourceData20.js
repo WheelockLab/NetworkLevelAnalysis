@@ -1,0 +1,1 @@
+var sourceData20 = {"FileContents":["classdef RankingMethod","    enumeration","        P_VALUE, TEST_STATISTIC","    end","end","",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0,0,0]}}
