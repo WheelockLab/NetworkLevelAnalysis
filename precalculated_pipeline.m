@@ -70,7 +70,7 @@ results = tests.runPerm(input_struct, net_input_struct, net_atlas, edge_result, 
 % Warning: Will produce a large amount of figures. You are advised to use
 % the GUI to visualize results, or to use the output calls of individual
 % result objects.
-results.output();
+% results.output();
 
 %% Save results
 % Should be able to visualize this result file by loading it into the GUI
