@@ -77,86 +77,9 @@ classdef TestPool < nla.DeepCopyable
                     end
                 end
             end
-            
-            % REMOVE CALL TO COHENS D UNTIL WE DETERMINE CORRECT CALC FOR IT ADE 2025MAR24
-            % Run Cohen's D
-%             cohen_d_test = nla.net.CohenDTest();
-%             for test_index = 1:numNetTests(obj)
-%                 
-%                 permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
-%                     permuted_network_test_results{test_index});
-%             end
+            ranked_permuted_network_results = obj.rankResults(input_struct, nonpermuted_network_test_results, permutation_network_results, net_atlas.numNetPairs());
 
-            ranked_results = obj.rankResults(network_test_options, permuted_network_test_results, network_atlas.numNetPairs());
-        end
-
-        function [permuted_edge_test_results, permuted_network_test_results] = runPermSeparateEdgeAndNet(obj, input_struct, net_input_struct,...
-            network_atlas, num_perms, perm_seed)
-            
-            %This is code that first runs all edge permutations, and then
-            %runs all net permutations
-            %NOTE: This currently involves saving all edge results from all
-            %permutations in the working results object
-            if ~exist('perm_seed', 'var')
-                perm_seed = false;
-            end
-
-            permuted_edge_test_results = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
-            permuted_network_test_results = obj.runNetTestsPerm(net_input_struct, network_atlas, permuted_edge_test_results);
-        end
-        
-        function [permuted_edge_results, permuted_network_results] = runEdgeAndNetPerm(obj, edge_input_struct, net_input_struct,...
-            net_atlas, edge_result_nonperm, num_perms, perm_seed)
-            
-            % get current parallel pool or start a new one
-            [number_of_processes, blocks] = obj.initializeParallelPool(num_perms);
-            
-            parfor process = 1:number_of_processes
-                network_result_block = obj.runEdgeAndNetPermBlock(edge_input_struct, net_input_struct, net_atlas,...
-                    blocks(process), blocks(process+1), perm_seed);
-                network_result_blocks{process} = network_result_block;
-            end
-            
-            permuted_edge_results = nla.edge.result.PermBase();
-            permuted_edge_results.perm_count = num_perms;
-            % and net level result chunks
-            permuted_network_results = network_result_blocks{1};
-            for process = 2:number_of_processes
-                current_network_test_results = network_result_blocks{process};
-                for test_index = 1:numNetTests(obj)
-                    current_test_network_result = current_network_test_results(test_index);
-                    permuted_network_results{test_index}.merge(current_test_network_result);
-                end
-            end
-        end
-        
-        function network_result_block = runEdgeAndNetPermBlock(obj, edge_input_struct, net_input_struct, net_atlas,...
-            block_start, block_end, perm_seed)
-        
-            for iteration = block_start:block_end - 1
-                rng(iteration);
-                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
-                permuted_input.iteration = iteration;
-                
-                single_edge_result = obj.runEdgeTest(permuted_input);
-                network_results = obj.runNetTests(net_input_struct, single_edge_result, net_atlas, true);
-                
-                % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
-                % indexes
-                if iteration - block_start + 1 == 1
-                    for test = 1:numNetTests(obj)
-                        network_result_block{test} = copy(network_results{test});
-                    end
-                else
-                    for test = 1:numNetTests(obj)
-                        network_result_block{test}.merge(network_results{test});
-                    end
-                end
-
-                if ~islogical(obj.data_queue)
-                    send(obj.data_queue, iteration);
-                end
-            end
+            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, nonpermuted_edge_test_results, nonpermuted_network_test_results, edge_results_perm, ranked_permuted_network_results);
         end
         
         function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
