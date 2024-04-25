@@ -6,12 +6,10 @@ classdef ChiSquared < nla.net.BaseSigTest
     
     methods
         function obj = ChiSquared()
-            import nla.* % required due to matlab package system quirks
             obj@nla.net.BaseSigTest();
         end
         
         function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
-            import nla.* % required due to matlab package system quirks
             %RUN Run the test
             %   edge_result: Result of edge-level statistics
             %   net_atlas: Network atlas
@@ -20,6 +18,8 @@ classdef ChiSquared < nla.net.BaseSigTest
             %   non-permuted ChiSquaredResult, indicating that this is a
             %   permuted run, which is dependant on the non-permuted result
             
+            import nla.TriMatrix nla.TriMatrixDiag
+
             num_nets = net_atlas.numNets();
             
             chi2 = TriMatrix(num_nets, TriMatrixDiag.KEEP_DIAGONAL);
@@ -51,9 +51,10 @@ classdef ChiSquared < nla.net.BaseSigTest
             
             % If a previous non-permuted result is passed in, add on to it
             if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.chi2, previous_result.prob, chi2, prob, previous_result.chi2, previous_result.prob, chi2, prob);
+                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.chi2,...
+                    previous_result.prob, chi2, prob, previous_result.chi2, previous_result.prob, chi2, prob);
             else
-                result = net.result.ChiSquared(num_nets);
+                result = nla.net.result.ChiSquared(num_nets);
                 result.chi2 = chi2;
                 result.observed_gt_expected = observed_gt_expected;
                 result.prob = prob;

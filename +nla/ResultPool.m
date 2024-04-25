@@ -16,7 +16,6 @@ classdef ResultPool
     
     methods
         function obj = ResultPool(input_struct, net_input_struct, net_atlas, edge_result, net_results, perm_edge_result, perm_net_results)
-            import nla.* % required due to matlab package system quirks
             obj.input_struct = input_struct;
             obj.net_input_struct = net_input_struct;
             obj.net_atlas = net_atlas;
@@ -24,13 +23,12 @@ classdef ResultPool
             obj.perm_edge_result = perm_edge_result;
             obj.net_results = net_results;
             obj.perm_net_results = perm_net_results;
-            obj.version = VERSION;
-            obj.commit = helpers.git.commitString(true);
-            obj.commit_short = helpers.git.commitString();
+            obj.version = nla.VERSION;
+            obj.commit = nla.helpers.git.commitString(true);
+            obj.commit_short = nla.helpers.git.commitString();
         end
         
         function output(obj)
-            import nla.* % required due to matlab package system quirks
             flags = struct();
             flags.display_sig = obj.containsSigBasedNetworkResult();
             obj.edge_result.output(obj.net_atlas, flags);
@@ -52,11 +50,10 @@ classdef ResultPool
         end
         
         function val = containsSigBasedNetworkResult(obj)
-            import nla.* % required due to matlab package system quirks
             val = false;
             if ~islogical(obj.perm_net_results)
                 for i = 1:size(obj.perm_net_results, 1)
-                    if isa(obj.perm_net_results{i}, 'net.BaseSigResult')
+                    if isa(obj.perm_net_results{i}, 'nla.net.BaseSigResult')
                         val = true;
                     end
                 end
@@ -64,15 +61,14 @@ classdef ResultPool
         end
         
         function to_file(obj, filename)
-            import nla.* % required due to matlab package system quirks
             results = obj;
             % also create a struct version of the results for compatibility
-            results_as_struct = helpers.classToStructRecursive(obj);
+            results_as_struct = nla.helpers.classToStructRecursive(obj);
             save(filename, 'results', 'results_as_struct', '-nocompression','-v7.3');
         end
         
         function saveSummaryTable(obj, filename)
-            import nla.* % required due to matlab package system quirks
+            import nla.TriMatrix nla.TriMatrixDiag
 
             for n = 1:obj.net_atlas.numNets()
                 net_name = obj.net_atlas.nets(n).name;
@@ -101,7 +97,6 @@ classdef ResultPool
     
     methods (Static)
         function obj = from_file(filename)
-            import nla.* % required due to matlab package system quirks
             file_struct = load(filename);
             obj = file_struct.results;
         end

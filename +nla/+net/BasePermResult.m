@@ -18,7 +18,8 @@ classdef BasePermResult < nla.TestResult
     
     methods
         function obj = BasePermResult(size)
-            import nla.* % required due to matlab package system quirks
+            import nla.TriMatrix nla.TriMatrixDiag
+
             % permuted stats
             obj.perm_rank = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
             obj.perm_rank_ew = TriMatrix(size, 'uint64', TriMatrixDiag.KEEP_DIAGONAL);
@@ -32,7 +33,6 @@ classdef BasePermResult < nla.TestResult
         
         % merged is a function which merges 2 results from the same test
         function merge(obj, ~, ~, ~, ~, results)
-            import nla.* % required due to matlab package system quirks
             % Summations
             num_pairs = numel(obj.perm_rank.v);
             for j = 1:numel(results)
@@ -49,7 +49,6 @@ classdef BasePermResult < nla.TestResult
         end
         
         function table_new = genSummaryTable(obj, table_old)
-            import nla.* % required due to matlab package system quirks
             table_new = [table_old, table(obj.perm_prob_ew.v, 'VariableNames', [obj.name + " P-value"])];
         end
     end
@@ -59,14 +58,16 @@ classdef BasePermResult < nla.TestResult
             % Inputs that can be tweaked post-run (ie: are simple
             % thresholds etc. for summary statistics, or generally can be
             % modified without requiring re-permutation)
-            import nla.* % required due to matlab package system quirks
-            inputs = {inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
     
     methods (Access = protected)
-        function [cm, plot_mat, plot_max, name_label, sig_increasing, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, name_formatted, plot_name, fdr_correction, method)
-            import nla.* % required due to matlab package system quirks
+        function [cm, plot_mat, plot_max, name_label, sig_increasing, plot_sig] = genProbPlotParams(...
+                obj, input_struct, net_atlas, plot_prob, plot_sig_filter, name_formatted, plot_name, fdr_correction, method...
+            )
+            import nla.TriMatrix nla.TriMatrixDiag nla.gfx.ProbPlotMethod
 
             % if no filter is provided on which net-pairs should be
             % significant, create a mask of all true values
@@ -75,7 +76,7 @@ classdef BasePermResult < nla.TestResult
                 plot_sig_filter.v = true(numel(plot_sig_filter.v), 1);
             end
             
-            if input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
+            if input_struct.prob_plot_method == ProbPlotMethod.NEG_LOG_10
                 plot_name = sprintf('%s (-log_1_0(P))', plot_name);
             end
             
@@ -95,7 +96,7 @@ classdef BasePermResult < nla.TestResult
             plot_prob_sc = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
             plot_prob_sc.v = plot_prob.v .* (discrete_colors_count / (discrete_colors_count + 1));
 
-            if input_struct.prob_plot_method == gfx.ProbPlotMethod.LOG
+            if input_struct.prob_plot_method == ProbPlotMethod.LOG
                 min_log = log10(min(nonzeros(plot_prob.v)));
                 if min_log < -40
                     min_log = -40;
@@ -111,9 +112,9 @@ classdef BasePermResult < nla.TestResult
                 plot_mat = plot_prob_sc;
                 plot_max = p_max;
                 sig_increasing = false;
-            elseif input_struct.prob_plot_method == gfx.ProbPlotMethod.NEG_LOG_10
+            elseif input_struct.prob_plot_method == ProbPlotMethod.NEG_LOG_10
                 cm = parula(discrete_colors_count);
-                plot_mat = nla.TriMatrix(net_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
+                plot_mat = TriMatrix(net_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
                 plot_mat.v = -1 * log10(plot_prob.v);
                 if method == nla.Method.FULL_CONN || method == nla.Method.WITHIN_NET_PAIR
                     plot_max = 2;
@@ -135,20 +136,23 @@ classdef BasePermResult < nla.TestResult
             end
         end
         
-        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result, ax)
-            import nla.* % required due to matlab package system quirks
+        function [w, h] = plotProb(obj, edge_input_struct, input_struct, net_atlas, fig, x, y, plot_prob,...
+            plot_sig_filter, plot_name, fdr_correction, method, edge_result, ax)
             
             %% callback function
             function brainFigsButtonClickedCallback(net1, net2)
-                f = waitbar(0.05, sprintf('Generating %s - %s net-pair brain plot', net_atlas.nets(net1).name, net_atlas.nets(net2).name));
-                gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
+                f = waitbar(0.05, sprintf('Generating %s - %s net-pair brain plot', net_atlas.nets(net1).name,...
+                    net_atlas.nets(net2).name));
+                gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, nla.gfx.MeshType.STD, 0.25, 3, true,...
+                    edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
                 waitbar(0.95);
                 close(f)
             end
             
             %% trimatrix plot
-            [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
-            matrix_plot = gfx.plots.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, gfx.FigSize.SMALL,...
+            [cm, plot_mat, plot_max, name_label, ~, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas,...
+                plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
+            matrix_plot = nla.gfx.plots.MatrixPlot(fig, name_label, plot_mat, net_atlas.nets, nla.gfx.FigSize.SMALL,...
                 'network_clicked_callback', @brainFigsButtonClickedCallback, 'marked_networks', plot_sig, 'draw_legend', false,...
                 'color_map', cm, 'lower_limit', 0, 'upper_limit', plot_max, 'x_position', x, 'y_position', y);
             matrix_plot.displayImage();
@@ -156,9 +160,11 @@ classdef BasePermResult < nla.TestResult
             h = matrix_plot.image_dimensions("image_height");
         end
         
-        function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type)
-            import nla.* % required due to matlab package system quirks
-            
+        function genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat,...
+                plot_max, cm, name_label, sig_increasing, chord_type)
+            import nla.gfx.SigType nla.gfx.EdgeChordPlotMethod
+            import nla.TriMatrix nla.TriMatrixDiag
+
             ax_width = 750;
             trimat_width = 500;
             bottom_text_height = 250;
@@ -171,16 +177,16 @@ classdef BasePermResult < nla.TestResult
             
             %% Chord plot
             if chord_type == nla.PlotType.CHORD
-                fig = gfx.createFigure(ax_width + trimat_width, ax_width);
+                fig = nla.gfx.createFigure(ax_width + trimat_width, ax_width);
                 
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width, ax_width]);
-                gfx.hideAxes(ax);
+                nla.gfx.hideAxes(ax);
                 
                 if sig_increasing
-                    sig_type = gfx.SigType.INCREASING;
+                    sig_type = SigType.INCREASING;
                     insignificant = coeff_bounds(1);
                 else
-                    sig_type = gfx.SigType.DECREASING;
+                    sig_type = SigType.DECREASING;
                     insignificant = coeff_bounds(2);
                 end
                 
@@ -196,63 +202,75 @@ classdef BasePermResult < nla.TestResult
                 if isfield(input_struct, 'edge_chord_plot_method')
                     edge_plot_type = input_struct.edge_chord_plot_method;
                 else
-                    edge_plot_type = gfx.EdgeChordPlotMethod.PROB;
+                    edge_plot_type = EdgeChordPlotMethod.PROB;
                 end
                 
-                split_plot = (edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT || edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT);
+                split_plot = (edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT ||...
+                    edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT);
                 
                 range_limit = std(edge_result.coeff.v) * 5;
                 coeff_min = -range_limit;
                 coeff_max = range_limit;
                 
                 vals_clipped = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
-                if edge_plot_type == gfx.EdgeChordPlotMethod.COEFF
+                if edge_plot_type == EdgeChordPlotMethod.COEFF
                     cm_edge = turbo(1000);
                     vals_clipped.v = edge_result.coeff.v;
-                    sig_type = gfx.SigType.ABS_INCREASING;
+                    sig_type = SigType.ABS_INCREASING;
                     insig = 0;
-                    title_main = sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
-                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_SPLIT
-                    cm_edge = turbo(1000);
-                    vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
-                    vals_clipped_pos.v = edge_result.coeff.v;
-                    vals_clipped_pos.v(edge_result.coeff.v < 0) = 0;
-                    vals_clipped.v = edge_result.coeff.v;
-                    vals_clipped.v(edge_result.coeff.v > 0) = 0;
-                    sig_type = gfx.SigType.ABS_INCREASING;
-                    insig = 0;
-                    title_main = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
-                    title_pos_main = sprintf("Positive edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
-                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT
+                    title_main = sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
+
+                elseif edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT
                     cm_edge = turbo(1000);
                     vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
                     vals_clipped_pos.v = edge_result.coeff.v;
                     vals_clipped_pos.v(edge_result.coeff.v < 0) = 0;
                     vals_clipped.v = edge_result.coeff.v;
                     vals_clipped.v(edge_result.coeff.v > 0) = 0;
-                    sig_type = gfx.SigType.ABS_INCREASING;
+                    sig_type = SigType.ABS_INCREASING;
+                    insig = 0;
+                    title_main = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
+                    title_pos_main = sprintf("Positive edge-level correlation (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
+
+                elseif edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT
+                    cm_edge = turbo(1000);
+                    vals_clipped_pos = TriMatrix(net_atlas.numROIs(), TriMatrixDiag.REMOVE_DIAGONAL);
+                    vals_clipped_pos.v = edge_result.coeff.v;
+                    vals_clipped_pos.v(edge_result.coeff.v < 0) = 0;
+                    vals_clipped.v = edge_result.coeff.v;
+                    vals_clipped.v(edge_result.coeff.v > 0) = 0;
+                    sig_type = SigType.ABS_INCREASING;
                     coeff_min = edge_result.coeff_range(1);
                     coeff_max = edge_result.coeff_range(2);
                     insig = 0;
-                    title_main = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
-                    title_pos_main = sprintf("Positive edge-level correlation (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
-                elseif edge_plot_type == gfx.EdgeChordPlotMethod.COEFF_BASE
+                    title_main = sprintf("Negative edge-level correlation (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
+                    title_pos_main = sprintf("Positive edge-level correlation (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
+
+                elseif edge_plot_type == EdgeChordPlotMethod.COEFF_BASE
                     cm_edge = turbo(1000);
                     vals_clipped.v = edge_result.coeff.v;
-                    sig_type = gfx.SigType.ABS_INCREASING;
+                    sig_type = SigType.ABS_INCREASING;
                     coeff_min = edge_result.coeff_range(1);
                     coeff_max = edge_result.coeff_range(2);
                     insig = 0;
-                    title_main = sprintf("Edge-level correlation coefficient (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_main = sprintf("Edge-level correlation coefficient (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
+
                 else
                     cm_edge_base = parula(1000);
                     cm_edge = flip(cm_edge_base(ceil(logspace(-3, 0, 1000) .* 1000), :));
                     vals_clipped.v = edge_result.prob.v;
-                    sig_type = gfx.SigType.DECREASING;
+                    sig_type = SigType.DECREASING;
                     coeff_min = 0;
                     coeff_max = edge_result.prob_max;
                     insig = 1;
-                    title_main = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)", edge_result.prob_max);
+                    title_main = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)",...
+                        edge_result.prob_max);
                 end
                 
                 % threshold out insignificant networks
@@ -268,31 +286,33 @@ classdef BasePermResult < nla.TestResult
                 end
                 
                 if split_plot
-                    fig = gfx.createFigure((ax_width * 2) + trimat_width - 100, ax_width);
+                    fig = nla.gfx.createFigure((ax_width * 2) + trimat_width - 100, ax_width);
                 else
-                    fig = gfx.createFigure(ax_width + trimat_width, ax_width);
+                    fig = nla.gfx.createFigure(ax_width + trimat_width, ax_width);
                 end
                 
                 ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width, 0, ax_width - 50, ax_width - 50]);
-                gfx.hideAxes(ax);
+                nla.gfx.hideAxes(ax);
                 ax.Visible = true; % to show title
                 
                 if split_plot
                     % plot positive chord
                     positive_chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped_pos,...
-                        'direction', sig_type, 'color_map', cm_edge, 'chord_type', chord_type, 'upper_limit', coeff_max, 'lower_limit', coeff_min);
+                        'direction', sig_type, 'color_map', cm_edge, 'chord_type', chord_type, 'upper_limit', coeff_max,...
+                        'lower_limit', coeff_min);
                     positive_chord_plotter.drawChords();
-                    gfx.setTitle(ax, title_pos_main);
+                    nla.gfx.setTitle(ax, title_pos_main);
                     
                     % make new axes for other chord plot, shifted right
                     ax = axes(fig, 'Units', 'pixels', 'Position', [trimat_width + ax_width - 100, 0, ax_width - 50, ax_width - 50]);
-                    gfx.hideAxes(ax);
+                    nla.gfx.hideAxes(ax);
                     ax.Visible = true; % to show title
                 end
 
-                chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped, 'direction', sig_type, 'color_map', cm_edge, 'upper_limit', coeff_max, 'lower_limit', coeff_min, 'chord_type', chord_type);
+                chord_plotter = nla.gfx.chord.ChordPlot(net_atlas, ax, 450, vals_clipped, 'direction', sig_type,...
+                    'color_map', cm_edge, 'upper_limit', coeff_max, 'lower_limit', coeff_min, 'chord_type', chord_type);
                 chord_plotter.drawChords();
-                gfx.setTitle(ax, title_main);
+                nla.gfx.setTitle(ax, title_main);
                 
                 colormap(ax, cm_edge);
                 cb = colorbar(ax);
@@ -317,7 +337,8 @@ classdef BasePermResult < nla.TestResult
             %% Trimatrix plot
             function brainFigsButtonClickedCallback(net1, net2)
                 f = waitbar(0.05, sprintf('Generating %s - %s net-pair brain plot', net_atlas.nets(net1).name, net_atlas.nets(net2).name));
-                gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result, net1, net2, isa(obj, 'nla.net.BaseSigResult'));
+                nla.gfx.drawBrainVis(edge_input_struct, input_struct, net_atlas, gfx.MeshType.STD, 0.25, 3, true, edge_result,...
+                    net1, net2, isa(obj, 'nla.net.BaseSigResult'));
                 waitbar(0.95);
                 close(f)
             end
@@ -328,7 +349,7 @@ classdef BasePermResult < nla.TestResult
 
             %% Plot names
             text_ax = axes(fig, 'Units', 'pixels', 'Position', [55, bottom_text_height + 15, 450, 75]);
-            gfx.hideAxes(text_ax);
+            nla.gfx.hideAxes(text_ax);
             info_text = "Click any net-pair in the above plot to view its edge-level correlations.";
             if chord_type == nla.PlotType.CHORD_EDGE
                 info_text = sprintf("%s\n\nChord plot:\nEach ROI is marked by a dot next to its corresponding network.\nROIs are placed in increasing order counter-clockwise, the first ROI in\na network being the most clockwise, the last being the most counter-\nclockwise.", info_text);
@@ -336,14 +357,18 @@ classdef BasePermResult < nla.TestResult
             text(text_ax, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
         
-        function plotChord(obj, edge_input_struct, input_struct, net_atlas, plot_prob, plot_sig_filter, plot_name, fdr_correction, method, edge_result, chord_type)
-            import nla.* % required due to matlab package system quirks
-            [cm, plot_mat, plot_max, name_label, sig_increasing, plot_sig] = genProbPlotParams(obj, input_struct, net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
-            genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max, cm, name_label, sig_increasing, chord_type);
+        function plotChord(obj, edge_input_struct, input_struct, net_atlas, plot_prob, plot_sig_filter, plot_name,...
+            fdr_correction, method, edge_result, chord_type)
+            
+            [cm, plot_mat, plot_max, name_label, sig_increasing, plot_sig] = genProbPlotParams(obj, input_struct,...
+                net_atlas, plot_prob, plot_sig_filter, obj.name_formatted, plot_name, fdr_correction, method);
+            genChordPlotFig(obj, edge_input_struct, input_struct, net_atlas, edge_result, plot_sig, plot_mat, plot_max,...
+                cm, name_label, sig_increasing, chord_type);
         end
         
         function net_size = getNetSizes(obj, net_atlas)
-            import nla.* % required due to matlab package system quirks
+            import nla.TriMatrix nla.TriMatrixDiag
+
             ROI_pairs = TriMatrix(net_atlas.numROIs(), 'logical');
             net_size = TriMatrix(net_atlas.numNets(), TriMatrixDiag.KEEP_DIAGONAL);
             for row = 1:net_atlas.numNets()
@@ -358,7 +383,6 @@ classdef BasePermResult < nla.TestResult
         end
         
         function plotValsVsNetSize(obj, net_atlas, ax, prob, title_label, y_label, val_name)
-            import nla.* % required due to matlab package system quirks
             
             if ~exist('val_name', 'var'), val_name = 'P-values'; end
             
@@ -378,8 +402,8 @@ classdef BasePermResult < nla.TestResult
             xlabel(ax, 'Number of ROI pairs within network pair')
             ylabel(ax, y_label)
             [r, p] = corr(net_size.v, p_val);
-            gfx.setTitle(ax, title_label);
-            gfx.setTitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r), true);
+            nla.gfx.setTitle(ax, title_label);
+            nla.gfx.setTitle(ax, sprintf('Check if %s correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', val_name, p, r), true);
             lims = ylim(ax);
             ylim(ax, [0 lims(2)]);
         end

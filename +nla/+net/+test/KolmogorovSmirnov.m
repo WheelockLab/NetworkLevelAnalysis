@@ -6,12 +6,11 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
     
     methods
         function obj = KolmogorovSmirnov()
-            import nla.* % required due to matlab package system quirks
             obj@nla.net.BaseCorrTest();
         end
         
         function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
-            import nla.* % required due to matlab package system quirks
+            import nla.TriMatrix nla.TriMatrixDiag
 
             num_nets = net_atlas.numNets();
             
@@ -37,9 +36,10 @@ classdef KolmogorovSmirnov < nla.net.BaseCorrTest
             
             % if a previous result is passed in, add on to it
             if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.ks, previous_result.prob, ks, prob, previous_result.ss_ks, previous_result.ss_prob, ss_ks, ss_prob);
+                result = obj.rank(net_atlas, previous_result, input_struct, @ge, previous_result.ks,...
+                    previous_result.prob, ks, prob, previous_result.ss_ks, previous_result.ss_prob, ss_ks, ss_prob);
             else
-                result = net.result.KolmogorovSmirnov(num_nets);
+                result = nla.net.result.KolmogorovSmirnov(num_nets);
                 result.prob = prob;
                 result.ks = ks;
                 result.ss_prob = ss_prob;

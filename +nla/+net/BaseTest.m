@@ -7,7 +7,6 @@ classdef BaseTest < nla.Test
     
     methods
         function obj = BaseTest()
-            import nla.* % required due to matlab package system quirks
         end 
     end
     
@@ -18,18 +17,19 @@ classdef BaseTest < nla.Test
     methods (Static)
         function inputs = requiredInputs()
             % Inputs that must be provided to run the test
-            import nla.* % required due to matlab package system quirks
-            inputs = {inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
         
-        function result = rank(net_atlas, result, input_struct, sig_func, stat, stat_prob, stat_perm, stat_prob_perm, stat_ss, stat_ss_prob, stat_ss_perm, stat_ss_prob_perm)
+        function result = rank(net_atlas, result, input_struct, sig_func, stat, stat_prob, stat_perm, stat_prob_perm,...
+            stat_ss, stat_ss_prob, stat_ss_perm, stat_ss_prob_perm)
             %RANK Rank test statistics against non-permuted equivelents and
             % add on to the relevant ranking fields (later used to
             % calculate p-values, in the result merge() step)
-            import nla.* % required due to matlab package system quirks
+            import nla.ACCURACY_MARGIN
             
             stat_ranking = false;
-            if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == RankingMethod.TEST_STATISTIC
+            if ~isfield(input_struct, 'ranking_method') || input_struct.ranking_method == nla.RankingMethod.TEST_STATISTIC
                 stat_ranking = true;
             end
             
@@ -73,7 +73,7 @@ classdef BaseTest < nla.Test
             
             % update histogram
             if ~islogical(stat_prob_perm)
-                result.perm_prob_hist = result.perm_prob_hist + uint32(histcounts(stat_prob_perm.v, HistBin.EDGES)');
+                result.perm_prob_hist = result.perm_prob_hist + uint32(histcounts(stat_prob_perm.v, nla.HistBin.EDGES)');
             end
             
             result.perm_count = result.perm_count + 1;

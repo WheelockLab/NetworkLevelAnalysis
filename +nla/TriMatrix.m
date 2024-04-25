@@ -18,7 +18,6 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
     
     methods (Access = private)
         function dims = elementDims(obj)
-            import nla.* % required due to matlab package system quirks
             full_dims = size(obj.v);
             dims = full_dims(2:end);
         end
@@ -56,21 +55,18 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
 %         end
 
         function calcIndexMatrix(obj)
-            import nla.* % required due to matlab package system quirks
             obj.index_matrix = zeros(obj.size, obj.size, 'uint32');
             % we convert obj.size from uint32 to int32 here because matlab
             % doesn't understand integer promotion
-            obj.index_matrix(tril(true(obj.size, obj.size), obj.diag_offset)) = [1:helpers.triNum(int32(obj.size) + obj.diag_offset)];
+            obj.index_matrix(tril(true(obj.size, obj.size), obj.diag_offset)) = [1:nla.helpers.triNum(int32(obj.size) + obj.diag_offset)];
         end
         
         function ind = index(obj, row, col)
-            import nla.* % required due to matlab package system quirks
             ind = nonzeros(obj.index_matrix(row, col));
         end
     end
     methods
         function obj = TriMatrix(varargin)
-            import nla.* % required due to matlab package system quirks
             %% Matlab argument parsing because of no default values for functions
             % Construct Trimatrix from first argument if it's a matrix, or
             % create an empty matrix if not
@@ -88,7 +84,7 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
                     typename = varargin{2};
                 end
                     
-                obj.v = zeros(helpers.triNum(int32(obj.size) + obj.diag_offset), 1, typename);
+                obj.v = zeros(nla.helpers.triNum(int32(obj.size) + obj.diag_offset), 1, typename);
             else
                 data = varargin{1};
                 
@@ -128,21 +124,18 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
         
         function newTriMatrix = makeCopyFromSubset(obj, colsToCopy)
             %Make properly sized triMatrix with empty values
-            import nla.* % required due to matlab package system quirks
             newTriMatrix = nla.TriMatrix(obj.size, obj.diag_offset);
             newTriMatrix.v = obj.v(:,colsToCopy);
         end
         
         function returned = get(obj, row, col)
             % Return the elements at the given indices. The vector of
-            import nla.* % required due to matlab package system quirks
             indexes = obj.index(row, col);
             returned = obj.v(indexes, :);
             returned = squeeze(reshape(returned, [size(indexes, 1), obj.elementDims()]));
         end
         
         function set(obj, row, col, value)
-            import nla.* % required due to matlab package system quirks
             % Set the element at the index to the given value.
             % N-dimensional indexing is relatively slow so we handle common
             % cases specially
@@ -161,7 +154,6 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
         end
         
         function returned = asMatrix(obj)
-            import nla.* % required due to matlab package system quirks
             %ASMATRIX Return the TriMatrixes contents in matrix form. Slow.
             % If the object is a numeric data type(or matrix thereof), preallocate
             % This is hideous but MATLAB(tm) does not allow array creation
@@ -180,7 +172,6 @@ classdef TriMatrix < handle & matlab.mixin.Copyable
         end
         
         function num = numElements(obj)
-            import nla.* % required due to matlab package system quirks
             num = size(obj.v, 1);
         end
         

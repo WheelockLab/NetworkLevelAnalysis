@@ -6,12 +6,11 @@ classdef Wilcoxon < nla.net.BaseCorrTest
     
     methods
         function obj = Wilcoxon()
-            import nla.* % required due to matlab package system quirks
             obj@nla.net.BaseCorrTest();
         end
         
         function result = run(obj, input_struct, edge_result, net_atlas, previous_result)
-            import nla.* % required due to matlab package system quirks
+            import nla.TriMatrix nla.TriMatrixDiag
 
             num_nets = net_atlas.numNets();
             
@@ -42,9 +41,10 @@ classdef Wilcoxon < nla.net.BaseCorrTest
             
             % if a previous result is passed in, add on to it
             if previous_result ~= false
-                result = obj.rank(net_atlas, previous_result, input_struct, @helpers.abs_ge, previous_result.z, previous_result.prob, z, prob, previous_result.ss_w, previous_result.ss_prob, ss_w, ss_prob);
+                result = obj.rank(net_atlas, previous_result, input_struct, @nla.helpers.abs_ge, previous_result.z,...
+                    previous_result.prob, z, prob, previous_result.ss_w, previous_result.ss_prob, ss_w, ss_prob);
             else
-                result = net.result.Wilcoxon(num_nets);
+                result = nla.net.result.Wilcoxon(num_nets);
                 result.prob = prob;
                 result.w = w;
                 result.z = z;

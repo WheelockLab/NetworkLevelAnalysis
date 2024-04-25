@@ -5,7 +5,6 @@ function [si_vals] = silhouetteCoeff(fc_avg, networks)
     %       have a name, color, and a vector of indices corresponding to
     %       data in the input matrix
     %   si_vals: 1xNrois vector of silhouette values
-    import nla.* % required due to matlab package system quirks
     
     % tweak fc to fit the input format demanded by lib.calc_correlationdist
     fc_mat = fc_avg.asMatrix();

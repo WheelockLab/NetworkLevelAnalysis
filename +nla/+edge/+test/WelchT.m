@@ -9,12 +9,10 @@ classdef WelchT < nla.edge.BaseTest
     
     methods
         function obj = WelchT()
-            import nla.* % required due to matlab package system quirks
             obj@nla.edge.BaseTest();
         end
         
         function result = run(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
             % This function calculates the t-test between 2 sets of data using the
             % Welch method that does not assume equal mean or variance or samples. The
             % function returns the t-statistic, p-value, and degrees of freedom.
@@ -48,17 +46,16 @@ classdef WelchT < nla.edge.BaseTest
     
     methods (Static)
         function inputs = requiredInputs()
-            import nla.* % required due to matlab package system quirks
             inputs = requiredInputs@nla.edge.BaseTest();
             
             % disable adding/modifying covariates in behavior
-            behavior_handle = helpers.firstInstanceOfClass(inputs, 'nla.inputField.Behavior');
+            behavior_handle = nla.helpers.firstInstanceOfClass(inputs, 'nla.inputField.Behavior');
             behavior_handle.covariates_enabled = nla.inputField.CovariatesEnabled.ONLY_FC;
             
-            inputs{end + 1} = inputField.String('group1_name', 'Group 1 name:', 'Group1');
-            inputs{end + 1} = inputField.Number('group1_val', 'Group 1 behavior value:', -Inf, 1, Inf);
-            inputs{end + 1} = inputField.String('group2_name', 'Group 2 name:', 'Group2');
-            inputs{end + 1} = inputField.Number('group2_val', 'Group 2 behavior value:', -Inf, 0, Inf);
+            inputs{end + 1} = nla.inputField.String('group1_name', 'Group 1 name:', 'Group1');
+            inputs{end + 1} = nla.inputField.Number('group1_val', 'Group 1 behavior value:', -Inf, 1, Inf);
+            inputs{end + 1} = nla.inputField.String('group2_name', 'Group 2 name:', 'Group2');
+            inputs{end + 1} = nla.inputField.Number('group2_val', 'Group 2 behavior value:', -Inf, 0, Inf);
         end
     end
 end
