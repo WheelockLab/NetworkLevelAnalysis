@@ -1,0 +1,1 @@
+var sourceData41 = {"FileContents":["classdef FigSize","    enumeration","        SMALL, LARGE","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}

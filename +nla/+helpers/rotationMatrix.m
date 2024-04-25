@@ -1,7 +1,6 @@
 function mat = rotationMatrix(dir, theta)
     % Generate a rotation matrix for the direction given
     % an angle (in radians).
-    import nla.* % required due to matlab package system quirks
     mat = zeros(3);
 
     switch dir

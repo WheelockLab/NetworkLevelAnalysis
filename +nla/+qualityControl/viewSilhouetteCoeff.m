@@ -1,5 +1,4 @@
 function viewSilhouetteCoeff(fig, input_struct, remove_index)
-    import nla.* % required due to matlab package system quirks
     
     prog = uiprogressdlg(fig, 'Title', 'Generating figures', 'Message', 'Calculating silhouette coefficient');
     prog.Value = 0.02;
@@ -20,13 +19,13 @@ function viewSilhouetteCoeff(fig, input_struct, remove_index)
     prog.Value = 0.25;
     
     %% Calculate silhouette coefficients
-    si_vals = silhouetteCoeff(fc_avg, nets);
+    si_vals = nla.silhouetteCoeff(fc_avg, nets);
     
     prog.Value = 0.98;
     
     %% Display FC average plot with average silhouette value in label
     plot_label = [plot_label sprintf('\nMean silhouette value = %2.3f', mean(si_vals))];
-    fig = gfx.createFigure();
+    fig = nla.gfx.createFigure();
     matrix_plot = nla.gfx.plots.MatrixPlot(fig, plot_label, fc_avg, nets, nla.gfx.FigSize.LARGE);
     matrix_plot.displayImage();
     w = matrix_plot.image_dimensions("image_width");

@@ -8,18 +8,16 @@ function [origin, rad_origin, radius] = findCircleFromTwoTangents(a, b, rad_a, r
     %   rad_a: angle from circle origin to tangent point a
     %   rad_b: angle from circle origin to tangent point b
     
-    import nla.* % required due to matlab package system quirks
-    
-    origin(1) = gfx.findOriginXFromTwoTangents(a, b, rad_a, rad_b);
+    origin(1) = nla.gfx.findOriginXFromTwoTangents(a, b, rad_a, rad_b);
     
     % transpose axes and do the same thing
     a_2 = [a(2), a(1)];
     b_2 = [b(2), b(1)];
     rad_a_2 = (pi/2) - rad_a;
     rad_b_2 = (pi/2) - rad_b;
-    origin(2) = gfx.findOriginXFromTwoTangents(a_2, b_2, rad_a_2, rad_b_2);
+    origin(2) = nla.gfx.findOriginXFromTwoTangents(a_2, b_2, rad_a_2, rad_b_2);
     
-    rad_origin = [gfx.angleFrom(origin, a), gfx.angleFrom(origin, b)];
-    radius = gfx.pointDist(a, origin);
+    rad_origin = [nla.gfx.angleFrom(origin, a), nla.gfx.angleFrom(origin, b)];
+    radius = nla.gfx.pointDist(a, origin);
 end
 

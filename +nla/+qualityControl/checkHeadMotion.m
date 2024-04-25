@@ -1,9 +1,8 @@
 function checkHeadMotion(fig, input_struct, motion)
-    import nla.* % required due to matlab package system quirks
     
     prog = uiprogressdlg(fig, 'Title', 'Generating figures', 'Message', 'Generating head motion figures');
     prog.Value = 0.02;
-    distances = helpers.euclidianDistanceROIs(input_struct.net_atlas);
+    distances = nla.helpers.euclidianDistanceROIs(input_struct.net_atlas);
     prog.Value = 0.75;
     [r_vec, p_vec] = corr(motion, input_struct.func_conn.v', 'type', 'Pearson');
     
@@ -12,7 +11,7 @@ function checkHeadMotion(fig, input_struct, motion)
     h = nla.TriMatrix(input_struct.net_atlas.numROIs(), 'logical');
     prob.v = p_vec';
     r.v = r_vec';
-    h.v = lib.fdr_bh(prob.v);
+    h.v = nla.lib.fdr_bh(prob.v);
     
     prog.Value = 0.98;
     
@@ -21,11 +20,11 @@ function checkHeadMotion(fig, input_struct, motion)
     color_map = turbo(color_scale);
     mesh_alpha = 0.5;
     ROI_radius = 4;
-    ctx = gfx.MeshType.STD;
+    ctx = nla.gfx.MeshType.STD;
     llimit = -0.3;
     ulimit = 0.3;
     
-    fig = gfx.createFigure(1800, 900);
+    fig = nla.gfx.createFigure(1800, 900);
     matrix_plot = nla.gfx.plots.MatrixPlot(fig, "FC-motion correlation (Pearson's r)", r, input_struct.net_atlas.nets,...
         nla.gfx.FigSize.LARGE, 'lower_limit', llimit, 'upper_limit', ulimit);
     matrix_plot.displayImage();
@@ -35,8 +34,9 @@ function checkHeadMotion(fig, input_struct, motion)
     fig.Position(4) = height;
 
     ax = subplot('Position', [0.780, 0.540, 0.20, 0.40]);
-    gfx.setTitle(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
-    gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, gfx.ViewPos.DORSAL, false, gfx.BrainColorMode.NONE);
+    nla.gfx.setTitle(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
+    nla.gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, nla.gfx.ViewPos.DORSAL, false,...
+        nla.gfx.BrainColorMode.NONE);
     
     for col = 1:input_struct.net_atlas.numROIs()
         for row = (col + 1):input_struct.net_atlas.numROIs()
@@ -44,7 +44,7 @@ function checkHeadMotion(fig, input_struct, motion)
                 pos1 = input_struct.net_atlas.ROIs(row).pos;
                 pos2 = input_struct.net_atlas.ROIs(col).pos;
                 
-                edge_color = gfx.valToColor(r.get(row, col), llimit, ulimit, color_map);
+                edge_color = nla.gfx.valToColor(r.get(row, col), llimit, ulimit, color_map);
                 
                 p = plot3([pos1(1), pos2(1)], [pos1(2), pos2(2)], [pos1(3), pos2(3)], 'Color', edge_color, 'LineWidth', 2);
                 p.Annotation.LegendInformation.IconDisplayStyle = 'off';
@@ -71,13 +71,13 @@ function checkHeadMotion(fig, input_struct, motion)
     
     %% Distribution of corr
     ax = subplot('Position', [0.525, 0.075, 0.1875, 0.425]);
-    gfx.setTitle(ax, "FC-Motion Correlation Histogram");
+    nla.gfx.setTitle(ax, "FC-Motion Correlation Histogram");
     histogram(ax, r_vec, 'EdgeColor', 'black', 'FaceColor', 'black');
     xlabel(ax, 'FC-Motion Correlation (Pearson r)');
     
     %% Heatmap of corr/distance
     ax = subplot('Position', [0.755, 0.075, 0.225, 0.425]);
-    gfx.setTitle(ax, "FC-Motion Correlation vs. ROI Distance");
+    nla.gfx.setTitle(ax, "FC-Motion Correlation vs. ROI Distance");
     [values, centers] = hist3([distances.v, r_vec'], [50, 50]);
     imagesc(ax, centers{:}, values');
     xlabel(ax, 'Euclidian Distance');
@@ -98,8 +98,9 @@ function checkHeadMotion(fig, input_struct, motion)
     fc_motion_distance_corr = corr(r.v, distances.v);
     
     ax = subplot('Position', [0.525, 0.95, 0.1875, 0.40]);
-    gfx.hideAxes(ax);
-    text(ax, 0, 0, sprintf("Percent of significant edges: %0.2f%%\nMedian absolute correlation: %0.2f\nFC-motion-distance correlation: %0.2f", percent_sig, med_abs_corr, fc_motion_distance_corr), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    nla.gfx.hideAxes(ax);
+    text(ax, 0, 0, sprintf("Percent of significant edges: %0.2f%%\nMedian absolute correlation: %0.2f\nFC-motion-distance correlation: %0.2f",...
+        percent_sig, med_abs_corr, fc_motion_distance_corr), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     
     close(prog);
 end

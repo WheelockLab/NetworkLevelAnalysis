@@ -9,7 +9,6 @@ classdef Network < handle & nla.interfaces.IndexGroup
     
     methods
         function obj = Network(name, color, indexes)
-            import nla.* % required due to matlab package system quirks
             % Matlab doesn't support multiple constructors
             if nargin ~= 0
                 obj.name = name;
@@ -19,7 +18,6 @@ classdef Network < handle & nla.interfaces.IndexGroup
         end
         
         function addROI(obj, new_ROI)
-            import nla.* % required due to matlab package system quirks
             obj.indexes = [obj.indexes; new_ROI];
         end
         

@@ -2,11 +2,11 @@ function drawDesignMtx(design_mtx, labels)
     %DRAWDESIGNMTX Display design matrix in new figure
     %   design_mtx: NxN design matrix
     %   labels: Nx1 cell array, name labels of each variable
-    import nla.* % required due to matlab package system quirks
+    
     % column-wise normalize the design matrix
     design_mtx_norm = (design_mtx - min(design_mtx)) ./ (max(design_mtx) - min(design_mtx));
 
-    gfx.createFigure(900, 450);
+    nla.gfx.createFigure(900, 450);
     
     ax = subplot('Position', [9/48, 4/12, 7/24, 7/12]);
     [num_scans, num_covariates] = size(design_mtx);
@@ -29,7 +29,7 @@ function drawDesignMtx(design_mtx, labels)
     
     ax = subplot('Position', [16/24, 4/12, 7/24, 7/12]);
     imagesc(ax, corr_mat);
-    gfx.setTitle(ax, "Colinearity (r-values)");
+    nla.gfx.setTitle(ax, "Colinearity (r-values)");
     xlabel(' ');
     set(ax, 'XTick', 1:num_covariates, 'XTickLabel', labels);
     set(ax, 'YTick', 1:num_covariates, 'YTickLabel', labels);
@@ -40,7 +40,8 @@ function drawDesignMtx(design_mtx, labels)
     
     for x = 1:num_covariates
         for y = 1:num_covariates
-            text(ax, x,y, num2str(corr_mat(y, x), '%.2f'), 'FontSize', 8, 'FontName', 'FixedWidth', 'HorizontalAlignment', 'center', 'Color', 'r');
+            text(ax, x,y, num2str(corr_mat(y, x), '%.2f'), 'FontSize', 8, 'FontName', 'FixedWidth',...
+                'HorizontalAlignment', 'center', 'Color', 'r');
         end
     end
 end
