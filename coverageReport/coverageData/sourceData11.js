@@ -1,0 +1,1 @@
+var sourceData11 = {"FileContents":["classdef DialogOption","    properties (Constant)","        YES = 'Yes'","        CANCEL = 'Cancel'","    end","end","",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0,0,0,0]}}

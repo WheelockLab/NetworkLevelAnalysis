@@ -2,12 +2,7 @@ function tests = genTests(subpackage)
     %GENTESTS Generate cell array containing all tests in given subpackage
     %   subpackage: dot-seperated subpackage name within NLA namespace, eg.
     %       'net.test' for net-level tests
-<<<<<<< HEAD
     root_path = nla.findRootPath();
-=======
-    import nla.* % required due to matlab package system quirks
-    root_path = findRootPath();
->>>>>>> copied lots of files needed for permutations and test/result running. Will modify later. Tests run all the way through.
     relative_path = strrep(subpackage, '.', '/+');
     path_to = [root_path '+nla/+' relative_path];
     network_tests_struct = dir(path_to);

@@ -1,5 +1,6 @@
 function inputs = genBaseInputs()
     %GENBASEINPUTS Generate struct of required network-level inputs with
+
     %   default values
     inputs = struct(...
         'nonpermuted', true,...
