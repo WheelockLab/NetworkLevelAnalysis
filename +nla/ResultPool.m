@@ -87,7 +87,6 @@ classdef ResultPool
     
     methods (Static)
         function obj = from_file(filename)
-            import nla.* % required due to matlab package system quirks
             file_struct = load(filename);
             obj = file_struct.results;
         end

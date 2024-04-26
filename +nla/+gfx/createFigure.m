@@ -3,7 +3,7 @@ function fig = createFigure(w, h)
     %toolbar, etc. settings.
     %   w: width in pixels
     %   h: height in pixels
-    import nla.* % required due to matlab package system quirks
+    
     fig = figure('Color', 'w', 'Resize', 'off', 'Name', 'NLA Figure', 'NumberTitle','off');
     %fig.Icon = [findRootPath() 'thumb.png'];
     if exist('w', 'var') && exist('h', 'var') 
