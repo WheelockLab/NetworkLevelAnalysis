@@ -14,7 +14,6 @@ classdef NetworkAtlas < nla.DeepCopyable
     
     methods
         function obj = NetworkAtlas(fname)
-            import nla.* % required due to matlab package system quirks
             %% IM structure
             if ischar(fname) || isstring(fname)
                 net_struct = load(fname);
@@ -56,16 +55,16 @@ classdef NetworkAtlas < nla.DeepCopyable
             
             %% Regions of interest
             for i = 1:ROI_count
-                obj.ROIs = [obj.ROIs; ROI(ROI_positions(i, :)')];
+                obj.ROIs = [obj.ROIs; nla.ROI(ROI_positions(i, :)')];
             end
 
             %% ROI order(re-orders elements of func_conn)
             obj.ROI_order = uint32(net_struct.ROI_order);
             
             %% Networks
-            obj.nets = Network.empty();
+            obj.nets = nla.Network.empty();
             for i = 1:net_count
-                obj.nets(i) = Network(net_names{i}, net_colors(i,:), []);
+                obj.nets(i) = nla.Network(net_names{i}, net_colors(i,:), []);
             end
             % ensure column vector form
             obj.nets = obj.nets(:);
@@ -78,7 +77,7 @@ classdef NetworkAtlas < nla.DeepCopyable
             
             %% Cortex anatomy
             try
-                obj.anat = CortexAnatomy(sprintf('%ssupport_files/meshes/%s.mat', findRootPath(), obj.space));
+                obj.anat = nla.CortexAnatomy(sprintf('%ssupport_files/meshes/%s.mat', nla.findRootPath(), obj.space));
             catch
                 error("Could not load cortex anatomy - you may have forgotten to set the 'space' field in your Network Atlas")
             end
@@ -103,23 +102,19 @@ classdef NetworkAtlas < nla.DeepCopyable
         end
         
         function val = numNets(obj)
-            import nla.* % required due to matlab package system quirks
             val = numel(obj.nets);
         end
         
         function val = numNetPairs(obj)
-            import nla.* % required due to matlab package system quirks
-            val = helpers.triNum(numel(obj.nets));
+            val = nla.helpers.triNum(numel(obj.nets));
         end
         
         function val = numROIs(obj)
-            import nla.* % required due to matlab package system quirks
             val = numel(obj.ROIs);
         end
         
         function val = numROIPairs(obj)
-            import nla.* % required due to matlab package system quirks
-            val = helpers.triNum(numel(obj.ROIs) - 1);
+            val = nla.helpers.triNum(numel(obj.ROIs) - 1);
         end
     end
 end

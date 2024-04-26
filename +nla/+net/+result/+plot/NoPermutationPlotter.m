@@ -18,12 +18,11 @@ classdef NoPermutationPlotter < handle
             plot_label = parameters.name_label;
             significance_plot = parameters.significance_plot;
             clickCallback = parameters.callback;
-            plot_scale = parameters.plot_scale;
             
             matrix_plot = nla.gfx.plots.MatrixPlot(plot_figure, plot_label, statistic_matrix, obj.network_atlas.nets,...
                 nla.gfx.FigSize.SMALL, 'x_position', x_coordinate, 'y_position', y_coordinate, 'lower_limit', 0,...
                 'upper_limit', p_value_max, 'color_map', color_map, 'network_clicked_callback', clickCallback,...
-                'marked_networks', significance_plot, 'plot_scale', plot_scale);
+                'marked_networks', significance_plot);
             matrix_plot.displayImage();
             w = matrix_plot.image_dimensions("image_width");
             h = matrix_plot.image_dimensions("image_height");

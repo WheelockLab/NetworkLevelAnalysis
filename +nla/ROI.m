@@ -10,7 +10,6 @@ classdef ROI
     
     methods
         function obj = ROI(pos)
-            import nla.* % required due to matlab package system quirks
             obj.pos = pos;
         end
     end

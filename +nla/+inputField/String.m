@@ -12,7 +12,6 @@ classdef String < nla.inputField.InputField
     
     methods
         function obj = String(name, disp_name, default)
-            import nla.* % required due to matlab package system quirks
             obj.name = name;
             obj.disp_name = disp_name;
             obj.default = default;
@@ -20,19 +19,18 @@ classdef String < nla.inputField.InputField
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
-            import nla.* % required due to matlab package system quirks
             
             obj.fig = fig;
             
-            h = inputField.LABEL_H;
-            label_gap = inputField.LABEL_GAP;
+            h = nla.inputField.LABEL_H;
+            label_gap = nla.inputField.LABEL_GAP;
             
             %% Create label
             if ~isgraphics(obj.label)
                 obj.label = uilabel(parent);
             end
             obj.label.Text = obj.disp_name;
-            label_w = inputField.widthOfString(obj.label.Text, h);
+            label_w = nla.inputField.widthOfString(obj.label.Text, h);
             obj.label.HorizontalAlignment = 'left';
             obj.label.Position = [x, y - h, label_w + label_gap, h];
             
@@ -47,7 +45,6 @@ classdef String < nla.inputField.InputField
         end
         
         function undraw(obj)
-            import nla.* % required due to matlab package system quirks
             if isgraphics(obj.label)
                 delete(obj.label)
             end
@@ -57,7 +54,6 @@ classdef String < nla.inputField.InputField
         end
         
         function read(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
             if isfield(input_struct, obj.name)
                 obj.field.Value = input_struct.(obj.name);
             else
@@ -66,7 +62,6 @@ classdef String < nla.inputField.InputField
         end
         
         function [input_struct, error] = store(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
             input_struct.(obj.name) = obj.field.Value;
             error = false;
         end

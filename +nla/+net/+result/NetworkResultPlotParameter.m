@@ -29,9 +29,9 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
                 plot_title, fdr_correction, significance_filter)
             % plot_title - this will be a string
-            % plot_statistic - this is the stat that will be plotted, string
+            % plot_statistic - this is the stat that will be plotted
             % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
-            % fdr_correction - a struct of fdr_correction (found in nla.net.mcc) or None
+            % fdr_correction - a struct of fdr_correction (found in nla.net.mcc)
             % test_method - 'no permutations', 'within network pair', 'full connectome'
 
             import nla.TriMatrix nla.TriMatrixDiag
@@ -73,7 +73,7 @@ classdef NetworkResultPlotParameter < handle
             % determine colormap and operate on values if it's -log10
             switch obj.updated_test_options.prob_plot_method
                 case nla.gfx.ProbPlotMethod.LOG
-                    color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors, statistic_input, p_value_max);
+                    color_map = obj.getLogColormap(statistic_input, p_value_max);
                 % Here we take a -log10 and change the maximum value to show on the plot
                 case nla.gfx.ProbPlotMethod.NEG_LOG_10
                     color_map = parula(obj.default_discrete_colors);
@@ -88,7 +88,7 @@ classdef NetworkResultPlotParameter < handle
                     end
                     significance_type = nla.gfx.SigType.INCREASING;
                 otherwise
-                    color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors, p_value_max);
+                    color_map = obj.getColormap(p_value_max);
             end
 
             % callback function for brain image. 
@@ -114,7 +114,6 @@ classdef NetworkResultPlotParameter < handle
             result.significance_plot = significance_plot;
             result.callback = @brainFigureButtonCallback;
             result.significance_type = significance_type;
-            result.plot_scale = obj.updated_test_options.prob_plot_method;
         end
 
         function result = plotProbabilityVsNetworkSize(obj, test_method, plot_statistic)
@@ -150,6 +149,32 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods (Access = protected)
+        function color_map = getLogColormap(obj, probabilities_input, p_value_max)
+            log_minimum = log10(min(nonzeros(probabilities_input.v)));
+            log_minimum = max([-40, log_minimum]);
+
+            % Relevant for BenjaminYekutieli/BenjaminHochberg fdr correction
+            default_color_map = [1 1 1];
+            if p_value_max ~= 0
+                color_map_base = parula(obj.default_discrete_colors);
+                color_map = flip(color_map_base(ceil(logspace(log_minimum, 0, obj.default_discrete_colors) .*...
+                    obj.default_discrete_colors), :));
+                color_map = [color_map; default_color_map];
+            else
+                color_map = default_color_map;
+            end
+        end
+
+        function color_map = getColormap(obj, p_value_max)
+            default_color_map = [1 1 1];
+            if p_value_max == 0
+                color_map = default_color_map;
+            else
+                color_map = flip(parula(obj.default_discrete_colors));
+                color_map = [color_map; default_color_map];
+            end
+        end
+
         function network_size = getNetworkSizes(obj)
             import nla.TriMatrix nla.TriMatrixDiag
             ROI_pairs = TriMatrix(obj.network_atlas.numROIs(), "logical");
@@ -168,34 +193,6 @@ classdef NetworkResultPlotParameter < handle
                 plot_statistic = strcat("single_sample_", plot_statistic);
             end
             statistic = obj.network_test_results.(test_method).(plot_statistic);
-        end
-    end
-
-    methods(Static)
-        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max)
-            log_minimum = log10(min(nonzeros(probabilities_input.v)));
-            log_minimum = max([-40, log_minimum]);
-
-            % Relevant for BenjaminYekutieli/BenjaminHochberg fdr correction
-            default_color_map = [1 1 1];
-            if p_value_max ~= 0
-                color_map_base = parula(default_discrete_colors);
-                color_map = flip(color_map_base(ceil(logspace(log_minimum, 0, default_discrete_colors) .*...
-                    default_discrete_colors), :));
-                color_map = [color_map; default_color_map];
-            else
-                color_map = default_color_map;
-            end
-        end
-
-        function color_map = getColormap(default_discrete_colors, p_value_max)
-            default_color_map = [1 1 1];
-            if p_value_max == 0
-                color_map = default_color_map;
-            else
-                color_map = flip(parula(default_discrete_colors));
-                color_map = [color_map; default_color_map];
-            end
         end
     end
 end

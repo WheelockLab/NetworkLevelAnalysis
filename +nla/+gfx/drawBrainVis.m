@@ -13,8 +13,6 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     %   net2: Network to view correlations between
     %   sig_based: whether the net-level test is based on p-values
     %       thresholded by significance (for example, Chi2, HG)
-
-    import nla.* % required due to matlab package system quirks
  
     fc_exists = isfield(edge_input_struct, 'func_conn');
 
@@ -26,7 +24,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
     
     %% Display figures 
-    fig = gfx.createFigure(1550, 750);
+    fig = nla.gfx.createFigure(1550, 750);
     figure_title = sprintf('Brain Visualization: Average of edge-level correlations between nets in [%s - %s] Network Pair', net_atlas.nets(net1).name, net_atlas.nets(net2).name);
     
     if sig_based
@@ -98,13 +96,15 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
 
     function cols = valsToColor(ROI_vals, fc_vals, color_map, color_map_p, color_map_n, color_fc, llimit, ulimit)
+        import nla.gfx.valToColor
+
         if color_fc
-            cols_p = gfx.valToColor(fc_vals, -0.5, 0.5, color_map_p);
-            cols_n = gfx.valToColor(fc_vals, -0.5, 0.5, color_map_n);
+            cols_p = valToColor(fc_vals, -0.5, 0.5, color_map_p);
+            cols_n = valToColor(fc_vals, -0.5, 0.5, color_map_n);
             cols(ROI_vals > 0, :) = cols_p(ROI_vals > 0, :);
             cols(ROI_vals <= 0, :) = cols_n(ROI_vals <= 0, :);
         else
-            cols = gfx.valToColor(ROI_vals, llimit, ulimit, color_map);
+            cols = valToColor(ROI_vals, llimit, ulimit, color_map);
         end
     end
     
@@ -121,7 +121,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
                 
                 if conn_map(j)
                     % render a sphere at each ROI location
-                    gfx.drawSphere(ax, ROI_pos(j, :), net_atlas.nets(n).color, ROI_radius);
+                    nla.gfx.drawSphere(ax, ROI_pos(j, :), net_atlas.nets(n).color, ROI_radius);
                 end
             end
         end
@@ -148,7 +148,8 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
                 if ~isempty(val)
                     col = valsToColor(val, fc_val_avg, color_map, color_map_p, color_map_n, color_fc && fc_exists, llimit, ulimit);
                     col = [reshape(col, [1, 3]), 0.5];
-                    p = plot3(ax, [ROI_pos(n1, 1), ROI_pos(n2, 1)], [ROI_pos(n1, 2), ROI_pos(n2, 2)], [ROI_pos(n1, 3), ROI_pos(n2, 3)], 'Color', col, 'LineWidth', 5);
+                    p = plot3(ax, [ROI_pos(n1, 1), ROI_pos(n2, 1)], [ROI_pos(n1, 2), ROI_pos(n2, 2)],...
+                        [ROI_pos(n1, 3), ROI_pos(n2, 3)], 'Color', col, 'LineWidth', 5);
                     p.Annotation.LegendInformation.IconDisplayStyle = 'off';
                 end
             end
@@ -156,11 +157,14 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
     
     function onePlot(ax, pos, color_mode, color_mat)
-        if color_mode == gfx.BrainColorMode.NONE
-            ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, pos, surface_parcels, gfx.BrainColorMode.NONE);
-            drawEdges(ROI_final_pos, ax, net_atlas, net1, net2, color_map, color_map_p, color_map_n, color_fc, fc_exists, llimit, ulimit, edge_input_struct, edge_result, sig_based);
+        if color_mode == nla.gfx.BrainColorMode.NONE
+            ROI_final_pos = nla.gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, pos, surface_parcels,...
+                nla.gfx.BrainColorMode.NONE);
+            drawEdges(ROI_final_pos, ax, net_atlas, net1, net2, color_map, color_map_p, color_map_n, color_fc, fc_exists,...
+                llimit, ulimit, edge_input_struct, edge_result, sig_based);
         else
-            ROI_final_pos = gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, pos, surface_parcels, gfx.BrainColorMode.COLOR_ROIS, color_mat);
+            ROI_final_pos = nla.gfx.drawROIsOnCortex(ax, net_atlas, ctx, 1, ROI_radius, pos, surface_parcels,...
+                nla.gfx.BrainColorMode.COLOR_ROIS, color_mat);
         end
         
         if show_ROI_centroids
@@ -169,13 +173,13 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
 
     if surface_parcels && ~islogical(net_atlas.parcels)
-        onePlot(subplot('Position',[.45,0.505,.53,.45]), gfx.ViewPos.LAT, gfx.BrainColorMode.COLOR_ROIS, color_mat);
-        onePlot(subplot('Position',[.45,0.055,.53,.45]), gfx.ViewPos.MED, gfx.BrainColorMode.COLOR_ROIS, color_mat);
+        onePlot(subplot('Position',[.45,0.505,.53,.45]), nla.gfx.ViewPos.LAT, nla.gfx.BrainColorMode.COLOR_ROIS, color_mat);
+        onePlot(subplot('Position',[.45,0.055,.53,.45]), nla.gfx.ViewPos.MED, nla.gfx.BrainColorMode.COLOR_ROIS, color_mat);
     else
-        onePlot(subplot('Position',[.45,0.505,.26,.45]), gfx.ViewPos.BACK, gfx.BrainColorMode.NONE);
-        onePlot(subplot('Position',[.73,0.505,.26,.45]), gfx.ViewPos.FRONT, gfx.BrainColorMode.NONE);
-        onePlot(subplot('Position',[.45,0.055,.26,.45]), gfx.ViewPos.LEFT, gfx.BrainColorMode.NONE);
-        onePlot(subplot('Position',[.73,0.055,.26,.45]), gfx.ViewPos.RIGHT, gfx.BrainColorMode.NONE);
+        onePlot(subplot('Position',[.45,0.505,.26,.45]), nla.gfx.ViewPos.BACK, nla.gfx.BrainColorMode.NONE);
+        onePlot(subplot('Position',[.73,0.505,.26,.45]), nla.gfx.ViewPos.FRONT, nla.gfx.BrainColorMode.NONE);
+        onePlot(subplot('Position',[.45,0.055,.26,.45]), nla.gfx.ViewPos.LEFT, nla.gfx.BrainColorMode.NONE);
+        onePlot(subplot('Position',[.73,0.055,.26,.45]), nla.gfx.ViewPos.RIGHT, nla.gfx.BrainColorMode.NONE);
     end
     
     if color_fc
@@ -185,9 +189,9 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     end
     
     if surface_parcels && ~islogical(net_atlas.parcels)
-        onePlot(ax, gfx.ViewPos.DORSAL, gfx.BrainColorMode.COLOR_ROIS, color_mat);
+        onePlot(ax, nla.gfx.ViewPos.DORSAL, nla.gfx.BrainColorMode.COLOR_ROIS, color_mat);
     else
-        onePlot(ax, gfx.ViewPos.DORSAL, gfx.BrainColorMode.NONE);
+        onePlot(ax, nla.gfx.ViewPos.DORSAL, nla.gfx.BrainColorMode.NONE);
     end
     
     light('Position',[0,100,100],'Style','local');
@@ -206,7 +210,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
         end
     end
     hold(ax, 'off'); 
-    gfx.hideAxes(ax);
+    nla.gfx.hideAxes(ax);
     
     %% Display colormap
     if color_fc

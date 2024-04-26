@@ -10,10 +10,11 @@ function [func_conn_residual, behavior_residual] = partialVariance(func_conn, be
     %       factoring covariates from it
     %   behavior_residual: residual of behavioral scores, if factoring
     %       covariates from them
-    import nla.* % required due to matlab package system quirks
     %% Control for Covariates %%
     % covariates are cov1, cov2... covN assumed to be column vectors
     %MW 1-3-2020
+    import nla.PartialVarianceType
+
     num_roi = func_conn.size;
     num_subs = size(func_conn.v, 2);
     num_covariates = size(covariates, 2);
@@ -40,7 +41,7 @@ function [func_conn_residual, behavior_residual] = partialVariance(func_conn, be
         fcr = func_conn.v;
     end
     
-    func_conn_residual = TriMatrix(num_roi);
+    func_conn_residual = nla.TriMatrix(num_roi);
     func_conn_residual.v = fcr;
 
     if type == PartialVarianceType.FCBX || type == PartialVarianceType.ONLY_BX

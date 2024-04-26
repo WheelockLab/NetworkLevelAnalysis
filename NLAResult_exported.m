@@ -92,7 +92,6 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, 'Non-permuted');
                     for i = 1:size(app.results.network_test_results, 2)
                         result = app.results.network_test_results{i};
-                        % All our tests have non-permuted data
                         flags = struct();
                         flags.show_nonpermuted = true;
                         app.createNode(root, result.test_display_name, {result, flags});
@@ -127,7 +126,7 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, app.results.network_test_results{i}.test_display_name);
                     
                     result = app.results.network_test_results{i};
-                    if app.net_input_struct.nonpermuted 
+                    if app.net_input_struct.nonpermuted && result.has_nonpermuted
                         flags = struct();
                         flags.show_nonpermuted = true;
                         app.createNode(root, 'Non-permuted', {result, flags});
@@ -152,12 +151,10 @@ classdef NLAResult < matlab.apps.AppBase
         
         function updateProgPermStats(app, ~)
             if ~islogical(app.prog_bar)
+                
                 app.cur_iter = app.cur_iter + 1;
-                if app.cur_iter < app.net_input_struct.perm_count
-                    app.prog_bar.Message = sprintf('Running edge-level statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);
-                else
-                    app.prog_bar.Message = sprintf('Running net-level statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);
-                end
+                
+                app.prog_bar.Message = sprintf('Running permuted statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);                
                 
                 app.prog_bar.Value = mod(app.cur_iter, app.net_input_struct.perm_count) ./ app.net_input_struct.perm_count;
                 if app.prog_bar.CancelRequested
@@ -375,7 +372,7 @@ classdef NLAResult < matlab.apps.AppBase
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
-            prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running net-level statistics', 'Cancelable', 'on');
+            prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running permuted statistics', 'Cancelable', 'on');
             prog.Value = 0.02;
             drawnow;
             
@@ -387,7 +384,7 @@ classdef NLAResult < matlab.apps.AppBase
                 
                 gcp;
                 
-                prog.Message = sprintf('Running net-level statistics (0/%d permutations)', app.net_input_struct.perm_count);
+                prog.Message = sprintf('Running permuted statistics (0/%d permutations)', app.net_input_struct.perm_count);
                 prog.Value = 0;
                 
                 % Set handle reference
@@ -551,13 +548,13 @@ classdef NLAResult < matlab.apps.AppBase
             close(prog);
             
             app.moveCurrFigToParentLocation();
-            %These mlapp files are really just the worst
         end
 
         % Button pushed function: DisplayChordNet
         function DisplayChordNetButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             displayManyPlots(app, struct('plot_type', PlotType.CHORD), 'chord plots');
+            %These mlapp files are really just the worst
         end
 
         % Button pushed function: DisplayChordEdge
@@ -688,15 +685,15 @@ classdef NLAResult < matlab.apps.AppBase
             % Create NetlevelplottingDropDownLabel
             app.NetlevelplottingDropDownLabel = uilabel(app.UIFigure);
             app.NetlevelplottingDropDownLabel.HorizontalAlignment = 'right';
-            app.NetlevelplottingDropDownLabel.Position = [434 114 98 22];
+            app.NetlevelplottingDropDownLabel.Position = [477 114 98 22];
             app.NetlevelplottingDropDownLabel.Text = 'Net-level plotting:';
 
             % Create NetlevelplottingDropDown
             app.NetlevelplottingDropDown = uidropdown(app.UIFigure);
-            app.NetlevelplottingDropDown.Items = {'p-value linear', 'p-value log', 'p-value -log10', 'stat ranked'};
+            app.NetlevelplottingDropDown.Items = {'linear', 'log', '-log10'};
             app.NetlevelplottingDropDown.ValueChangedFcn = createCallbackFcn(app, @PValModeDropDownValueChanged, true);
-            app.NetlevelplottingDropDown.Position = [533 114 118 22];
-            app.NetlevelplottingDropDown.Value = 'p-value linear';
+            app.NetlevelplottingDropDown.Position = [581 114 70 22];
+            app.NetlevelplottingDropDown.Value = 'linear';
 
             % Create DisplayConvergenceButton
             app.DisplayConvergenceButton = uibutton(app.UIFigure, 'push');

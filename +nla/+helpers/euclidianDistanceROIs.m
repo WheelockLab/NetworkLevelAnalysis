@@ -1,5 +1,4 @@
 function distances = euclidianDistanceROIs(network_atlas)
-    import nla.* % required due to matlab package system quirks
 
     pos_vec = [network_atlas.ROIs(1:network_atlas.numROIs()).pos]';
     dist_comp_sum = zeros(network_atlas.numROIs(), network_atlas.numROIs());
