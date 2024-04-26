@@ -6,4 +6,3 @@ function inputs = genBaseInputs()
         nla.gfx.ProbPlotMethod.DEFAULT, 'ranking_method', nla.RankingMethod.P_VALUE, 'edge_chord_plot_method',...
         nla.gfx.EdgeChordPlotMethod.PROB, 'fdr_correction', nla.net.mcc.Bonferroni(), 'd_thresh_chord_plot', true);
 end
-
