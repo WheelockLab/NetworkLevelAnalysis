@@ -550,40 +550,6 @@ classdef MatrixPlot < handle
             set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
-
-        
-            % Callback for clicking on the colorbar.
-            function changeColorLimits(~, ~)
-                prompt = {"Enter Lower Limit: ", "Enter Upper Limit: "};
-                upper_limit_inner = obj.color_bar.TickLabels(end);
-                lower_limit_inner = obj.color_bar.TickLabels(1);
-                current_limits = {lower_limit_inner{1}, upper_limit_inner{1}};
-                new_limits = inputdlg(prompt, "Colorbar Limits", 1, current_limits);
-                % If "cancel" is pressed or both values deleted use defaults
-                if isempty(new_limits) || isempty(new_limits{1}) || isempty(new_limits{2})
-                    obj.embiggenMatrix();
-                    obj.createColorbar();
-                else
-                    obj.embiggenMatrix(new_limits{1}, new_limits{2});
-                    obj.createColorbar(new_limits{1}, new_limits{2});
-                end
-            end
-        end
-
-        function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
-            % Get color for the chunk (square)
-            chunk_color = nla.gfx.valToColor(chunk_raw, lower_value, upper_value, obj.color_map);
-            chunk_color(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
-        end
-
-        function applyColorToData(obj, position_x, position_y, chunk_height, chunk_width, chunk_color)
-            % Fill in the chunks (squares) with color
-            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
-                repelem(chunk_color, obj.elementSize(), obj.elementSize());
-            obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
-                repelem(chunk_color(size(chunk_color, 1), 1:size(chunk_color, 2), :), 1, obj.elementSize());
-            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
-                repelem(chunk_color(1:size(chunk_color, 1), size(chunk_color, 2), :), obj.elementSize(), 1);
         end
 
         function openModal(obj, source, ~)
@@ -660,7 +626,6 @@ classdef MatrixPlot < handle
         end
 
         function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
-
             % This callback gets the colormap/scale and then applies the new bounds to the data.
             % Only works with APPLY button, will not work with only CLOSE
         
@@ -679,19 +644,38 @@ classdef MatrixPlot < handle
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
             color_map = get(color_map_select, "Value");
             if button_group_value == "Linear"
-                obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
+                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
                     obj.colormap_choices{color_map});
                 obj.plot_scale = ProbPlotMethod.DEFAULT;
             elseif button_group_value == "Log"
-                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
+                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
                 obj.plot_scale = ProbPlotMethod.LOG;
             else
                 color_map_name = str2func(lower(obj.colormap_choices{color_map}));
-                obj.color_map = color_map_name(discrete_colors);
+                new_color_map = color_map_name(discrete_colors);
                 obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
             end
+            obj.color_map = new_color_map;
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+        end
+
+        function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
+            % Get color for the chunk (square)
+
+            chunk_color = nla.gfx.valToColor(chunk_raw, lower_value, upper_value, obj.color_map);
+            chunk_color(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
+        end
+
+        function applyColorToData(obj, position_x, position_y, chunk_height, chunk_width, chunk_color)
+            % Fill in the chunks (squares) with color
+
+            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
+                repelem(chunk_color, obj.elementSize(), obj.elementSize());
+            obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
+                repelem(chunk_color(size(chunk_color, 1), 1:size(chunk_color, 2), :), 1, obj.elementSize());
+            obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
+                repelem(chunk_color(1:size(chunk_color, 1), size(chunk_color, 2), :), obj.elementSize(), 1);
         end
     end
 end
