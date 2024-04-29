@@ -198,19 +198,7 @@ classdef TestPool < nla.DeepCopyable
                     send(obj.data_queue, iteration);
                 end
             end
-        end
-        
-        function previous_net_results = runNetTestsPermBlock(obj, net_input_struct, net_atlas, previous_net_results, perm_edge_results, block_start, block_end)
-            for iteration_within_block = 1:perm_edge_results.perm_count
-                previous_edge_result = perm_edge_results.getResultsByIdxs(iteration_within_block);
-                net_input_struct.iteration = block_start + iteration_within_block - 1;
-                obj.runNetTests(net_input_struct, previous_edge_result, net_atlas, previous_net_results);
-                if ~islogical(obj.data_queue)
-                    send(obj.data_queue, iteration_within_block);
-                end
-            end
-        end
-                
+        end                
         
         function edge_result = runEdgeTest(obj, input_struct)
             if ~isfield(input_struct, 'iteration')
