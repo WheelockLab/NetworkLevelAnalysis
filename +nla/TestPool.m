@@ -177,7 +177,7 @@ classdef TestPool < nla.DeepCopyable
             end
             edge_result_perm.perm_seed = perm_seed;
         end
-                
+        
         function edge_result_perm = runEdgeTestPermBlock(obj, input_struct, block_start, block_end, perm_seed)
             % set permutation method
             edge_result_perm = nla.edge.result.PermBase();
@@ -198,16 +198,16 @@ classdef TestPool < nla.DeepCopyable
                     send(obj.data_queue, iteration);
                 end
             end
-        end
-                
-        function edge_result = runEdgeTest(obj, input_struct)        
+        end                
+        
+        function edge_result = runEdgeTest(obj, input_struct)
             if ~isfield(input_struct, 'iteration')
                 input_struct.iteration = 0;
             end
             
             edge_result = obj.edge_test.run(input_struct);
         end
-        
+
         function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, perm_edge_results)
             num_perms = perm_edge_results.perm_count;
             [num_procs, blocks] = obj.initializeParallelPool(num_perms);
