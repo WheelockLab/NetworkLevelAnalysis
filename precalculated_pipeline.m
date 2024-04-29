@@ -1,22 +1,21 @@
-import nla.*
 
 %% Get path to NLA
-root_path = findRootPath();
+root_path = nla.findRootPath();
 
 %% Create a pool of tests
-tests = TestPool();
-tests.net_tests = genTests('net.test');
-tests.edge_test = edge.test.Precalculated();
+tests = nla.TestPool();
+tests.net_tests = nla.genTests('net.test');
+tests.edge_test = nla.edge.test.Precalculated();
 
 % Example: Appending another net-level test
-% tests.net_tests{end + 1} = net.test.ChiSquared();
+% tests.net_tests{end + 1} = nla.net.test.ChiSquared();
 
 % Example: Using a certain pool of net-level tests
-% tests.net_tests = {net.test.ChiSquared() net.test.HyperGeo()};
+% tests.net_tests = {nla.net.test.ChiSquared() nla.net.test.HyperGeo()};
 
 %% Load network atlas
 net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat']; % path to network atlas
-net_atlas = NetworkAtlas(net_atlas_path);
+net_atlas = nla.NetworkAtlas(net_atlas_path);
 
 %% Load precalculated data
 % !!WARNING!! precalc_obs_p and precalc_perm_p should be thresholded and
@@ -32,19 +31,19 @@ input_struct.coeff_max = 2;
 
 % load files
 obs_p_file = load('examples/precalculated/SIM_obs_p.mat');
-input_struct.precalc_obs_p = TriMatrix(net_atlas.numROIs);
+input_struct.precalc_obs_p = nla.TriMatrix(net_atlas.numROIs);
 input_struct.precalc_obs_p.v = obs_p_file.SIM_obs_p;
 
 obs_coeff_file = load('examples/precalculated/SIM_obs_coeff.mat');
-input_struct.precalc_obs_coeff = TriMatrix(net_atlas.numROIs);
+input_struct.precalc_obs_coeff = nla.TriMatrix(net_atlas.numROIs);
 input_struct.precalc_obs_coeff.v = obs_coeff_file.SIM_obs_coeff;
 
 perm_p_file = load('examples/precalculated/SIM_perm_p.mat');
-input_struct.precalc_perm_p = TriMatrix(net_atlas.numROIs);
+input_struct.precalc_perm_p = nla.TriMatrix(net_atlas.numROIs);
 input_struct.precalc_perm_p.v = perm_p_file.SIM_perm_p;
 
 perm_coeff_file = load('examples/precalculated/SIM_perm_coeff.mat');
-input_struct.precalc_perm_coeff = TriMatrix(net_atlas.numROIs);
+input_struct.precalc_perm_coeff = nla.TriMatrix(net_atlas.numROIs);
 input_struct.precalc_perm_coeff.v = perm_coeff_file.SIM_perm_coeff;
 
 num_perms = size(input_struct.precalc_perm_p.v, 2);
@@ -54,11 +53,11 @@ input_struct.net_atlas = net_atlas;
 input_struct.prob_max = 0.05;
 input_struct.permute_method = nla.edge.permutationMethods.None();
 
-net_input_struct = net.genBaseInputs();
+net_input_struct = nla.net.genBaseInputs();
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;
-net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
+net_input_struct.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
 
 %% Run tests
 edge_result = tests.runEdgeTest(input_struct);

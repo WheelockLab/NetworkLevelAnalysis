@@ -7,7 +7,6 @@ classdef Pearson < nla.edge.BaseTest
     
     methods
         function obj = Pearson()
-            import nla.* % required due to matlab package system quirks
             obj@nla.edge.BaseTest();
         end
         

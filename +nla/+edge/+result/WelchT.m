@@ -7,8 +7,6 @@ classdef WelchT < nla.edge.result.Base
     
     methods
         function obj = WelchT(size, prob_max, group_names)
-            import nla.* % required due to matlab package system quirks
-            % hack because superclass constructor can't be optional??
             if nargin == 0
                 size = 2;
                 prob_max = -1;
@@ -18,7 +16,7 @@ classdef WelchT < nla.edge.result.Base
             obj@nla.edge.result.Base(size, prob_max);
             
             if nargin ~= 0
-                obj.dof = TriMatrix(size);
+                obj.dof = nla.TriMatrix(size);
                 obj.behavior_name = sprintf("%s > %s", group_names{1}, group_names{2});
                 obj.coeff_range = [-3 3];
             end

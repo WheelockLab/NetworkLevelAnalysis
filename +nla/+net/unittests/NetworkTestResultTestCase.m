@@ -32,7 +32,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             testCase.verifyInstanceOf(results, ?nla.net.result.NetworkTestResult);
             testCase.verifyEqual(results.test_name, testCase.test.name);
             testCase.verifyEqual(results.test_options, testCase.test_options);
@@ -42,7 +42,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
             testCase.verifyEqual(results.no_permutations.p_value.size, uint32(testCase.number_of_networks));
         end
@@ -51,7 +51,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
             testCase.verifyEqual(results.within_network_pair.p_value.size, uint32(testCase.number_of_networks));
         end
@@ -60,7 +60,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
             testCase.verifyEqual(results.full_connectome.p_value.size, uint32(testCase.number_of_networks));
         end
@@ -69,7 +69,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
          
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
             testCase.verifyEqual(results.permutation_results.p_value_permutations.size, uint32(testCase.number_of_networks));
         end
@@ -78,7 +78,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
 
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             testCase.test_data.v(:, 2) = testCase.test_data.v;
             testCase.test_data.v(:, 3) = testCase.test_data.v(:, 1);
             
@@ -90,15 +90,15 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
 
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             results.permutation_results.p_value_permutations.v = testCase.test_data.v;
 
             results2 = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             results2.permutation_results.p_value_permutations.v = (testCase.test_data.v) .* 2;
 
             results.merge(results2);
-            results.permutation_results.single_sample_p_value_permutations.v
+            results.permutation_results.single_sample_p_value_permutations.v;
             testCase.verifyEqual(results.permutation_results.p_value_permutations.v,...
                 [testCase.test_data.v, (testCase.test_data.v) .* 2]);
         end
@@ -107,16 +107,16 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkTestResult
 
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             results.permutation_results.p_value_permutations.v = testCase.test_data.v;
 
             results2 = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             results2.permutation_results.p_value_permutations.v = (testCase.test_data.v) .* 2;
             results.concatenateResult(results2);
 
             concatenated_results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
-                testCase.test.display_name, testCase.test.statistics);
+                testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             concatenated_results.permutation_results.p_value_permutations.v = results.permutation_results.p_value_permutations.v;
             concatenated_results.permutation_results.p_value_permutations.v(:, 2) = results2.permutation_results.p_value_permutations.v;
             testCase.verifyEqual(results.test_name, concatenated_results.test_name);

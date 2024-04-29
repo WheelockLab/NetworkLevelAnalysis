@@ -1,18 +1,17 @@
-import nla.*
 
 %% Get path to NLA
-root_path = findRootPath();
+root_path = nla.findRootPath();
 
 %% Create a pool of tests
-tests = TestPool();
-tests.net_tests = genTests('net.test');
+tests = nla.TestPool();
+tests.net_tests = nla.genTests('net.test');
 
 % Example: Changing the edge-level test
-% tests.edge_test = edge.test.Spearman();
-% tests.edge_test = edge.test.SpearmanEstimator();
-% tests.edge_test = edge.test.Pearson();
-% tests.edge_test = edge.test.KendallB();
-% tests.edge_test = edge.test.WelchT(); % requires boolean 'in/outgroup' vector to be passed in as behavior
+% tests.edge_test = nla.edge.test.Spearman();
+% tests.edge_test = nla.edge.test.SpearmanEstimator();
+% tests.edge_test = nla.edge.test.Pearson();
+% tests.edge_test = nla.edge.test.KendallB();
+% tests.edge_test = nla.edge.test.WelchT(); % requires boolean 'in/outgroup' vector to be passed in as behavior
 
 % Example: Appending another net-level test
 % tests.net_tests{end + 1} = net.test.ChiSquared();
@@ -33,23 +32,23 @@ func_conn_unordered = double(fc_unordered);
 net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_17nets_300ROI_on_MNI.mat']; % path to network atlas
 prev_net_atlas = load(net_atlas_path);
 nets_to_remove = ["US"]; % remove the unspecified/none network
-[new_net_atlas] = removeNetworks(prev_net_atlas, nets_to_remove, 'Wheelock_2020_CerebralCortex_16nets_288ROI_on_MNI');
-net_atlas = NetworkAtlas(new_net_atlas);
+[new_net_atlas] = nla.removeNetworks(prev_net_atlas, nets_to_remove, 'Wheelock_2020_CerebralCortex_16nets_288ROI_on_MNI');
+net_atlas = nla.NetworkAtlas(new_net_atlas);
 %% OR load network atlas without removing networks
 % This should be done if your parcellation lacks an "unspecified" network,
 % or, if the atlas you are using has already removed it.
 %net_atlas_path = [root_path 'support_files/Wheelock_2020_CerebralCortex_16nets_288ROI_on_MNI.mat']; % path to network atlas
-%net_atlas = NetworkAtlas(net_atlas_path);
+%net_atlas = nla.NetworkAtlas(net_atlas_path);
 
 %% Transform R-values to Z-scores
 % If this condition isn't true, it cannot be R values
 % If it is true, it is almost certainly R values but might not be
 if all(abs(func_conn_unordered(:)) <= 1)
-    func_conn_unordered = fisherR2Z(func_conn_unordered);
+    func_conn_unordered = nla.fisherR2Z(func_conn_unordered);
 end
 
 %% Arrange network according to the network atlas
-input_struct.func_conn = TriMatrix(func_conn_unordered(net_atlas.ROI_order, net_atlas.ROI_order, :));
+input_struct.func_conn = nla.TriMatrix(func_conn_unordered(net_atlas.ROI_order, net_atlas.ROI_order, :));
 
 %% Load behavior
 %load your behavioral vector here
@@ -73,12 +72,12 @@ net_input_struct = net.genBaseInputs();
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;
-net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
+net_input_struct.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
 
 %% Partial variance
 % covariates = NxM matrix of covariates to factor from behavioral scores/fc
 % where N is the number of subjects and M is the # of covariate columns
-%[input_struct.func_conn, input_struct.behavior] = partialVariance(input_struct.func_conn, input_struct.behavior, covariates, PartialVarianceType.FCBX);
+%[input_struct.func_conn, input_struct.behavior] = nla.partialVariance(input_struct.func_conn, input_struct.behavior, covariates, PartialVarianceType.FCBX);
 
 %% Clean up unnecessary variables
 clear fc_unordered fc_struct bx
@@ -86,14 +85,14 @@ clear fc_unordered fc_struct bx
 %% Visualize average functional connectivity values
 fc_avg = copy(input_struct.func_conn);
 fc_avg.v = mean(fc_avg.v, 2);
-fig_l = gfx.createFigure(800, 800);
-obj = nla.gfx.plots.MatrixPlot(fig_l, "FC Average", fc_avg, net_atlas.nets, gfx.FigSize.LARGE);
+fig_l = nla.gfx.createFigure(800, 800);
+obj = nla.gfx.plots.MatrixPlot(fig_l, "FC Average", fc_avg, net_atlas.nets, nla.gfx.FigSize.LARGE);
 obj.displayImage()
 drawnow();
 
 %% Visualize network/ROI locations
-gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 0.8, 4, false);
-gfx.drawNetworkROIs(net_atlas, gfx.MeshType.STD, 1, 4, true);
+nla.gfx.drawNetworkROIs(net_atlas, nla.gfx.MeshType.STD, 0.8, 4, false);
+nla.gfx.drawNetworkROIs(net_atlas, nla.gfx.MeshType.STD, 1, 4, true);
 drawnow();
 
 %% Run tests

@@ -14,7 +14,6 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
     
     methods
         function obj = EdgeLevelMatrix(name, disp_name, dimensions)
-            import nla.* % required due to matlab package system quirks
             obj.name = name;
             obj.disp_name = disp_name;
             obj.dimensions = dimensions;
@@ -22,19 +21,18 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
-            import nla.* % required due to matlab package system quirks
             
             obj.fig = fig;
             
-            h = inputField.LABEL_H;
-            label_gap = inputField.LABEL_GAP;
+            h = nla.inputField.LABEL_H;
+            label_gap = nla.inputField.LABEL_GAP;
             
             %% Create label
             if ~isgraphics(obj.label)
                 obj.label = uilabel(parent);
             end
             obj.label.Text = obj.disp_name;
-            label_w = inputField.widthOfString(obj.label.Text, h);
+            label_w = nla.inputField.widthOfString(obj.label.Text, h);
             obj.label.HorizontalAlignment = 'left';
             obj.label.Position = [x, y - h, label_w + label_gap, h];
             
@@ -49,7 +47,6 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
         end
         
         function undraw(obj)
-            import nla.* % required due to matlab package system quirks
             if isgraphics(obj.label)
                 delete(obj.label)
             end
@@ -59,7 +56,6 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
         end
         
         function read(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
             if isfield(input_struct, [obj.name '_unordered'])
                 obj.matrix = input_struct.([obj.name '_unordered']);
             else
@@ -76,29 +72,34 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
         end
         
         function [input_struct, error] = store(obj, input_struct)
-            import nla.* % required due to matlab package system quirks
             
             if ~islogical(obj.matrix)
                 input_struct.([obj.name '_unordered']) = obj.matrix;
             end
             
             error = false;
-            if isfield(input_struct, 'net_atlas') && isfield(input_struct, 'perm_count') && ~islogical(input_struct.net_atlas) && ~islogical(obj.matrix)
+            if isfield(input_struct, 'net_atlas') &&...
+                isfield(input_struct, 'perm_count') &&...
+                ~islogical(input_struct.net_atlas) &&...
+                ~islogical(obj.matrix)
+                
                 dims = size(obj.matrix);
                 
-                desired_dims = obj.substituteDims(obj.dimensions, input_struct.net_atlas.numROIs, nla.helpers.triNum(input_struct.net_atlas.numROIs - 1), input_struct.perm_count);
+                desired_dims = obj.substituteDims(obj.dimensions, input_struct.net_atlas.numROIs,...
+                    nla.helpers.triNum(input_struct.net_atlas.numROIs - 1), input_struct.perm_count);
                 if numel(dims) == numel(desired_dims) && all(dims == desired_dims)
-                    if obj.dimensions(1) == inputField.DimensionType.NROIPAIRS
-                        obj.matrix_ordered = TriMatrix(input_struct.net_atlas.numROIs);
+                    if obj.dimensions(1) == nla.inputField.DimensionType.NROIPAIRS
+                        obj.matrix_ordered = nla.TriMatrix(input_struct.net_atlas.numROIs);
                         obj.matrix_ordered.v = obj.matrix;
                     else
-                        obj.matrix_ordered = TriMatrix(input_struct.net_atlas.numROIs);
+                        obj.matrix_ordered = nla.TriMatrix(input_struct.net_atlas.numROIs);
                         obj.matrix_ordered.v = obj.matrix;
                     end
                     
                     input_struct.(obj.name) = obj.matrix_ordered;
                 else
-                    error = sprintf('Matrix does not match network atlas/permutation dimensions (should be %s, is %s)!', join(string(desired_dims), "x"), join(string(dims), "x"));
+                    error = sprintf('Matrix does not match network atlas/permutation dimensions (should be %s, is %s)!',...
+                        join(string(desired_dims), "x"), join(string(dims), "x"));
                 end
             else
                 error = 'Something has gone badly wrong with inputField.EdgeLevelMatrix, please report this on the NLA Github or contact an author';
@@ -106,7 +107,7 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
         end
         
         function selectFile(obj, ~)
-            import nla.* % required due to matlab package system quirks
+            
             [fname, path, idx] = uigetfile({'*.mat', sprintf('Matrix (%s) (*.mat)', obj.dimsAsString())}, 'Select Input Matrix');
             if idx == 1
                 prog = uiprogressdlg(obj.fig, 'Title', sprintf('Loading %s', obj.disp_name), 'Message', sprintf('Loading %s', fname), 'Indeterminate', true);
@@ -140,7 +141,7 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
         end
         
         function update(obj)
-            import nla.* % required due to matlab package system quirks
+            
             if islogical(obj.matrix)
                 obj.select_file_button.Text = 'Select';
             else
@@ -149,18 +150,20 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
                 nstr = join(string(size(obj.matrix)), 'x');
                 obj.select_file_button.Text = [sprintf('Matrix (%s)', nstr)];
             end
-            obj.select_file_button.Position(3) = inputField.widthOfString(obj.select_file_button.Text, inputField.LABEL_H) + inputField.widthOfString('  ', inputField.LABEL_H + inputField.LABEL_GAP);
+            obj.select_file_button.Position(3) = nla.inputField.widthOfString(obj.select_file_button.Text, nla.inputField.LABEL_H) +...
+                nla.inputField.widthOfString('  ', nla.inputField.LABEL_H + nla.inputField.LABEL_GAP);
         end
         
         function dims = substituteDims(~, input_dims, nrois, nroipairs, nperms)
-            import nla.* % required due to matlab package system quirks
+            import nla.inputField.DimensionType
+
             for i = [1:numel(input_dims)]
                 dim = input_dims(i);
-                if dim == inputField.DimensionType.NROIS
+                if dim == DimensionType.NROIS
                     dims(i) = nrois;
-                elseif dim == inputField.DimensionType.NROIPAIRS
+                elseif dim == DimensionType.NROIPAIRS
                     dims(i) = nroipairs;
-                elseif dim == inputField.DimensionType.NPERMS
+                elseif dim == DimensionType.NPERMS
                     dims(i) = nperms;
                 else
                     if isstring(nrois)
