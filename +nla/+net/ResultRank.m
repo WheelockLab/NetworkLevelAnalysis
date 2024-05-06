@@ -74,7 +74,7 @@ classdef ResultRank < handle
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v)
                     % statistic ranking
                     combined_statistics = [obj.permuted_network_results.permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :), obj.nonpermuted_network_results.no_permutations.(single_sample_statistic).v(index)];
-                    ranking.within_network_pair.single_sample_statistic_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(obj.nonpermuted_network_results.no_permutations.(single_sample_statistic).v(index))) / (1 + obj.permutations);
+                    ranking.within_network_pair.statistic_single_sample_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(obj.nonpermuted_network_results.no_permutations.(single_sample_statistic).v(index))) / (1 + obj.permutations);
                     % p-value ranking
                     combined_probabilities = [obj.permuted_network_results.permutation_results.(strcat(single_sample_probability, "_permutations")).v(index, :), obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v(index)];
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
