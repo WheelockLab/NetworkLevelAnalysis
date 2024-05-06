@@ -47,11 +47,11 @@ classdef WelchTTest < handle
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
 
-                    [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v, "Vartype", "unequal");
+                    [p, t_stat, ~] = nla.welchT(network_rho, edge_test_results.coeff.v);
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
 
                     result.(permutation_results).(p_value).set(network, network2, p);
-                    result.(permutation_results).(t_statistic).set(network, network2, stats.tstat);
+                    result.(permutation_results).(t_statistic).set(network, network2, t_stat);
                     result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
                     result.(permutation_results).(single_sample_t_statistic).set(network, network2, single_sample_stats.tstat);
                 end
