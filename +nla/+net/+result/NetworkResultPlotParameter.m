@@ -9,7 +9,7 @@ classdef NetworkResultPlotParameter < handle
 
     properties (Dependent)
         test_methods
-        noncorrelation_input_test_names
+        noncorrelation_input_tests
         number_of_networks
     end
 
@@ -102,7 +102,7 @@ classdef NetworkResultPlotParameter < handle
                 wait_popup = waitbar(0.05, wait_text);
                 nla.gfx.drawBrainVis(edge_test_options, obj.updated_test_options, obj.network_atlas,...
                     nla.gfx.MeshType.STD, 0.25, 3, true, edge_test_result, network1, network2,...
-                    any(strcmp(obj.noncorrelation_input_test_names, obj.network_test_results.test_name)));
+                    any(strcmp(obj.noncorrelation_input_tests, obj.network_test_results.test_name)));
                 waitbar(0.95);
                 close(wait_popup);
             end
@@ -142,8 +142,8 @@ classdef NetworkResultPlotParameter < handle
             value = obj.network_test_results.test_methods;
         end
 
-        function value = get.noncorrelation_input_test_names(obj)
-            value = obj.network_test_results.noncorrelation_input_test_names;
+        function value = get.noncorrelation_input_tests(obj)
+            value = obj.network_test_results.noncorrelation_input_tests;
         end
 
         function value = get.number_of_networks(obj)
