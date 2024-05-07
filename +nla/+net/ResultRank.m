@@ -50,33 +50,41 @@ classdef ResultRank < handle
         end
         
         function ranking = experimentWideRank(obj, ranking, ranking_statistic)
+
             probability = "p_value";
+            no_permutation_result = obj.nonpermuted_network_results.no_permutations;
+            permutation_results = obj.permuted_network_results.permutation_results;
+
             for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(probability).v)
                 % statistic ranking
                 if obj.permuted_network_results.test_display_name ~= "Hypergeometric"
-                    combined_statistics = [obj.permuted_network_results.permutation_results.(strcat(ranking_statistic, "_permutations")).v(:); obj.nonpermuted_network_results.no_permutations.(ranking_statistic).v(index)];
-                    ranking.full_connectome.statistic_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(obj.nonpermuted_network_results.no_permutations.(ranking_statistic).v(index))) / (1 + obj.permutations * obj.number_of_network_pairs);
+                    combined_statistics = [permutation_results.(strcat(ranking_statistic, "_permutations")).v(:); no_permutation_result.(ranking_statistic).v(index)];
+                    ranking.full_connectome.statistic_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(ranking_statistic).v(index))) / (1 + obj.permutations * obj.number_of_network_pairs);
                 end
                 % p-value ranking
-                combined_probabilities = [obj.permuted_network_results.permutation_results.(strcat(probability, "_permutations")).v(:); obj.nonpermuted_network_results.no_permutations.(probability).v(index)];
+                combined_probabilities = [permutation_results.(strcat(probability, "_permutations")).v(:); no_permutation_result.(probability).v(index)];
                 [~, sorted_combined_probabilites] = sort(combined_probabilities);
                 ranking.full_connectome.p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs) / (1 + obj.permutations * obj.number_of_network_pairs);
             end
         end
 
         function ranking = networkPairRank(obj, ranking, ranking_statistic)
+
             if ~any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 single_sample_probability = "single_sample_p_value";
                 single_sample_statistic = strcat("single_sample_", ranking_statistic);
+                no_permutation_result = obj.nonpermuted_network_results.no_permutations;
+                permutation_results = obj.permuted_network_results.permutation_results;
                 if obj.permuted_network_results.test_name == "wilcoxon"
                     single_sample_statistic = "single_sample_ranksum_statistic";
                 end
+                
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v)
                     % statistic ranking
-                    combined_statistics = [obj.permuted_network_results.permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :), obj.nonpermuted_network_results.no_permutations.(single_sample_statistic).v(index)];
-                    ranking.within_network_pair.statistic_single_sample_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(obj.nonpermuted_network_results.no_permutations.(single_sample_statistic).v(index))) / (1 + obj.permutations);
+                    combined_statistics = [permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :), no_permutation_result.(single_sample_statistic).v(index)];
+                    ranking.within_network_pair.statistic_single_sample_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(single_sample_statistic).v(index))) / (1 + obj.permutations);
                     % p-value ranking
-                    combined_probabilities = [obj.permuted_network_results.permutation_results.(strcat(single_sample_probability, "_permutations")).v(index, :), obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v(index)];
+                    combined_probabilities = [permutation_results.(strcat(single_sample_probability, "_permutations")).v(index, :), no_permutation_result.(single_sample_probability).v(index)];
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
                     ranking.within_network_pair.single_sample_p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
                 end
