@@ -102,7 +102,7 @@ classdef TestPool < nla.DeepCopyable
             % get current parallel pool or start a new one
             [number_of_processes, blocks] = obj.initializeParallelPool(num_perms);
             
-            for process = 1:number_of_processes
+            parfor process = 1:number_of_processes
                 network_result_block = obj.runEdgeAndNetPermBlock(edge_input_struct, net_input_struct, net_atlas,...
                     blocks(process), blocks(process+1), perm_seed);
                 network_result_blocks{process} = network_result_block;
