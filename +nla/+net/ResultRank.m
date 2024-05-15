@@ -66,6 +66,7 @@ classdef ResultRank < handle
                 [~, sorted_combined_probabilites] = sort(combined_probabilities);
                 ranking.full_connectome.p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs) / (1 + obj.permutations * obj.number_of_network_pairs);
             end
+            ranking.full_connectome.d.v = obj.permuted_network_results.full_connectome.d.v;
         end
 
         function ranking = networkPairRank(obj, ranking, ranking_statistic)
@@ -73,8 +74,10 @@ classdef ResultRank < handle
             if ~any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 single_sample_probability = "single_sample_p_value";
                 single_sample_statistic = strcat("single_sample_", ranking_statistic);
+                
                 no_permutation_result = obj.nonpermuted_network_results.no_permutations;
                 permutation_results = obj.permuted_network_results.permutation_results;
+                
                 if obj.permuted_network_results.test_name == "wilcoxon"
                     single_sample_statistic = "single_sample_ranksum_statistic";
                 end
@@ -88,11 +91,13 @@ classdef ResultRank < handle
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
                     ranking.within_network_pair.single_sample_p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
                 end
+                
             elseif isstruct(obj.permuted_network_results.within_network_pair) && any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 % This condition catches Chi-Squared and Hypergeometric tests. We do not do within network ranking for them, we just copy
                 % the full connectome ranking over. 
                 ranking.within_network_pair.single_sample_p_value = ranking.full_connectome.p_value;
             end
+            ranking.within_network_pair.d.v = obj.permuted_network_results.within_network_pair.d.v;
         end
 
         function value = get.permutations(obj)

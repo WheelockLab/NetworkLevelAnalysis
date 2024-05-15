@@ -305,7 +305,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
             import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
             import nla.net.result.chord.ChordPlotter
-
+            
             plot_test_type = "full_connectome";
 
             plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
@@ -473,8 +473,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % thresholds etc. for summary statistics, or generally can be
             % modified without requiring re-permutation)
             import nla.inputField.Integer nla.inputField.Number 
-            options = {Integer('behavior_count', 'Test count:', 1, 1, Inf),...
-                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+            options = {...
+                Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
+                Number('d_max', "Cohen's D threshold >", 0, 0.5, 1),...
+            };
         end
     end
 end
