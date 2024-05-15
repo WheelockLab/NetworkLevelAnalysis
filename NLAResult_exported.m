@@ -22,7 +22,7 @@ classdef NLAResult < matlab.apps.AppBase
         SaveSummaryTable               matlab.ui.control.Button
         EdgelevelchordplottingLabel    matlab.ui.control.Label
         EdgeLevelTypeDropDown          matlab.ui.control.DropDown
-        TweakNetParamsPanel            matlab.ui.container.Panel
+        AdjustableNetParamsPanel       matlab.ui.container.Panel
         MultiplecomparisonscorrectionLabel  matlab.ui.control.Label
         FDRCorrection                  matlab.ui.control.DropDown
         showROIcentroidsinbrainplotsCheckBox  matlab.ui.control.CheckBox
@@ -39,7 +39,7 @@ classdef NLAResult < matlab.apps.AppBase
         results = false
         nesting_by_method = true
         prog_bar = false
-        net_tweakable_fields
+        net_adjustable_fields
         cur_iter = 0
     end
     
@@ -168,7 +168,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
         
-        function genTweakableNetParams(app)
+        function genadjustableNetParams(app)
             import nla.* % required due to matlab package system quirks
             
             % disgusting special case
@@ -183,39 +183,39 @@ classdef NLAResult < matlab.apps.AppBase
             for i = 1:numel(results)
                 inputs = cat(2, inputs, results{i}.editableOptions());
             end
-            app.net_tweakable_fields = inputField.reduce(inputs);
+            app.net_adjustable_fields = inputField.reduce(inputs);
             
             % display input fields
             x = inputField.LABEL_GAP * 2;
-            y = app.TweakNetParamsPanel.InnerPosition(4);
-            for i = 1:numel(app.net_tweakable_fields)
+            y = app.AdjustableNetParamsPanel.InnerPosition(4);
+            for i = 1:numel(app.net_adjustable_fields)
                 y = y - inputField.LABEL_GAP;
-                [w, h] = app.net_tweakable_fields{i}.draw(x, y, app.TweakNetParamsPanel, app.UIFigure);
-                app.net_tweakable_fields{i}.read(app.net_input_struct);
+                [w, h] = app.net_adjustable_fields{i}.draw(x, y, app.AdjustableNetParamsPanel, app.UIFigure);
+                app.net_adjustable_fields{i}.read(app.net_input_struct);
                 y = y - h;
             end
         end
         
-        function readNetParamTweaks(app)
+        function readNetParamAdjustments(app)
             import nla.* % required due to matlab package system quirks
             
-            [error_str, satisfied] = validateInputStruct(app.net_tweakable_fields, 'Must satisfy fields:', true);
+            [error_str, satisfied] = validateInputStruct(app.net_adjustable_fields, 'Must satisfy fields:', true);
             
             if satisfied
                 error_str = "";
                 errors_found = false;
                 
-                % store tweakable fields
-                for i = 1:numel(app.net_tweakable_fields)
-                    [app.net_input_struct, error] = app.net_tweakable_fields{i}.store(app.net_input_struct);
+                % store adjustable fields
+                for i = 1:numel(app.net_adjustable_fields)
+                    [app.net_input_struct, error] = app.net_adjustable_fields{i}.store(app.net_input_struct);
                     if ~islogical(error)
-                        error_str = [error_str sprintf('\n - %s: %s', app.net_tweakable_fields{i}.disp_name, error)];
+                        error_str = [error_str sprintf('\n - %s: %s', app.net_adjustable_fields{i}.disp_name, error)];
                         errors_found = true;
                     end
                 end
                 
                 if errors_found
-                    uialert(app.UIFigure, error_str, 'Error with tweakable field (using previous settings)');
+                    uialert(app.UIFigure, error_str, 'Error with adjustable field (using previous settings)');
                 else
                     % disgusting special case
                     if isfield(app.net_input_struct, 'prob_max') && isfield(app.net_input_struct, 'behavior_count')
@@ -226,7 +226,7 @@ classdef NLAResult < matlab.apps.AppBase
             else
                 % TODO ideally buttons would just stay greyed out until
                 % all inputs were satisfied
-                uialert(app.UIFigure, error_str, 'Tweakable field not satisfied (using previous settings)');
+                uialert(app.UIFigure, error_str, 'adjustable field not satisfied (using previous settings)');
             end
         end
         
@@ -293,7 +293,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             if ~islogical(result.network_test_results)
-                app.genTweakableNetParams();
+                app.genadjustableNetParams();
             end
         end
         
@@ -310,9 +310,9 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             if net_inputs_enabled
-                app.TweakNetParamsPanel.Enable = 'on';
+                app.AdjustableNetParamsPanel.Enable = 'on';
             else
-                app.TweakNetParamsPanel.Enable = 'off';
+                app.AdjustableNetParamsPanel.Enable = 'off';
             end
             
             % dropdowns that need net-level data to be used
@@ -326,7 +326,7 @@ classdef NLAResult < matlab.apps.AppBase
         function displayManyPlots(app, extra_flags, plot_type)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamTweaks();
+            app.readNetParamAdjustments();
             
             prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating %s', plot_type), 'Message', sprintf('Generating %s', plot_type));
             prog.Value = 0.02;
@@ -422,7 +422,7 @@ classdef NLAResult < matlab.apps.AppBase
             drawnow();
             
             app.setNesting(true);
-            app.genTweakableNetParams();
+            app.genadjustableNetParams();
             
             close(prog);
         end
@@ -431,7 +431,7 @@ classdef NLAResult < matlab.apps.AppBase
         function SaveButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamTweaks();
+            app.readNetParamAdjustments();
             
             if islogical(app.results)
                 % save just edge-level results
@@ -509,7 +509,7 @@ classdef NLAResult < matlab.apps.AppBase
         function DisplayConvergenceButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamTweaks();
+            app.readNetParamAdjustments();
             
             prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating convergence map'), 'Message', 'Generating net-level convergence map');
             prog.Value = 0.02;
@@ -748,10 +748,10 @@ classdef NLAResult < matlab.apps.AppBase
             app.EdgeLevelTypeDropDown.Position = [581 89 69 22];
             app.EdgeLevelTypeDropDown.Value = 'prob';
 
-            % Create TweakNetParamsPanel
-            app.TweakNetParamsPanel = uipanel(app.UIFigure);
-            app.TweakNetParamsPanel.Title = 'Tweak net-level parameters';
-            app.TweakNetParamsPanel.Position = [434 170 416 427];
+            % Create AdjustableNetParamsPanel
+            app.AdjustableNetParamsPanel = uipanel(app.UIFigure);
+            app.AdjustableNetParamsPanel.Title = 'Adjustable network-level parameters';
+            app.AdjustableNetParamsPanel.Position = [434 170 416 427];
 
             % Create MultiplecomparisonscorrectionLabel
             app.MultiplecomparisonscorrectionLabel = uilabel(app.UIFigure);
