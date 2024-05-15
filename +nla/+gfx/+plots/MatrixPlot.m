@@ -53,6 +53,10 @@ classdef MatrixPlot < handle
             "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
+    properties (SetAccess = immutable)
+        original_matrix % The original matrix for scaling purposes
+    end
+
     methods
         function obj = MatrixPlot(figure, name, matrix, networks, figure_size, varargin)
             % MatrixPlot constructor
@@ -112,7 +116,7 @@ classdef MatrixPlot < handle
                     end
                 end
             end
-
+            obj.original_matrix = matrix;
         end
 
         function displayImage(obj)
@@ -630,6 +634,8 @@ classdef MatrixPlot < handle
             % Only works with APPLY button, will not work with only CLOSE
         
             import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
+
+            obj.matrix = obj.original_matrix;
 
             button_group_value = get(get(button_group, "SelectedObject"), "String");
 
