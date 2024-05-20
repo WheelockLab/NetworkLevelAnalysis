@@ -600,20 +600,22 @@ classdef MatrixPlot < handle
             uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
                 "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
             color_map_select = uicontrol('Style', 'popupmenu',...
-                'Position', [100, scaleBaseButtons.Position(2) - 45, 250, 30]);
+                'Position', [100, scaleBaseButtons.Position(2) - 45, 242, 30]);
             initial_colors = 16;
             colormap_html = [];
             for colors = 1:numel(obj.colormap_choices)
                 colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors}), "(x)")));
                 CData = colormap_function(initial_colors);
-                new_html = '<HTML>';
-                for color_iterator = 1:initial_colors
+                new_html_start = '<HTML>';
+                new_html = '';
+                for color_iterator = initial_colors:-1:1
                     hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
                         CData(color_iterator, 3)]);
                     new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
                 end
                 %new_html = new_html(1:end-2);
-                new_html = [new_html '</HTML>'];
+                new_html_end = [new_html '</HTML>'];
+                new_html = [new_html_start new_html new_html_end]
                 colormap_html = [colormap_html; {new_html}];
             end
             set(color_map_select, "Value", 1, "String", colormap_html);
