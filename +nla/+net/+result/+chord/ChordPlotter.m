@@ -32,7 +32,7 @@ classdef ChordPlotter < handle
 
         function generateChordFigure(obj, parameters, chord_type)
             % generateChordFigure plots chords for a network test
-            import nla.gfx.SigType nla.net.result.plot.NoPermutationPlotter nla.gfx.EdgeChordPlotMethod
+            import nla.gfx.SigType nla.net.result.plot.PermutationTestPlotter nla.gfx.EdgeChordPlotMethod
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
@@ -79,7 +79,7 @@ classdef ChordPlotter < handle
             end
 
             % Plot Trimatrix with the chord plots
-            plotter = NoPermutationPlotter(obj.network_atlas);
+            plotter = PermutationTestPlotter(obj.network_atlas);
             plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height);
 
             obj.generatePlotText(plot_figure, chord_type);

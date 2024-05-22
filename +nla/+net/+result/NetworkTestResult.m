@@ -262,7 +262,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
-            import nla.gfx.createFigure nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
+            import nla.gfx.createFigure nla.net.result.plot.PermutationTestPlotter nla.net.result.chord.ChordPlotter
             
             plot_test_type = "no_permutations";
 
@@ -279,7 +279,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 p_value_vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                     p_value);
-                plotter = NoPermutationPlotter(plot_parameters.network_atlas);
+                plotter = PermutationTestPlotter(plot_parameters.network_atlas);
                 % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                 % plot the probability
 
@@ -303,7 +303,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
             import nla.net.result.chord.ChordPlotter
             
             plot_test_type = "full_connectome";
@@ -337,7 +337,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 % create a histogram
                 p_value_histogram = obj.createHistogram(p_value);
 
-                plotter = FullConnectomePlotter(edge_test_options.net_atlas);
+                plotter = PermutationTestPlotter(edge_test_options.net_atlas);
                 
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
                 % but then the plots get put under different layers. 
@@ -383,7 +383,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function withinNetworkPairPlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
             import nla.net.result.chord.ChordPlotter
 
             plot_test_type = "within_network_pair";
@@ -408,7 +408,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             if flags.plot_type == nla.PlotType.FIGURE
 
-                plotter = WithinNetworkPairPlotter(edge_test_options.net_atlas);
+                plotter = PermutationTestPlotter(edge_test_options.net_atlas);
                 y_coordinate = 425;
                 if obj.is_noncorrelation_input
                     plot_figure = createFigure(500, 900);
