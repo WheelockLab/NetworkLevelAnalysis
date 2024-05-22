@@ -85,5 +85,31 @@ classdef PermutationTestPlotter < handle
             xlabel(axes, "Asymptotic");
             ylabel(axes, "Permutation-based P-value");
         end
+
+        function plotProbabilityHistogram(obj, axes, histogram_data, statistic_input, no_permutations_network_result, test_method,...
+            probability_max)
+            import nla.HistBin
+
+            empirical_fdr = cumsum(double(histogram_data) ./ sum(histogram_data));
+
+            [~, minimum_index] = min(abs(probability_max - empirical_fdr));
+
+            statistic_max = HistBin.EDGES(minimum_index);
+
+            if (empirical_fdr(minimum_index) > probability_max) && minimum_index > 1
+                statistic_max = HistBin.EDGES(minimum_index - 1);
+            end
+            loglog(axes, HistBin.EDGES(2:end), empirical_fdr, "k");
+            hold("on");
+            loglog(axes, no_permutations_network_result, statistic_input, "ok");
+            axis([min(no_permutations_network_result), 1, min(statistic_input), 1]);
+            loglog(axes, axes.XLim, [probability_max, probability_max], "b");
+            loglog(axes, [statistic_max, statistic_max], axes.YLim, "r");
+
+            name_label = sprintf("%s P-values", test_method);
+            nla.gfx.setTitle(axes, name_label);
+            xlabel(axes, "Asymptotic");
+            ylabel(axes, "Permutation-based P-value");
+        end
     end
 end
