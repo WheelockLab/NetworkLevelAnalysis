@@ -110,6 +110,20 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
         end
 
+        function outputDiagnosticPlots(obj,  edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
+
+            diagnostic_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options, edge_test_result,...
+                network_atlas, obj);
+            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
+                ranking_algorithm = "no_permutations";
+            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
+                ranking_algorithm = "full_connectome";
+            else
+                ranking_algorithm = "within_network_pair";
+            end
+            diagnostic_plot.displayPlots(ranking_algorithm);
+        end
+
         function merge(obj, other_objects)
             %MERGE Merge two groups of results together. Not guaranteed to be ordered
             if ~iscell(other_objects)
