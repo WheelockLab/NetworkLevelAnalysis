@@ -23,11 +23,11 @@ classdef PairedT < nla.edge.BaseTest
             x = test_options.func_conn.v(:, group1);
             y = test_options.func_conn.v(:, group2);
 
-            [~, p_values, ~, stats] = ttest2(x, y);
+            [~, p_values, ~, stats] = ttest(x, y, 'Dim', 2);
 
-            group_names = {test_options.group1_name, test_options.grou2_name};
+            group_names = {test_options.group1_name, test_options.group2_name};
             % We're going to go with the same result class as the Welch's T
-            result = nla.edge.result.WelchT(test_options.func_conn_size, test_options.prob_max, group_names);
+            result = nla.edge.result.WelchT(test_options.func_conn.size, test_options.prob_max, group_names);
             obj.setResultFields(test_options.net_atlas, result, stats.tstat, p_values, test_options.prob_max);
             result.dof.v = stats.df;
 
