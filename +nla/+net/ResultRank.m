@@ -52,7 +52,7 @@ classdef ResultRank < handle
             no_permutation_result = obj.nonpermuted_network_results.no_permutations;
             permutation_results = obj.permuted_network_results.permutation_results;
 
-            for index = 1:numel(obj.no_permutation_result.(probability).v)
+            for index = 1:numel(no_permutation_result.(probability).v)
                 % statistic ranking
                 if obj.permuted_network_results.test_display_name ~= "Hypergeometric"
                     combined_statistics = [...
@@ -89,7 +89,7 @@ classdef ResultRank < handle
                     single_sample_statistic = "single_sample_ranksum_statistic";
                 end
                 
-                for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v)
+                for index = 1:numel(no_permutation_result.(single_sample_probability).v)
                     % statistic ranking
                     combined_statistics = [...
                         permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :),...
@@ -98,7 +98,8 @@ classdef ResultRank < handle
                     ranking.within_network_pair.statistic_single_sample_p_value.v(index) = sum(...
                         abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(single_sample_statistic).v(index))...
                         ) / (1 + obj.permutations);
-                    % p-value ranking
+                    
+                        % p-value ranking
                     combined_probabilities = [...
                         permutation_results.(strcat(single_sample_probability, "_permutations")).v(index, :),...
                         no_permutation_result.(single_sample_probability).v(index)...
