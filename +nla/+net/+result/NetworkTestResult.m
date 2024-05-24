@@ -198,16 +198,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
 
-            % no_permutations always runs
-            setup_test_methods = ["no_permutations"];
+            % We're just doing them all! The ranking is so short compared to the data collection, just do them all
+            setup_test_methods = ["no_permutations", "full_connectome", "within_network_pair"];
 
-            % if within_network_pair is being run, than full connectome is/can also be done
-            % if only full_connectome is being run, then we don't run within_net_pair
-            if isfield(test_options, "within_net_pair") && test_options.within_net_pair
-                setup_test_methods = [setup_test_methods, "full_connectome", "within_network_pair"];
-            elseif isfield(test_options, "full_connectome") && test_options.full_connectome
-                setup_test_methods = [setup_test_methods, "full_connectome"];
-            end
             % create the results containers. This replaces the false boolean with a struct of TriMatrices
             for test_method_index = 1:numel(setup_test_methods)
                 obj.createPValueTriMatrices(number_of_networks, setup_test_methods(test_method_index));
