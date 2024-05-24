@@ -24,14 +24,10 @@ classdef ResultRank < handle
         end
         
         function ranking_result = rank(obj)
-            % Copy the nonpermuted network results to put the permuted results into after ranking
-            ranking_result = obj.nonpermuted_network_results.copy();
-            if ~isequal(obj.permuted_network_results.full_connectome, false)
-                for fieldname = fieldnames(obj.permuted_network_results.permutation_results)'
-                    ranking_result.permutation_results.(fieldname{1}) = obj.permuted_network_results.permutation_results.(fieldname{1});
-                end
-            end
-            % Experiment wide ranking
+
+            ranking_result = obj.permuted_network_results.copy();
+
+            % Ranking
             if obj.permuted_network_results.test_display_name ~= "Cohen's D"
                ranking_result = obj.basicRank(ranking_result);
             end
@@ -39,37 +35,48 @@ classdef ResultRank < handle
         
         function ranking = basicRank(obj, ranking)
             ranking_statistic = false;
-            if obj.permuted_network_results.test_display_name ~= "Hypergeometric"
+            if obj.permuted_network_results.test_display_name ~= "Hypergeometric" % Hypergeomtric has no stat to rank
                 ranking_statistic = obj.permuted_network_results.ranking_statistic;
             end
-            % Experiment Wide ranking
-            ranking = obj.experimentWideRank(ranking, ranking_statistic);
+            % Full Connectome ranking
+            
+            ranking = obj.fullConnectomeRank(ranking, ranking_statistic);
 
             % Network Pair ranking
-            ranking = obj.networkPairRank(ranking, ranking_statistic);
+            ranking = obj.withinNetworkPairRank(ranking, ranking_statistic);
         end
         
-        function ranking = experimentWideRank(obj, ranking, ranking_statistic)
+        function ranking = fullConnectomeRank(obj, ranking, ranking_statistic)
 
             probability = "p_value";
             no_permutation_result = obj.nonpermuted_network_results.no_permutations;
             permutation_results = obj.permuted_network_results.permutation_results;
 
-            for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(probability).v)
+            for index = 1:numel(obj.no_permutation_result.(probability).v)
                 % statistic ranking
                 if obj.permuted_network_results.test_display_name ~= "Hypergeometric"
-                    combined_statistics = [permutation_results.(strcat(ranking_statistic, "_permutations")).v(:); no_permutation_result.(ranking_statistic).v(index)];
-                    ranking.full_connectome.statistic_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(ranking_statistic).v(index))) / (1 + obj.permutations * obj.number_of_network_pairs);
+                    combined_statistics = [...
+                        permutation_results.(strcat(ranking_statistic, "_permutations")).v(:);...
+                        no_permutation_result.(ranking_statistic).v(index)...
+                    ];
+                    ranking.full_connectome.statistic_p_value.v(index) = sum(...
+                        abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(ranking_statistic).v(index))...
+                        ) / (1 + obj.permutations * obj.number_of_network_pairs);
                 end
                 % p-value ranking
-                combined_probabilities = [permutation_results.(strcat(probability, "_permutations")).v(:); no_permutation_result.(probability).v(index)];
+                combined_probabilities = [...
+                    permutation_results.(strcat(probability, "_permutations")).v(:);...
+                    no_permutation_result.(probability).v(index)...
+                ];
                 [~, sorted_combined_probabilites] = sort(combined_probabilities);
-                ranking.full_connectome.p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs) / (1 + obj.permutations * obj.number_of_network_pairs);
+                ranking.full_connectome.p_value.v(index) = find(...
+                    squeeze(sorted_combined_probabilites) == 1 + obj.permutations * obj.number_of_network_pairs...
+                    ) / (1 + obj.permutations * obj.number_of_network_pairs);
             end
             ranking.full_connectome.d.v = obj.permuted_network_results.full_connectome.d.v;
         end
 
-        function ranking = networkPairRank(obj, ranking, ranking_statistic)
+        function ranking = withinNetworkPairRank(obj, ranking, ranking_statistic)
 
             if ~any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 single_sample_probability = "single_sample_p_value";
@@ -84,15 +91,26 @@ classdef ResultRank < handle
                 
                 for index = 1:numel(obj.nonpermuted_network_results.no_permutations.(single_sample_probability).v)
                     % statistic ranking
-                    combined_statistics = [permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :), no_permutation_result.(single_sample_statistic).v(index)];
-                    ranking.within_network_pair.statistic_single_sample_p_value.v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(single_sample_statistic).v(index))) / (1 + obj.permutations);
+                    combined_statistics = [...
+                        permutation_results.(strcat(single_sample_statistic, "_permutations")).v(index, :),...
+                        no_permutation_result.(single_sample_statistic).v(index)...
+                    ];
+                    ranking.within_network_pair.statistic_single_sample_p_value.v(index) = sum(...
+                        abs(squeeze(combined_statistics)) >= abs(no_permutation_result.(single_sample_statistic).v(index))...
+                        ) / (1 + obj.permutations);
                     % p-value ranking
-                    combined_probabilities = [permutation_results.(strcat(single_sample_probability, "_permutations")).v(index, :), no_permutation_result.(single_sample_probability).v(index)];
+                    combined_probabilities = [...
+                        permutation_results.(strcat(single_sample_probability, "_permutations")).v(index, :),...
+                        no_permutation_result.(single_sample_probability).v(index)...
+                    ];
                     [~, sorted_combined_probabilites] = sort(combined_probabilities);
-                    ranking.within_network_pair.single_sample_p_value.v(index) = find(squeeze(sorted_combined_probabilites) == 1 + obj.permutations) / (1 + obj.permutations);
+                    ranking.within_network_pair.single_sample_p_value.v(index) = find(...
+                        squeeze(sorted_combined_probabilites) == 1 + obj.permutations...
+                        ) / (1 + obj.permutations);
                 end
                 
-            elseif isstruct(obj.permuted_network_results.within_network_pair) && any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
+            elseif isstruct(obj.permuted_network_results.within_network_pair) &&...
+                any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 % This condition catches Chi-Squared and Hypergeometric tests. We do not do within network ranking for them, we just copy
                 % the full connectome ranking over. 
                 ranking.within_network_pair.single_sample_p_value = ranking.full_connectome.p_value;
@@ -100,8 +118,9 @@ classdef ResultRank < handle
             ranking.within_network_pair.d.v = obj.permuted_network_results.within_network_pair.d.v;
         end
 
+        % This takes the above statistic and gets the property to use its size to find the number of permutations
         function value = get.permutations(obj)
-            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2); % This takes the above statistic and gets the property to use its size to find the number of permutations
+            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2); 
         end
     end
 end
