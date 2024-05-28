@@ -439,9 +439,9 @@ classdef NLAResult < matlab.apps.AppBase
             else
                 result = app.results;
                 
-                result.input_struct = app.input_struct;
-                result.net_input_struct = app.net_input_struct;
-                result.edge_result = app.edge_result;
+                result.test_options = app.input_struct;
+                result.network_test_options = app.net_input_struct;
+                result.edge_test_results = app.edge_result;
             end
             
             [file, path] = uiputfile({'*.mat', 'Result (*.mat)'}, 'Save Result File', 'result.mat');

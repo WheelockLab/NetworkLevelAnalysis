@@ -78,7 +78,7 @@ classdef ResultPool
             network_pairs2 = TriMatrix(network_pairs2_matrix, TriMatrixDiag.KEEP_DIAGONAL);
             summary_table = table(network_pairs.v, network_pairs2.v, 'VariableNames', ["Network 1", "Network 2"]);
             for i = 1:numel(obj.permutation_network_test_results)
-                summary_table = obj.permutation_network_test_results{i}.genSummaryTable(summary_table);
+                summary_table = obj.permutation_network_test_results{i}.generateSummaryTable(summary_table);
             end
 
             writetable(summary_table, filename, 'Delimiter', '\t');
