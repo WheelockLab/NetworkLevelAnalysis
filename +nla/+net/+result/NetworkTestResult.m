@@ -172,6 +172,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 names, significance, name);
         end
 
+        function table_new = genSummaryTable(obj, table_old)
+            table_new = [table_old, table(obj.full_connectome.p_value.v, 'VariableNames', [obj.test_name + "P-value"])];
+        end
+
         %%
         % getters for dependent properties
         function value = get.permutation_count(obj)
