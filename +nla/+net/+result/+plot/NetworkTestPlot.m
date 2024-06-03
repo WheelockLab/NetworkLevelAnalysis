@@ -6,6 +6,9 @@ classdef NetworkTestPlot < handle
         ranking_method
         x_position
         y_position
+        plot_figure = false
+        options_panel = false
+        matrix_plot = false
     end
 
     properties (Dependent)
@@ -64,11 +67,33 @@ classdef NetworkTestPlot < handle
 
         function drawFigure(obj, test_options)
 
-            plot_figure = nla.gfx.createFigure(500, 800);
+            obj.plot_figure = nla.gfx.createFigure(500, 800);
+            obj.options_panel = uipanel(plot_figure, 'Units', 'pixels', 'Position', [10 10 480 300]);
+        end
+
+        function drawTriMatrixPlot(obj, test_options, network_test_options)
+
             plot_data = obj.network_test_result.(obj.ranking_method).(obj.choosePlottingMethod(test_options))
-            matrix_plot = nla.gfx.plots.MatrixPlot(plot_figure, obj.getPlotTitle(test_options), plot_data, obj.network_atlas.nets, nla.gfx.FigSize.SMALL, 'y_position', obj.y_position + 300);
-            panel = uipanel(plot_figure, 'Units', 'pixels', 'Position', [10 10 480 300]);
-            
+            obj.matrix_plot = nla.gfx.plots.MatrixPlot(obj.plot_figure, obj.getPlotTitle(test_options), plot_data, obj.network_atlas.nets, nla.gfx.FigSize.SMALL, 'y_position', obj.y_position + 300);
+        end
+
+        function drawOptions(obj, test_options, network_test_options)
+
+            % scale - pulldown
+            % ranking_method - pulldown
+            % cohens_d - checkbox
+            % spheroids - checkbox
+            % fwer - pulldown
+            % network_trimatrix - button
+            % edge_trimatrix - button
+            % network_chord - button
+            % edge_chord - button
+            % converge_plot - button
+            % converge_plot_color - pulldown
+        end
+
+        function extendFigureAndPanel(obj)
+
         end
     end
 end
