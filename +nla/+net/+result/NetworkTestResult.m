@@ -255,6 +255,22 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 p_value = strcat("single_sample_", p_value);
             end
         end
+        
+        % I don't really know what these do and haven't really thought about it. Hence the bad naming.
+        function [sig, name] = singleSigMat(obj, network_atlas, edge_test_options, p_value, mcc_method, title_prefix)
+            p_value_max = mcc_method.correct(network_atlas, edge_test_options, p_value);
+            p_breakdown_labels = mcc_method.createLabel(network_atlas, edge_test_options, p_value);
+
+            sig = nla.TriMatrix(network_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
+            sig.v = (p_value.v < p_value_max);
+            name = sprintf("%s %s P < %.2g (%s)", title_prefix, obj.test_display_name, p_value_max, p_breakdown_labels);
+        end
+
+        function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(obj, number_of_tests, sig_count_mat, names, sig, name)
+            number_of_tests = number_of_tests + 1;
+            sig_count_mat.v = sig_count_mat.v + sig.v;
+            names = [names name];
+        end
     end
 
     methods (Static)

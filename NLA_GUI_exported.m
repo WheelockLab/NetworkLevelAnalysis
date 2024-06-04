@@ -128,7 +128,7 @@ classdef NLA_GUI < matlab.apps.AppBase
             netLevelOptions = genTests('net.test');
             netLevelNames = string;
             for i = 1:numel(netLevelOptions)
-                netLevelNames(i) = netLevelOptions{i}.name;
+                netLevelNames(i) = netLevelOptions{i}.display_name;
             end
             app.NetTestSelector.Items = netLevelNames;
             app.NetTestSelector.ItemsData = netLevelOptions;

@@ -212,11 +212,12 @@ classdef TestPool < nla.DeepCopyable
         function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
             import nla.net.ResultRank
 
-            ranked_results = cell(1, numNetTests(obj));
+            ranked_results = permuted_network_results;
             for test = 1:numNetTests(obj)
                 ranker = ResultRank(nonpermuted_network_test_results{test}, permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
+                ranked_results{test}.permutation_results = permuted_network_results{test}.permutation_results;
             end
         end
     end
