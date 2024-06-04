@@ -1,6 +1,8 @@
 function mat = rotationMatrix(dir, theta)
     % Generate a rotation matrix for the direction given
     % an angle (in radians).
+    import nla.Dir
+
     mat = zeros(3);
 
     switch dir
