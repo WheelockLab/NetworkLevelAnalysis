@@ -24,7 +24,7 @@ classdef NetworkAtlas < nla.inputField.InputField
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
-            import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputFieldwidthOfString
+            import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.widthOfString
             import nla.gfx.MeshType
 
             obj.fig = fig;

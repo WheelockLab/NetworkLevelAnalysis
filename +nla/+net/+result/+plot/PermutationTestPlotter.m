@@ -53,17 +53,13 @@ classdef PermutationTestPlotter < handle
             second_title = sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p_values, rho);
             setTitle(axes, second_title, true);
             lims = ylim(axes);
-            if lims(2) < 0
-                ylim(axes, [lims(2) 0]);
-            else
-                ylim(axes, [0 lims(2)]);
-            end
+            ylim(axes, [0 lims(2)]);
         end
 
         function plotProbabilityHistogram(obj, axes, histogram_data, statistic_input, no_permutations_network_result, test_method,...
             probability_max)
             import nla.HistBin
-            
+
             empirical_fdr = cumsum(double(histogram_data) ./ sum(histogram_data));
 
             [~, minimum_index] = min(abs(probability_max - empirical_fdr));

@@ -30,7 +30,7 @@ function [mesh_l, mesh_r] = anatToMesh(anat, ctx, view_pos)
         % rotate right hemi around and move to position for visualization
         cmL = mean(mesh_l, 1);
         cmR = mean(mesh_r, 1);
-        rm = nla.helpers.rotationMatrix(Dir.Z, pi);
+        rm = nla.helpers.rotationMatrix(nla.Dir.Z, pi);
 
         % Rotate
         switch view_pos
