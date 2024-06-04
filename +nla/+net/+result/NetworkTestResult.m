@@ -142,9 +142,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.last_index = obj.last_index + 1;
         end
 
+        % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
+        % Any help on renaming would be great.
         function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
-            % Any help on renaming would be great.
+            
             import nla.TriMatrix nla.TriMatrixDiag
 
             test_number = 0;
@@ -169,6 +170,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
             [test_number, significance_count_matrix, names] = obj.appendSignificanceMatrix(test_number, significance_count_matrix,...
                 names, significance, name);
+        end
+
+        %% This is taken directly from old version to maintain functionality. Not sure anyone uses it.
+        function table_new = generateSummaryTable(obj, table_old)
+            table_new = [table_old, table(obj.full_connectome.p_value.v, 'VariableNames', [obj.test_name + "P-value"])];
         end
 
         %%
@@ -484,8 +490,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % thresholds etc. for summary statistics, or generally can be
             % modified without requiring re-permutation)
             import nla.inputField.Integer nla.inputField.Number 
-            options = {Integer('behavior_count', 'Test count:', 1, 1, Inf),...
-                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+            options = {...
+                Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
+                Number('d_max', "Cohen's D threshold >", 0, 0.5, 1),...
+            };
         end
     end
 end

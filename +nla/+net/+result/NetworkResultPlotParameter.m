@@ -29,9 +29,9 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
                 plot_title, fdr_correction, significance_filter)
             % plot_title - this will be a string
-            % plot_statistic - this is the stat that will be plotted, string
+            % plot_statistic - this is the stat that will be plotted
             % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
-            % fdr_correction - a struct of fdr_correction (found in nla.net.mcc) or None
+            % fdr_correction - a struct of fdr_correction (found in nla.net.mcc)
             % test_method - 'no permutations', 'within network pair', 'full connectome'
 
             import nla.TriMatrix nla.TriMatrixDiag
