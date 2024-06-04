@@ -19,7 +19,7 @@ classdef CheckBox < nla.inputField.InputField
     methods
 
         function obj = CheckBox(name, display_name, default_value)
-            if nargin == 2
+            if nargin >= 2
                 obj.name = name;
                 obj.display_name = display_name;
             end

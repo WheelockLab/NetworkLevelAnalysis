@@ -16,7 +16,7 @@ classdef Button < nla.inputField.InputField
 
         function obj = Button(name, display_name, callback)
             obj.name = name;
-            obj.display_name;
+            obj.display_name = display_name;
             if nargin == 3
                 obj.callback = callback
             end

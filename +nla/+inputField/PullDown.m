@@ -47,7 +47,7 @@ classdef PullDown < nla.inputField.InputField
             max_string_length = max(strlength(obj.options));
             for option = obj.options
                 if (strlength(option) == max_string_length)
-                    max_string = option
+                    max_string = option;
                     break
                 end
             end

@@ -9,15 +9,21 @@ classdef NetworkTestPlot < handle
         plot_figure = false
         options_panel = false
         matrix_plot = false
+        height = 800
+        panel_height = 300
     end
 
     properties (Dependent)
         is_noncorrelation_input
     end
 
+    properties (Constant)
+        WIDTH = 500
+    end
+
     methods
 
-        function obj = NetworkTestPlot(network_test_result, network_atlas, ranking_method)
+        function obj = NetworkTestPlot(network_test_result, network_atlas, ranking_method, varargin)
             
             test_plot_parser = inputParser;
             addRequired(test_plot_parser, 'network_test_result');
@@ -38,9 +44,7 @@ classdef NetworkTestPlot < handle
         function value = get.is_noncorrelation_input(obj)
             value = obj.network_test_result.is_noncorrelation_input;
         end
-    end
 
-    methods (Access = protected)
 
         function p_value = choosePlottingMethod(obj, test_options)
             
@@ -65,10 +69,11 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function drawFigure(obj, test_options)
+        function drawFigure(obj)
 
-            obj.plot_figure = nla.gfx.createFigure(500, 800);
-            obj.options_panel = uipanel(plot_figure, 'Units', 'pixels', 'Position', [10 10 480 300]);
+            obj.plot_figure = uifigure();
+            obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH, obj.height];
+            obj.options_panel = uipanel(obj.plot_figure, 'Units', 'pixels', 'Position', [10 10 480 obj.panel_height]);
         end
 
         function drawTriMatrixPlot(obj, test_options, network_test_options)
@@ -78,22 +83,49 @@ classdef NetworkTestPlot < handle
         end
 
         function drawOptions(obj, test_options, network_test_options)
+            import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
+            import nla.inputField.Button
 
-            % scale - pulldown
-            % ranking_method - pulldown
-            % cohens_d - checkbox
-            % spheroids - checkbox
-            % fwer - pulldown
-            % network_trimatrix - button
-            % edge_trimatrix - button
-            % network_chord - button
-            % edge_chord - button
-            % converge_plot - button
-            % converge_plot_color - pulldown
+            % All the options (buttons, pulldowns, checkboxes)
+            scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"]);
+            ranking_method = PullDown("ranking", "Ranking", ["No Permutation", "Full Connectome", "Within Network Pair", "Winkler/randomise", "Westfall-Young"]);
+            cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", false);
+            centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
+            multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction", ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
+            network_chord_plot = Button("network_chord", "View Chord Plots");
+            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots");
+            convergence_plot = Button("convergence", "View Convergence Map");
+            convergence_color = PullDown("convergence_color", "Convergence Plot Color", ["Bone", "Winter", "Autumn", "Copper"]);
+            apply = Button("apply", "Apply");
+
+            % Draw the options
+            row1 = {scale_option, ranking_method};
+            row2 = {multiple_comparison_correction, cohens_d, centroids};
+            row3 = {network_chord_plot, edge_chord_plot};
+            row4 = {convergence_plot, convergence_color};
+            row5 = {apply};
+
+            options = {row1, row2, row3, row4, row5};
+            y = obj.panel_height - LABEL_GAP;
+            x = LABEL_GAP;
+            x_component = 0;
+            for row = options
+                for column = row{1}
+                    [x_component, ~] = column{1}.draw(x, y, obj.options_panel, obj.plot_figure);
+                    x = x + LABEL_GAP + x_component;
+                end
+                y = y - LABEL_GAP - LABEL_H;
+                x = LABEL_GAP;
+            end
+
         end
 
         function extendFigureAndPanel(obj)
 
         end
+    end
+
+    methods (Access = protected)
+
     end
 end
