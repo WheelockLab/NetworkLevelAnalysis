@@ -73,7 +73,7 @@ classdef NetworkTestPlot < handle
 
             obj.plot_figure = uifigure();
             obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH, obj.height];
-            obj.options_panel = uipanel(obj.plot_figure, 'Units', 'pixels', 'Position', [10 10 480 obj.panel_height]);
+            obj.options_panel = uipanel(obj.plot_figure, 'Units', 'pixels', 'Position', [10, 10, 480, obj.panel_height]);
         end
 
         function drawTriMatrixPlot(obj, test_options, network_test_options)
@@ -96,19 +96,26 @@ classdef NetworkTestPlot < handle
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots");
             convergence_plot = Button("convergence", "View Convergence Map");
             convergence_color = PullDown("convergence_color", "Convergence Plot Color", ["Bone", "Winter", "Autumn", "Copper"]);
-            apply = Button("apply", "Apply");
+            values = struct(...
+                "scale_option", scale_option.field.Value,...
+                "ranking_method", ranking_method.field.Value,...
+                "cohens_d", cohens_d.field.Value,...
+                "centroids", centroids.field.Value,...
+                "multiple_comparison_correction", multiple_comparison_correction.field.Value,...
+            );
+            apply = Button("apply", "Apply", @(src, event)obj.applyChanges(src, event, values));
 
             % Draw the options
             row1 = {scale_option, ranking_method};
-            row2 = {multiple_comparison_correction, cohens_d, centroids};
-            row3 = {network_chord_plot, edge_chord_plot};
-            row4 = {convergence_plot, convergence_color};
-            row5 = {apply};
+            row2 = {multiple_comparison_correction};
+            row3 = {cohens_d, centroids};
+            row4 = {network_chord_plot, edge_chord_plot};
+            row5 = {convergence_plot, convergence_color};
+            row6 = {apply};
 
-            options = {row1, row2, row3, row4, row5};
+            options = {row1, row2, row3, row4, row5, row6};
             y = obj.panel_height - LABEL_GAP;
             x = LABEL_GAP;
-            x_component = 0;
             for row = options
                 for column = row{1}
                     [x_component, ~] = column{1}.draw(x, y, obj.options_panel, obj.plot_figure);
@@ -119,13 +126,11 @@ classdef NetworkTestPlot < handle
             end
 
         end
-
-        function extendFigureAndPanel(obj)
-
-        end
     end
 
     methods (Access = protected)
+        function applyChanges(obj, ~, ~, values)
 
+        end
     end
 end

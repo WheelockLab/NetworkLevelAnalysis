@@ -38,13 +38,11 @@ classdef CheckBox < nla.inputField.InputField
 
             % Checkbox
             if ~isgraphics(obj.field)
-                obj.field = uicheckbox(parent, "Text", obj.display_name);
+                obj.field = uicheckbox(parent, "Text", obj.display_name, "Position", [x_offset, y_offset - height, label_width + obj.BOX_WIDTH, height]);
             end
             if obj.default_value
                 obj.Value = true;
             end
-
-            obj.field.Position = [x_offset, y_offset, label_width + obj.BOX_WIDTH, height];
 
             width = label_width + nla.inputField.LABEL_GAP + obj.BOX_WIDTH;
         end

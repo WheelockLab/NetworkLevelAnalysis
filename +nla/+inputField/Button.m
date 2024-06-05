@@ -11,6 +11,10 @@ classdef Button < nla.inputField.InputField
         label = false
         field = false
     end
+    
+    properties (Constant)
+        padding = 12
+    end
 
     methods
 
@@ -28,13 +32,13 @@ classdef Button < nla.inputField.InputField
 
             height = nla.inputField.LABEL_H;
             label_width = nla.inputField.widthOfString(obj.display_name, height);
-            width = label_width + 6 + nla.inputField.LABEL_GAP; % add buffer on each side of text
+            width = label_width + obj.padding + nla.inputField.LABEL_GAP; % add buffer on each side of text
 
             if ~isgraphics(obj.field)
                 obj.field = uibutton(parent, "Text", obj.display_name);
             end
 
-            obj.field.Position = [x_offset, y_offset, label_width, height];
+            obj.field.Position = [x_offset, y_offset - height, label_width + obj.padding, height];
         end
 
         function undraw(obj)
