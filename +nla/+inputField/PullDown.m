@@ -5,9 +5,6 @@ classdef PullDown < nla.inputField.InputField
         name
         options
         plot_figure = false
-    end
-
-    properties (Access = protected)
         label = false
         field = false
     end

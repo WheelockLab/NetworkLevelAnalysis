@@ -5,9 +5,6 @@ classdef Number < nla.inputField.InputField
         min
         default
         max
-    end
-    
-    properties (Access = protected)
         label = false
         field = false
     end

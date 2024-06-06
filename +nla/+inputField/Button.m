@@ -5,9 +5,6 @@ classdef Button < nla.inputField.InputField
         display_name
         callback = false
         plot_figure = false
-    end
-
-    properties (Access = protected)
         label = false
         field = false
     end

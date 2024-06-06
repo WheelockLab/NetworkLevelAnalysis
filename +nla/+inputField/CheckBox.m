@@ -5,9 +5,6 @@ classdef CheckBox < nla.inputField.InputField
         display_name
         default_value = false
         plot_figure = false
-    end
-
-    properties (Access = protected)
         label = false
         field = false
     end

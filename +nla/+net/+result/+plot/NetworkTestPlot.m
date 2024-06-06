@@ -84,7 +84,7 @@ classdef NetworkTestPlot < handle
 
         function drawOptions(obj, test_options, network_test_options)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
-            import nla.inputField.Button
+            import nla.inputField.Button nla.inputField.Number
 
             % All the options (buttons, pulldowns, checkboxes)
             scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"]);
@@ -96,24 +96,23 @@ classdef NetworkTestPlot < handle
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots");
             convergence_plot = Button("convergence", "View Convergence Map");
             convergence_color = PullDown("convergence_color", "Convergence Plot Color", ["Bone", "Winter", "Autumn", "Copper"]);
-            values = struct(...
-                "scale_option", scale_option.field.Value,...
-                "ranking_method", ranking_method.field.Value,...
-                "cohens_d", cohens_d.field.Value,...
-                "centroids", centroids.field.Value,...
-                "multiple_comparison_correction", multiple_comparison_correction.field.Value,...
-            );
-            apply = Button("apply", "Apply", @(src, event)obj.applyChanges(src, event, values));
+            apply = Button("apply", "Apply");
+            upper_limit_box = Number("upper_limit", "Upper Limit", -Inf, 0.3, Inf);
+            lower_limit_box = Number("lower_limit", "Lower Limit", -Inf, -0.3, Inf);
 
+            
             % Draw the options
-            row1 = {scale_option, ranking_method};
-            row2 = {multiple_comparison_correction};
-            row3 = {cohens_d, centroids};
-            row4 = {network_chord_plot, edge_chord_plot};
-            row5 = {convergence_plot, convergence_color};
-            row6 = {apply};
-
-            options = {row1, row2, row3, row4, row5, row6};
+            options = {...
+                {scale_option, ranking_method},...
+                {upper_limit_box, lower_limit_box},...
+                {multiple_comparison_correction},...
+                {color_map_select},...
+                {cohens_d, centroids},...
+                {network_chord_plot, edge_chord_plot},...
+                {convergence_plot, convergence_color},...
+                {apply},...
+            };
+        
             y = obj.panel_height - LABEL_GAP;
             x = LABEL_GAP;
             for row = options
@@ -124,6 +123,8 @@ classdef NetworkTestPlot < handle
                 y = y - LABEL_GAP - LABEL_H;
                 x = LABEL_GAP;
             end
+                        
+            apply.field.ButtonPushedFcn = @(~, ~)obj.applyChanges(~, ~, ~);
 
         end
     end
@@ -131,6 +132,28 @@ classdef NetworkTestPlot < handle
     methods (Access = protected)
         function applyChanges(obj, ~, ~, values)
 
+        end
+
+        function drawColorMapChoices(obj)
+            import nla.gfx.plots.MatrixPlot
+
+            COLORMAP_SAMPLE_COLORS = 16;
+            colormap_choices = MatrixPlot().colormap_choices;
+            colormap_html = [];
+            for colors = 1:numel(colormap_choices)
+                colormap_function = str2func(strcat(strcat("@(x) ", lower(colormap_choices{colors}), "(x)")));
+                CData = colormap_function(COLORMAP_SAMPLE_COLORS);
+                new_html_start = "<HTML>";
+                new_html = "";
+                for color_iterator = COLORMAP_SAMPLE_COLORS:-1:1
+                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
+                        CData(color_iterator, 3)]);
+                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
+                end
+                new_html_end = [new_html "</HTML>"];
+                new_html = [new_html_start new_html new_html_end];
+                colormap_html = [colormap_html; {new_html}];
+            end
         end
     end
 end
