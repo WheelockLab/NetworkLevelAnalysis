@@ -24,7 +24,7 @@ classdef HyperGeometricTest < handle
             permutation_results = "no_permutations";
             greater_than_expected = "greater_than_expected";
             p_value = "p_value";
-            if isequal(permutations, true)
+            if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 greater_than_expected = strcat(greater_than_expected, "_permutations");
