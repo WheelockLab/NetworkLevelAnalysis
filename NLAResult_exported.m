@@ -27,7 +27,7 @@ classdef NLAResult < matlab.apps.AppBase
         results = false
         nesting_by_method = true
         prog_bar = false
-        net_adjustable_fields
+        net_tweakable_fields
         cur_iter = 0
         old_data = false
     end
@@ -78,41 +78,42 @@ classdef NLAResult < matlab.apps.AppBase
             if app.nesting_by_method
                 if app.net_input_struct.no_permutations
                     root = app.createNode(app.ResultTree, 'Non-permuted');
-                    for i = 1:size(app.results.network_test_results, 2)
-                        result = app.results.network_test_results{i};
-                        % All our tests have non-permuted data
-                        flags = struct();
-                        flags.show_nonpermuted = true;
-                        app.createNode(root, result.test_display_name, {result, flags});
+                    for i = 1:size(app.results.net_results, 2)
+                        result = app.results.net_results{i};
+                        if result.has_nonpermuted
+                            flags = struct();
+                            flags.show_nonpermuted = true;
+                            app.createNode(root, result.name, {result, flags});
+                        end
                     end
                 end
                 
                 if app.net_input_struct.full_connectome
                     root = app.createNode(app.ResultTree, 'Full connectome');
-                    for i = 1:size(app.results.permutation_network_test_results, 2)
-                        result = app.results.permutation_network_test_results{i};
-                        if ~isequal(result.full_connectome, false)
+                    for i = 1:size(app.results.perm_net_results, 2)
+                        result = app.results.perm_net_results{i};
+                        if result.has_full_conn
                             flags = struct();
                             flags.show_full_conn = true;
-                            app.createNode(root, result.test_display_name, {result, flags});
+                            app.createNode(root, result.name, {result, flags});
                         end
                     end
                 end
                 
                 if app.net_input_struct.within_network_pair
                     root = app.createNode(app.ResultTree, 'Within Net-pair');
-                    for i = 1:size(app.results.permutation_network_test_results, 2)
-                        result = app.results.permutation_network_test_results{i};
-                        if ~isequal(result.within_network_pair, false)
+                    for i = 1:size(app.results.perm_net_results, 2)
+                        result = app.results.perm_net_results{i};
+                        if result.has_within_net_pair
                             flags = struct();
                             flags.show_within_net_pair = true;
-                            app.createNode(root, result.test_display_name, {result, flags});
+                            app.createNode(root, result.name, {result, flags});
                         end
                     end
                 end
             else
-                for i = 1:size(app.results.network_test_results, 2)
-                    root = app.createNode(app.ResultTree, app.results.network_test_results{i}.test_display_name);
+                for i = 1:size(app.results.net_results, 2)
+                    root = app.createNode(app.ResultTree, app.results.net_results{i}.name);
                     
                     result = app.results.network_test_results{i};
                     if app.net_input_struct.no_permutations 
@@ -140,12 +141,10 @@ classdef NLAResult < matlab.apps.AppBase
         
         function updateProgPermStats(app, ~)
             if ~islogical(app.prog_bar)
+                
                 app.cur_iter = app.cur_iter + 1;
-                if app.cur_iter < app.net_input_struct.perm_count
-                    app.prog_bar.Message = sprintf('Running edge-level statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);
-                else
-                    app.prog_bar.Message = sprintf('Running net-level statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);
-                end
+                
+                app.prog_bar.Message = sprintf('Running permuted statistics (%d/%d permutations)', mod(app.cur_iter, app.net_input_struct.perm_count), app.net_input_struct.perm_count);                
                 
                 app.prog_bar.Value = mod(app.cur_iter, app.net_input_struct.perm_count) ./ app.net_input_struct.perm_count;
                 if app.prog_bar.CancelRequested
@@ -156,7 +155,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
         
-        function genadjustableNetParams(app)
+        function genTweakableNetParams(app)
             import nla.* % required due to matlab package system quirks
             
             % disgusting special case
@@ -164,46 +163,46 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
             end
             
-            results = app.results.network_test_results;
+            results = app.results.net_results;
             
             % required inputs to run these tests
             inputs = {};
             for i = 1:numel(results)
-                inputs = cat(2, inputs, results{i}.editableOptions());
+                inputs = cat(2, inputs, results{i}.tweakableInputs());
             end
-            app.net_adjustable_fields = inputField.reduce(inputs);
+            app.net_tweakable_fields = inputField.reduce(inputs);
             
             % display input fields
             x = inputField.LABEL_GAP * 2;
-            y = app.AdjustableNetParamsPanel.InnerPosition(4);
-            for i = 1:numel(app.net_adjustable_fields)
+            y = app.TweakNetParamsPanel.InnerPosition(4);
+            for i = 1:numel(app.net_tweakable_fields)
                 y = y - inputField.LABEL_GAP;
-                [w, h] = app.net_adjustable_fields{i}.draw(x, y, app.AdjustableNetParamsPanel, app.UIFigure);
-                app.net_adjustable_fields{i}.read(app.net_input_struct);
+                [w, h] = app.net_tweakable_fields{i}.draw(x, y, app.TweakNetParamsPanel, app.UIFigure);
+                app.net_tweakable_fields{i}.read(app.net_input_struct);
                 y = y - h;
             end
         end
         
-        function readNetParamAdjustments(app)
+        function readNetParamTweaks(app)
             import nla.* % required due to matlab package system quirks
             
-            [error_str, satisfied] = validateInputStruct(app.net_adjustable_fields, 'Must satisfy fields:', true);
+            [error_str, satisfied] = validateInputStruct(app.net_tweakable_fields, 'Must satisfy fields:', true);
             
             if satisfied
                 error_str = "";
                 errors_found = false;
                 
-                % store adjustable fields
-                for i = 1:numel(app.net_adjustable_fields)
-                    [app.net_input_struct, error] = app.net_adjustable_fields{i}.store(app.net_input_struct);
+                % store tweakable fields
+                for i = 1:numel(app.net_tweakable_fields)
+                    [app.net_input_struct, error] = app.net_tweakable_fields{i}.store(app.net_input_struct);
                     if ~islogical(error)
-                        error_str = [error_str sprintf('\n - %s: %s', app.net_adjustable_fields{i}.disp_name, error)];
+                        error_str = [error_str sprintf('\n - %s: %s', app.net_tweakable_fields{i}.disp_name, error)];
                         errors_found = true;
                     end
                 end
                 
                 if errors_found
-                    uialert(app.UIFigure, error_str, 'Error with adjustable field (using previous settings)');
+                    uialert(app.UIFigure, error_str, 'Error with tweakable field (using previous settings)');
                 else
                     % disgusting special case
                     if isfield(app.net_input_struct, 'prob_max') && isfield(app.net_input_struct, 'behavior_count')
@@ -214,7 +213,7 @@ classdef NLAResult < matlab.apps.AppBase
             else
                 % TODO ideally buttons would just stay greyed out until
                 % all inputs were satisfied
-                uialert(app.UIFigure, error_str, 'adjustable field not satisfied (using previous settings)');
+                uialert(app.UIFigure, error_str, 'Tweakable field not satisfied (using previous settings)');
             end
         end
         
@@ -283,7 +282,7 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Enable = false;
             app.RunButton.Visible = false;
             
-            enableNetButtons(app, ~islogical(result.network_test_results));
+            enableNetButtons(app, ~islogical(result.net_results));
             
             drawnow();
             
@@ -309,16 +308,16 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             if net_inputs_enabled
-                app.AdjustableNetParamsPanel.Enable = 'on';
+                app.TweakNetParamsPanel.Enable = 'on';
             else
-                app.AdjustableNetParamsPanel.Enable = 'off';
+                app.TweakNetParamsPanel.Enable = 'off';
             end
         end
         
         function displayManyPlots(app, extra_flags, plot_type)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamAdjustments();
+            app.readNetParamTweaks();
             
             prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating %s', plot_type), 'Message', sprintf('Generating %s', plot_type));
             prog.Value = 0.02;
@@ -330,7 +329,7 @@ classdef NLAResult < matlab.apps.AppBase
                     result = selected_nodes(i).NodeData{1};
                     node_flags = selected_nodes(i).NodeData{2};
                     
-                    prog.Message = sprintf('Generating %s %s', result.test_display_name, plot_type);
+                    prog.Message = sprintf('Generating %s %s', result.name, plot_type);
                     
 %                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
                     nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct, app.old_data)
@@ -367,7 +366,7 @@ classdef NLAResult < matlab.apps.AppBase
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
-            prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running net-level statistics', 'Cancelable', 'on');
+            prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running permuted statistics', 'Cancelable', 'on');
             prog.Value = 0.02;
             drawnow;
             
@@ -379,7 +378,7 @@ classdef NLAResult < matlab.apps.AppBase
                 
                 gcp;
                 
-                prog.Message = sprintf('Running net-level statistics (0/%d permutations)', app.net_input_struct.perm_count);
+                prog.Message = sprintf('Running permuted statistics (0/%d permutations)', app.net_input_struct.perm_count);
                 prog.Value = 0;
                 
                 % Set handle reference
@@ -422,7 +421,7 @@ classdef NLAResult < matlab.apps.AppBase
         function SaveButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamAdjustments();
+            app.readNetParamTweaks();
             
             if islogical(app.results)
                 % save just edge-level results
@@ -430,9 +429,9 @@ classdef NLAResult < matlab.apps.AppBase
             else
                 result = app.results;
                 
-                result.test_options = app.input_struct;
-                result.network_test_options = app.net_input_struct;
-                result.edge_test_results = app.edge_result;
+                result.input_struct = app.input_struct;
+                result.net_input_struct = app.net_input_struct;
+                result.edge_result = app.edge_result;
             end
             
             [file, path] = uiputfile({'*.mat', 'Result (*.mat)'}, 'Save Result File', 'result.mat');
@@ -498,18 +497,16 @@ classdef NLAResult < matlab.apps.AppBase
         % Callback function
         function PValModeDropDownValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
-            value = app.NetlevelplottingDropDown.Value;
+            value = app.NetlevelpvalueplottingDropDown.Value;
             if strcmp(value, 'linear')
                 % Plot p-values on linear scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
-            elseif strcmp(value, 'p-value log')
+            elseif strcmp(value, 'log')
                 % Plot p-values on logarithmic scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.LOG;
-            elseif strcmp(value, 'p-value -log')
+            else
                 % Plot p-values on negative logarithmic scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEG_LOG_10;
-            else
-                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.STATISTIC;
             end
         end
 
@@ -517,7 +514,7 @@ classdef NLAResult < matlab.apps.AppBase
         function DisplayConvergenceButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamAdjustments();
+            app.readNetParamTweaks();
             
             prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating convergence map'), 'Message', 'Generating net-level convergence map');
             prog.Value = 0.02;

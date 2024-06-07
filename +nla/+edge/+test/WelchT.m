@@ -29,7 +29,7 @@ classdef WelchT < nla.edge.BaseTest
             x1 = input_struct.func_conn.v(:, group1);
             x2 = input_struct.func_conn.v(:, group2);
             
-            [p_vec, t_vec, dof_vec] = nla.welchT(x1, x2);
+            [p_vec, t_vec, dof_vec] = welchT(x1, x2);
             
             % Non-permuted
             group_names = {input_struct.group1_name, input_struct.group2_name};

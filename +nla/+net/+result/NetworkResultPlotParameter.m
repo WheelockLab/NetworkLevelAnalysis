@@ -9,7 +9,7 @@ classdef NetworkResultPlotParameter < handle
 
     properties (Dependent)
         test_methods
-        noncorrelation_input_tests
+        noncorrelation_input_test_names
         number_of_networks
     end
 
@@ -29,9 +29,9 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
                 plot_title, fdr_correction, significance_filter, ranking_method)
             % plot_title - this will be a string
-            % plot_statistic - this is the stat that will be plotted
+            % plot_statistic - this is the stat that will be plotted, string
             % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
-            % fdr_correction - a struct of fdr_correction (found in nla.net.mcc)
+            % fdr_correction - a struct of fdr_correction (found in nla.net.mcc) or None
             % test_method - 'no permutations', 'within network pair', 'full connectome'
 
             import nla.TriMatrix nla.TriMatrixDiag
@@ -96,8 +96,7 @@ classdef NetworkResultPlotParameter < handle
                     end
                     significance_type = "nla.gfx.SigType.INCREASING";
                 otherwise
-                    color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
-                        p_value_max);
+                    color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors, p_value_max);
             end
 
             % callback function for brain image. 
@@ -151,8 +150,8 @@ classdef NetworkResultPlotParameter < handle
             value = obj.network_test_results.test_methods;
         end
 
-        function value = get.noncorrelation_input_tests(obj)
-            value = obj.network_test_results.noncorrelation_input_tests;
+        function value = get.noncorrelation_input_test_names(obj)
+            value = obj.network_test_results.noncorrelation_input_test_names;
         end
 
         function value = get.number_of_networks(obj)
@@ -228,7 +227,6 @@ classdef NetworkResultPlotParameter < handle
                 color_map_name = str2func(lower(color_map));
                 color_map_base = color_map_name(default_discrete_colors);
             end
-
             default_color_map = [1 1 1];
             if p_value_max == 0
                 color_map = default_color_map;

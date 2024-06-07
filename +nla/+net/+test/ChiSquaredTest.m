@@ -23,7 +23,7 @@ classdef ChiSquaredTest < handle
             permutation_results = "no_permutations";
             chi2_statistic = "chi2_statistic";
             greater_than_expected = "greater_than_expected";
-            if isequal(permutations, true)
+            if permutations
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 chi2_statistic = strcat(chi2_statistic, "_permutations");

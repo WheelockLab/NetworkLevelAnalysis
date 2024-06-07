@@ -16,8 +16,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
  
     fc_exists = isfield(edge_input_struct, 'func_conn');
 
-    color_fc = false; % short term fix for NET-167 
-    % color_fc = fc_exists;
+    color_fc = fc_exists;
 
     show_ROI_centroids = true;
     if isfield(input_struct, 'show_ROI_centroids')

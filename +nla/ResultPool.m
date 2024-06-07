@@ -43,11 +43,10 @@ classdef ResultPool
             flags.show_within_net_pair = true;
             %Add to display net results as nla.PlotType.FIGURE (ADE 20221121)
             flags.plot_type = nla.PlotType.FIGURE;
-            if ~islogical(obj.permutation_network_test_results)
-                for i = 1:numel(obj.permutation_network_test_results)
-                    obj.network_test_results{i}.output(obj.test_options, obj.network_test_options, obj.network_atlas,...
-                        obj.edge_test_results, flags);
-                    obj.permutation_network_test_results{i}.output(obj.test_options, obj.network_test_options,...
+            if ~islogical(obj.network_test_results)
+                for i = 1:numel(obj.network_test_results)
+                    obj.network_test_results{i}.output(obj.network_test_options, obj.network_atlas, obj.edge_test_results, flags);
+                    obj.permutation_network_test_results{i}.output(obj.network_test_options,...
                         obj.network_atlas, obj.edge_test_results, flags);
                 end
             end
@@ -83,7 +82,7 @@ classdef ResultPool
             network_pairs2 = TriMatrix(network_pairs2_matrix, TriMatrixDiag.KEEP_DIAGONAL);
             summary_table = table(network_pairs.v, network_pairs2.v, 'VariableNames', ["Network 1", "Network 2"]);
             for i = 1:numel(obj.permutation_network_test_results)
-                summary_table = obj.permutation_network_test_results{i}.generateSummaryTable(summary_table);
+                summary_table = obj.permutation_network_test_results{i}.genSummaryTable(summary_table);
             end
 
             writetable(summary_table, filename, 'Delimiter', '\t');
