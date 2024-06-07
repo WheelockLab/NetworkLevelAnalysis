@@ -19,6 +19,8 @@ classdef NetworkTestPlot < handle
 
     properties (Constant)
         WIDTH = 500
+        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+            "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
     methods
@@ -99,8 +101,8 @@ classdef NetworkTestPlot < handle
             apply = Button("apply", "Apply");
             upper_limit_box = Number("upper_limit", "Upper Limit", -Inf, 0.3, Inf);
             lower_limit_box = Number("lower_limit", "Lower Limit", -Inf, -0.3, Inf);
+            color_map_select = PullDown("color_map_select", "Colormap", obj.drawColorMapChoices()');
 
-            
             % Draw the options
             options = {...
                 {scale_option, ranking_method},...
@@ -124,7 +126,7 @@ classdef NetworkTestPlot < handle
                 x = LABEL_GAP;
             end
                         
-            apply.field.ButtonPushedFcn = @(~, ~)obj.applyChanges(~, ~, ~);
+%             apply.field.ButtonPushedFcn = @(~, ~)obj.applyChanges(~, ~, ~);
 
         end
     end
@@ -134,24 +136,22 @@ classdef NetworkTestPlot < handle
 
         end
 
-        function drawColorMapChoices(obj)
-            import nla.gfx.plots.MatrixPlot
+        function colormap_html = drawColorMapChoices(obj)
 
             COLORMAP_SAMPLE_COLORS = 16;
-            colormap_choices = MatrixPlot().colormap_choices;
             colormap_html = [];
-            for colors = 1:numel(colormap_choices)
-                colormap_function = str2func(strcat(strcat("@(x) ", lower(colormap_choices{colors}), "(x)")));
+            for colors = 1:numel(obj.colormap_choices)
+                colormap_function = str2func(strcat(strcat("@(x) ", lower(obj.colormap_choices{colors}), "(x)")));
                 CData = colormap_function(COLORMAP_SAMPLE_COLORS);
                 new_html_start = "<HTML>";
                 new_html = "";
                 for color_iterator = COLORMAP_SAMPLE_COLORS:-1:1
                     hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
                         CData(color_iterator, 3)]);
-                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
+                    new_html = strcat(new_html, "<FONT bgcolor='", hex_code," 'color='", hex_code, "'>__</FONT>");
                 end
-                new_html_end = [new_html "</HTML>"];
-                new_html = [new_html_start new_html new_html_end];
+                new_html_end = strcat(new_html, "</HTML>");
+                new_html = strcat(new_html_start, new_html_end);
                 colormap_html = [colormap_html; {new_html}];
             end
         end
