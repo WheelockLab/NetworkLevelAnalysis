@@ -59,7 +59,7 @@ classdef PermutationTestPlotter < handle
         function plotProbabilityHistogram(obj, axes, histogram_data, statistic_input, no_permutations_network_result, test_method,...
             probability_max)
             import nla.HistBin
-
+            
             empirical_fdr = cumsum(double(histogram_data) ./ sum(histogram_data));
 
             [~, minimum_index] = min(abs(probability_max - empirical_fdr));
