@@ -565,7 +565,7 @@ classdef MatrixPlot < handle
         function openModal(obj, source, ~)
             % Callback for clicking on the colorbar.
             % This opens a modal with the upper and lower bounds along with a radio selector between linear and 
-            % log.
+            % log. This only works for a "regular" log scale, not the -log10 scale. Still working on that one
             import nla.gfx.ProbPlotMethod
 
             % source is the colorbar, not the figure
@@ -655,6 +655,7 @@ classdef MatrixPlot < handle
         end
 
         function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
+
             % This callback gets the colormap/scale and then applies the new bounds to the data.
             % Only works with APPLY button, will not work with only CLOSE
         
@@ -667,18 +668,17 @@ classdef MatrixPlot < handle
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
             color_map = get(color_map_select, "Value");
             if button_group_value == "Linear"
-                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
+                obj.color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
                     obj.colormap_choices{color_map});
                 obj.plot_scale = ProbPlotMethod.DEFAULT;
             elseif button_group_value == "Log"
-                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
+                obj.color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
                 obj.plot_scale = ProbPlotMethod.LOG;
             else
                 color_map_name = str2func(lower(obj.colormap_choices{color_map}));
-                new_color_map = color_map_name(discrete_colors);
+                obj.color_map = color_map_name(discrete_colors);
                 obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
             end
-            obj.color_map = new_color_map;
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.current_settings.upper_limit = get(upper_limit_box, "String");
@@ -694,14 +694,12 @@ classdef MatrixPlot < handle
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
             % Get color for the chunk (square)
-
             chunk_color = nla.gfx.valToColor(chunk_raw, lower_value, upper_value, obj.color_map);
             chunk_color(isnan(chunk_raw)) = NaN; % puts all NaNs back removed with valToColor
         end
 
         function applyColorToData(obj, position_x, position_y, chunk_height, chunk_width, chunk_color)
             % Fill in the chunks (squares) with color
-
             obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x:position_x + chunk_width - 1, :) =...
                 repelem(chunk_color, obj.elementSize(), obj.elementSize());
             obj.image_display.CData(position_y + chunk_height, position_x:position_x + chunk_width - 1, :) =...
