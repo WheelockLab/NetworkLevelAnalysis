@@ -342,7 +342,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 if obj.is_noncorrelation_input
                     plot_figure = createFigure(1000, 900);
                     plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
-                        obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
+                        obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
                     plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,2,3),...
                         "Non-permuted P-values vs. Network-Pair Size");
                     plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
@@ -355,7 +355,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,3,6),...
                         "Permuted P-values vs. Net-Pair Size");
                     plotter.plotProbabilityHistogram(subplot(2,3,4), p_value_histogram,  obj.full_connectome.p_value.v,...
-                        obj.permutation_results.p_value_permutations.v(:,1), obj.test_display_name, updated_test_options.prob_max);
+                        obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
                     x_coordinate = 75;
                 end
 
