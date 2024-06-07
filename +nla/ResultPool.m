@@ -10,7 +10,6 @@ classdef ResultPool
         network_test_results
         permutation_edge_test_results
         permutation_network_test_results
-
         version
     end
     

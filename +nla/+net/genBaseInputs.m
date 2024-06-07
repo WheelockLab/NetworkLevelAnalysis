@@ -12,6 +12,5 @@ function inputs = genBaseInputs()
         'fdr_correction', nla.net.mcc.Bonferroni(),...
         'd_thresh_chord_plot', true...
     );
->>>>>>> development
 end
 

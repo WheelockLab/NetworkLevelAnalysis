@@ -67,7 +67,7 @@ classdef TestPool < nla.DeepCopyable
                 perm_seed = randi(intmax('uint32'), 'uint32');
             end
             
-[num_procs, blocks] = obj.initializeParallelPool(num_perms);
+        [num_procs, blocks] = obj.initializeParallelPool(num_perms);
             
             
             parfor proc = 1:num_procs
