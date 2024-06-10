@@ -1,6 +1,5 @@
 function inputs = genBaseInputs()
     %GENBASEINPUTS Generate struct of required network-level inputs with
-
     %   default values
     inputs = struct(...
         'nonpermuted', true,...
@@ -12,6 +11,4 @@ function inputs = genBaseInputs()
         'fdr_correction', nla.net.mcc.Bonferroni(),...
         'd_thresh_chord_plot', true...
     );
->>>>>>> development
 end
-

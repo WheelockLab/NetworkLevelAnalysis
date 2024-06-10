@@ -1,8 +1,16 @@
 function [p_vec, t_vec, dof_vec] = welchT(x1, x2)
     %WELCHT 2-sample Welch T-test
     %% Prepare data
-    x1_size = size(x1); if x1_size(end) == 1, x1_size(end) = []; end
-    x2_size = size(x2); if x2_size(end) == 1, x2_size(end) = []; end
+    x1_size = size(x1); 
+    if x1_size(end) == 1
+        x1_size(end) = []; 
+    end
+    
+    x2_size = size(x2); 
+    if x2_size(end) == 1
+        x2_size(end) = []; 
+    end
+    
     ndim = length(x1_size);
 
     %% Means

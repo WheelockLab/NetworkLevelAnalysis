@@ -102,16 +102,16 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             result_ranker = nla.net.ResultRank(testCase.network_test_result{1}, testCase.permuted_network_results{1},...
                 testCase.number_of_network_pairs);
             ranking = testCase.permuted_network_results{1}.copy(); 
-            ranking = result_ranker.experimentWideRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
+            ranking = result_ranker.fullConnectomeRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
 
             testCase.verifyEqual(ranking.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
         end
 
-        function networkPairTest(testCase)
+        function withinNetworkPairTest(testCase)
            result_ranker = nla.net.ResultRank(testCase.network_test_result{1}, testCase.permuted_network_results{1},...
                testCase.number_of_network_pairs);
            ranking = testCase.permuted_network_results{1}.copy();
-           ranking = result_ranker.networkPairRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
+           ranking = result_ranker.withinNetworkPairRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
            
            testCase.verifyEqual(ranking.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
         end

@@ -23,7 +23,7 @@ classdef ChiSquaredTest < handle
             permutation_results = "no_permutations";
             chi2_statistic = "chi2_statistic";
             greater_than_expected = "greater_than_expected";
-            if permutations
+            if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 chi2_statistic = strcat(chi2_statistic, "_permutations");
@@ -44,7 +44,7 @@ classdef ChiSquaredTest < handle
                     network_ROI_count = numel(network_pair_ROI_significance);
                     observed_significance = sum(network_pair_ROI_significance);
                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
-                    chi2_value = ((observed_significance - expected_significance) .^ 2) ./ expected_significance;
+                    chi2_value = ((observed_significance - expected_significance) .^ 2) .* ((expected_significance .^ -1)); %legacy style, AS 240529
                     result.(permutation_results).(chi2_statistic).set(network, network2, chi2_value);
                     result.(permutation_results).(greater_than_expected).set(network, network2, observed_significance > expected_significance);
                 end
