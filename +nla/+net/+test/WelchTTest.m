@@ -29,7 +29,7 @@ classdef WelchTTest < handle
             t_statistic = "t_statistic";
             single_sample_p_value = "single_sample_p_value";
             single_sample_t_statistic = "single_sample_t_statistic";
-            if permutations
+            if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 p_value = strcat(p_value, "_permutations");
@@ -47,11 +47,11 @@ classdef WelchTTest < handle
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
 
-                    [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v, "Vartype", "unequal");
+                    [p, t_stat, ~] = nla.welchT(network_rho, edge_test_results.coeff.v);
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
 
                     result.(permutation_results).(p_value).set(network, network2, p);
-                    result.(permutation_results).(t_statistic).set(network, network2, stats.tstat);
+                    result.(permutation_results).(t_statistic).set(network, network2, t_stat);
                     result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
                     result.(permutation_results).(single_sample_t_statistic).set(network, network2, single_sample_stats.tstat);
                 end
@@ -62,9 +62,10 @@ classdef WelchTTest < handle
 
     methods (Static)
         function inputs = requiredInputs()
-            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+            inputs = {...
+                nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
                 nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
-                nla.inputField.Number('d_max', "Net-level Cohen's D threshold >", 0, 0.5, 1);};
+            };
         end
     end
 end
