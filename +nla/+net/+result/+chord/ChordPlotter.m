@@ -178,7 +178,7 @@ classdef ChordPlotter < handle
             end
 
             chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values, 'chord_type', chord_type,...
-                'direction', significance_type, 'color_map', color_map, 'lower_limit', coefficient_min, 'upper_limit', coefficient_min);
+                'direction', significance_type, 'color_map', color_map, 'lower_limit', coefficient_min, 'upper_limit', coefficient_max);
             chord_plotter.drawChords();
             setTitle(plot_axis, main_title);
 

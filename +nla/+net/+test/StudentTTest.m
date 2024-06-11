@@ -27,7 +27,7 @@ classdef StudentTTest < handle
             t_statistic = "t_statistic";
             single_sample_p_value = "uncorrected_single_sample_p_value";
             single_sample_t_statistic = "single_sample_t_statistic";
-            if permutations
+            if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 p_value = "two_sample_p_value_permutations";
@@ -58,9 +58,10 @@ classdef StudentTTest < handle
 
     methods (Static)
         function inputs = requiredInputs()
-            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
-            nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
-            nla.inputField.Number('d_max', "Net-level Cohen's D threshold >", 0, 0.5, 1);};
+            inputs = {...
+                nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
+            };
         end
     end
 end
