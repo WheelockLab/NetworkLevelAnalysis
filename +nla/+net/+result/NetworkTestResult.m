@@ -80,7 +80,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
 
             % Cohen's D results for markers
-            cohens_d_filter = TriMatrix(network_atlas.numNets(), 'logical', TriMatrixDiag.KEEP_DIAGONAL);
+            cohens_d_filter = TriMatrix(network_atlas.numNets, 'logical', TriMatrixDiag.KEEP_DIAGONAL);
             if ~obj.is_noncorrelation_input
                 cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
             end
@@ -142,9 +142,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.last_index = obj.last_index + 1;
         end
 
+        % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
+        % Any help on renaming would be great.
         function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
-            % Any help on renaming would be great.
+            
             import nla.TriMatrix nla.TriMatrixDiag
 
             test_number = 0;
@@ -169,6 +170,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
             [test_number, significance_count_matrix, names] = obj.appendSignificanceMatrix(test_number, significance_count_matrix,...
                 names, significance, name);
+        end
+
+        %% This is taken directly from old version to maintain functionality. Not sure anyone uses it.
+        function table_new = generateSummaryTable(obj, table_old)
+            table_new = [table_old, table(obj.full_connectome.p_value.v, 'VariableNames', [obj.test_name + "P-value"])];
         end
 
         %%
@@ -255,7 +261,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
-            import nla.gfx.createFigure nla.net.result.plot.NoPermutationPlotter nla.net.result.chord.ChordPlotter
+            import nla.gfx.createFigure nla.net.result.plot.PermutationTestPlotter nla.net.result.chord.ChordPlotter
             
             plot_test_type = "no_permutations";
 
@@ -272,7 +278,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
                 p_value_vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                     p_value);
-                plotter = NoPermutationPlotter(plot_parameters.network_atlas);
+                plotter = PermutationTestPlotter(plot_parameters.network_atlas);
                 % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                 % plot the probability
 
@@ -296,9 +302,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.FullConnectomePlotter
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
             import nla.net.result.chord.ChordPlotter
-
+            
             plot_test_type = "full_connectome";
 
             plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
@@ -329,7 +335,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 % create a histogram
                 p_value_histogram = obj.createHistogram(p_value);
 
-                plotter = FullConnectomePlotter(edge_test_options.net_atlas);
+                plotter = PermutationTestPlotter(edge_test_options.net_atlas);
                 
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
                 % but then the plots get put under different layers. 
@@ -375,7 +381,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function withinNetworkPairPlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.WithinNetworkPairPlotter
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
             import nla.net.result.chord.ChordPlotter
 
             plot_test_type = "within_network_pair";
@@ -400,7 +406,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             if flags.plot_type == nla.PlotType.FIGURE
 
-                plotter = WithinNetworkPairPlotter(edge_test_options.net_atlas);
+                plotter = PermutationTestPlotter(edge_test_options.net_atlas);
                 y_coordinate = 425;
                 if obj.is_noncorrelation_input
                     plot_figure = createFigure(500, 900);
@@ -469,8 +475,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % thresholds etc. for summary statistics, or generally can be
             % modified without requiring re-permutation)
             import nla.inputField.Integer nla.inputField.Number 
-            options = {Integer('behavior_count', 'Test count:', 1, 1, Inf),...
-                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+            options = {...
+                Integer('behavior_count', 'Test count:', 1, 1, Inf),...
+                Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
+                Number('d_max', "Cohen's D threshold >", 0, 0.5, 1),...
+            };
         end
     end
 end

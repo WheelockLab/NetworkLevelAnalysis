@@ -87,6 +87,7 @@ classdef ResultRank < handle
                         ) / (1 + denominator);
                 end
             end
+            ranking.full_connectome.d.v = obj.permuted_network_results.full_connectome.d.v;
         end
 
         function ranking = winklerMethodRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
@@ -147,11 +148,14 @@ classdef ResultRank < handle
                     end
                     probability = strcat("single_sample_", probability);
                 end
-            elseif isstruct(obj.permuted_network_results.within_network_pair) && any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
+                
+            elseif isstruct(obj.permuted_network_results.within_network_pair) &&...
+                any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
                 % This condition catches Chi-Squared and Hypergeometric tests. We do not do within network ranking for them, we just copy
                 % the full connectome ranking over. 
-                ranking.permuted_network_results.within_network_pair.single_sample_p_value = ranking.permuted_network_results.full_connectome.p_value;
+                ranking.within_network_pair.single_sample_p_value = ranking.full_connectome.p_value;
             end
+            ranking.within_network_pair.d.v = obj.permuted_network_results.within_network_pair.d.v;
         end
 
         %% Getters for dependent properties
