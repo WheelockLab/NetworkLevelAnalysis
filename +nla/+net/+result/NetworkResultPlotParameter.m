@@ -228,6 +228,7 @@ classdef NetworkResultPlotParameter < handle
                 color_map_name = str2func(lower(color_map));
                 color_map_base = color_map_name(default_discrete_colors);
             end
+
             default_color_map = [1 1 1];
             if p_value_max == 0
                 color_map = default_color_map;
