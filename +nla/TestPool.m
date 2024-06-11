@@ -114,7 +114,7 @@ classdef TestPool < nla.DeepCopyable
             permuted_edge_results.perm_count = num_perms;
             % and net level result chunks
             permuted_network_results = network_result_blocks{1};
-            for process = 2:number_of_processes
+            parfor process = 2:number_of_processes
                 current_network_test_results = network_result_blocks{process};
                 for test_index = 1:numNetTests(obj)
                     current_test_network_result = current_network_test_results(test_index);

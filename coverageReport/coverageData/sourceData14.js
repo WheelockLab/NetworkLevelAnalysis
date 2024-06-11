@@ -1,0 +1,1 @@
+var sourceData14 = {"FileContents":["classdef Method","    enumeration","        NONPERMUTED, FULL_CONN, WITHIN_NET_PAIR","    end","end","",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0,0,0]}}
