@@ -32,11 +32,10 @@ classdef PullDown < nla.inputField.InputField
             if ~isgraphics(obj.label)
                 obj.label = uilabel(parent);
             end
-            obj.label.Text = obj.display_name;
+            obj.label.Text= obj.display_name;
             label_width = widthOfString(obj.label.Text, height);
             obj.label.HorizontalAlignment = 'left';
             obj.label.Position = [x_offset, y_offset - height, label_width + label_gap, height];
-
             % pulldown
             if ~isgraphics(obj.field)
                 obj.field = uidropdown(parent, "Items", obj.options);

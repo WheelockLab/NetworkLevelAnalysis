@@ -19,7 +19,7 @@ classdef Button < nla.inputField.InputField
             obj.name = name;
             obj.display_name = display_name;
             if nargin == 3
-                obj.callback = callback
+                obj.callback = callback;
             end
         end
 
@@ -35,6 +35,9 @@ classdef Button < nla.inputField.InputField
                 obj.field = uibutton(parent, "Text", obj.display_name);
             end
 
+            if ~isequal(obj.callback, false)
+                obj.field.ButtonPushedFcn = obj.callback;
+            end
             obj.field.Position = [x_offset, y_offset - height, label_width + obj.padding, height];
         end
 

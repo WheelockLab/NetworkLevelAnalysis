@@ -21,6 +21,7 @@ classdef NetworkTestPlot < handle
         WIDTH = 500
         colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
             "Bone", "Copper", "Pink"}; % Colorbar choices
+        COLORMAP_SAMPLE_COLORS = 16
     end
 
     methods
@@ -86,7 +87,7 @@ classdef NetworkTestPlot < handle
 
         function drawOptions(obj, test_options, network_test_options)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
-            import nla.inputField.Button nla.inputField.Number
+            import nla.inputField.Button nla.inputField.Number nla.inputField.HTMLField
 
             % All the options (buttons, pulldowns, checkboxes)
             scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"]);
@@ -101,14 +102,15 @@ classdef NetworkTestPlot < handle
             apply = Button("apply", "Apply");
             upper_limit_box = Number("upper_limit", "Upper Limit", -Inf, 0.3, Inf);
             lower_limit_box = Number("lower_limit", "Lower Limit", -Inf, -0.3, Inf);
-            color_map_select = PullDown("color_map_select", "Colormap", obj.drawColorMapChoices()');
+            colormap_choice = Pulldown("colormap_choice", "Colormap", obj.colormap_choices);
+            colormap_example = HTMLField("colormap_example", "", obj.colormap_choice.field.Value, @obj.drawColorMapChoice);
 
             % Draw the options
             options = {...
                 {scale_option, ranking_method},...
                 {upper_limit_box, lower_limit_box},...
+                {colormap_choice, colormap_example},...
                 {multiple_comparison_correction},...
-                {color_map_select},...
                 {cohens_d, centroids},...
                 {network_chord_plot, edge_chord_plot},...
                 {convergence_plot, convergence_color},...
@@ -136,24 +138,20 @@ classdef NetworkTestPlot < handle
 
         end
 
-        function colormap_html = drawColorMapChoices(obj)
+        function colormap_html = drawColorMapChoice(obj, color)
 
-            COLORMAP_SAMPLE_COLORS = 16;
-            colormap_html = [];
-            for colors = 1:numel(obj.colormap_choices)
-                colormap_function = str2func(strcat(strcat("@(x) ", lower(obj.colormap_choices{colors}), "(x)")));
-                CData = colormap_function(COLORMAP_SAMPLE_COLORS);
-                new_html_start = "<HTML>";
-                new_html = "";
-                for color_iterator = COLORMAP_SAMPLE_COLORS:-1:1
-                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
-                        CData(color_iterator, 3)]);
-                    new_html = strcat(new_html, "<FONT bgcolor='", hex_code," 'color='", hex_code, "'>__</FONT>");
-                end
-                new_html_end = strcat(new_html, "</HTML>");
-                new_html = strcat(new_html_start, new_html_end);
-                colormap_html = [colormap_html; {new_html}];
+            colormap_function = str2func(strcat(strcat("@(x) ", lower(color), "(x)")));
+            CData = colormap_function(COLORMAP_SAMPLE_COLORS);
+            new_html_start = "<HTML>";
+            new_html = "";
+            for color_iterator = COLORMAP_SAMPLE_COLORS:-1:1
+                hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
+                    CData(color_iterator, 3)]);
+                new_html = strcat(new_html, "<FONT bgcolor='", hex_code,"' color='", hex_code, "'>__</FONT>");
             end
+            new_html_end = strcat(new_html, "</HTML>");
+            new_html = strcat(new_html_start, new_html_end);
+            colormap_html = new_html;
         end
     end
 end
