@@ -38,14 +38,24 @@ classdef ResultRank < handle
             if obj.permuted_network_results.test_display_name ~= "Hypergeometric" % Hypergeomtric has no stat to rank
                 ranking_statistic = obj.permuted_network_results.ranking_statistic;
             end
+
             % Full Connectome ranking
-            
             ranking = obj.fullConnectomeRank(ranking, ranking_statistic);
 
             % Network Pair ranking
             ranking = obj.withinNetworkPairRank(ranking, ranking_statistic);
+
+            % Winkler Method ranking
+            ranking = obj.winklerMethodRank(ranking, ranking_statistic);
+
+            % Westfall Young ranking
+            ranking = obj.westfallYoungMethodRank(ranking, ranking_statistic);
         end
         
+        function eggebrechtRank(obj)
+            
+        end
+
         function ranking = fullConnectomeRank(obj, ranking, ranking_statistic)
 
             probability = "p_value";
@@ -118,6 +128,62 @@ classdef ResultRank < handle
             end
             ranking.within_network_pair.d.v = obj.permuted_network_results.within_network_pair.d.v;
         end
+
+        function ranking = winklerMethodRank(obj, ranking, ranking_statistic)
+            
+            permutation_results = obj.permuted_network_results.permutation_results;
+            no_permutation_results = obj.nonpermuted_network_results.no_permutations;
+
+            probability = "p_value";
+            for index = 1:numel(no_permutation_results.(probability).v)
+                % statistic ranking
+                if obj.permuted_network_results.test_display_name ~= "Hypergeometric"
+                    combined_statistics = [...
+                        permutation_results.(strcat(ranking_statistic, "_permutations")).v(:);...
+                        no_permutation_results.(ranking_statistic).v(index)...
+                    ];
+
+                    ranking.winkler_method.statistic_p_value.v(index) = sum(...
+                        abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))...
+                    ) / (1 + obj.permutations);
+                end
+
+                % p-value ranking
+                combined_probabilities = [...
+                    permutation_results.(strcat(probability, "_permutations")).v(:);...
+                    no_permutation_results.(probability).v(index)...
+                ];
+                [~, sorted_combined_probabilites] = sort(combined_probabilities);
+
+                ranking.winkler_method.p_value.v(index) = find(...
+                    squeeze(sorted_combined_probabilites) == 1 + obj.permutations...
+                ) / (1 + obj.permutations);
+            end
+        end
+
+        function ranking = westfallYoungMethodRank(obj, ranking, ranking_statistic)
+
+            single_sample_statistic = ranking_statistic;
+
+            permutation_results = obj.permuted_network_results.permutation_results;
+            no_permutation_results = obj.nonpermuted_network_results.no_permutations;
+
+            % Hypergeometric has no stat to rank
+            if obj.permuted_network_results.test_display_name ~= "Hypergeometric"
+                % sort statistics in ascending order
+                [sorted_no_permutation_results, sorted_statistic_indexes] = sort(abs(no_permutation_results.(single_sample_statistic).v));
+                permutations_sorted_by_non_permuted = abs(permutation_results.(strcat((single_sample_statistic), "_permutations")).v(sorted_statistic_indexes, :));
+
+                max_per_permutation_reducing_rows = zeros(size(permutations_sorted_by_non_permuted, 1), size(permutations_sorted_by_non_permuted, 2));
+                for row_index = size(permutations_sorted_by_non_permuted, 1):-1:2
+                    max_per_permutation_reducing_rows(row_index, :) = max(permutations_sorted_by_non_permuted(1:row_index, :));
+                end
+                max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
+
+                ranking.westfall_young.p_value.v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
+                ranking.westfall_young.p_value.v(sorted_statistic_indexes) = ranking.westfall_young.p_value.v;
+            end
+        end 
 
         % This takes the above statistic and gets the property to use its size to find the number of permutations
         function value = get.permutations(obj)
