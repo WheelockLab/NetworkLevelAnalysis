@@ -88,7 +88,7 @@ classdef NLAResult < matlab.apps.AppBase
             
             % add new nodes
             if nesting_by_method
-                if app.net_input_struct.nonpermuted
+                if app.net_input_struct.no_permutations
                     root = app.createNode(app.ResultTree, 'Non-permuted');
                     for i = 1:size(app.results.network_test_results, 2)
                         result = app.results.network_test_results{i};
@@ -127,7 +127,7 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, app.results.network_test_results{i}.test_display_name);
                     
                     result = app.results.network_test_results{i};
-                    if app.net_input_struct.nonpermuted 
+                    if app.net_input_struct.no_permutations 
                         flags = struct();
                         flags.show_nonpermuted = true;
                         app.createNode(root, 'Non-permuted', {result, flags});
