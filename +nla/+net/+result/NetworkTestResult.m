@@ -221,8 +221,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.TriMatrix nla.TriMatrixDiag
 
             obj.permutation_results.p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
-                TriMatrixDiag.KEEP_DIAGONAL);
+            if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
+                obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
+                    TriMatrixDiag.KEEP_DIAGONAL);
+            end
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
@@ -237,13 +239,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            if test_method == "no_permutations" || test_method == "full_connectome"
-                obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
+            obj.(test_method).statistic_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
+            if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
                 obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            end
-            if test_method == "no_permutations" || test_method == "within_network_pair"
-                obj.(test_method).statistic_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
-                obj.(test_method).statistic_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
             end
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
