@@ -11,6 +11,7 @@ classdef NetworkTestPlot < handle
         matrix_plot = false
         height = 800
         panel_height = 300
+        current_settings = struct()
     end
 
     properties (Dependent)
@@ -19,9 +20,20 @@ classdef NetworkTestPlot < handle
 
     properties (Constant)
         WIDTH = 500
-        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
-            "Bone", "Copper", "Pink"}; % Colorbar choices
+        colormap_choices = ["Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+            "Bone", "Copper", "Pink"]; % Colorbar choices
         COLORMAP_SAMPLE_COLORS = 16
+        changes_to_functions = struct(...
+            "upper_limit", "scale",...
+            "lower_limit", "scale",...
+            "colormap_choice", "scale",...
+            "plot_scale", "scale",...
+            "ranking", "ranking",...
+            "cohens_d", "parameters",...
+            "centroids", "centroids",...
+            "mcc", "parameters",...
+            "convergence_color", "convergence"...
+        )
     end
 
     methods
@@ -87,29 +99,30 @@ classdef NetworkTestPlot < handle
 
         function drawOptions(obj, test_options, network_test_options)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
-            import nla.inputField.Button nla.inputField.Number nla.inputField.HTMLField
+            import nla.inputField.Button nla.inputField.Number
 
             % All the options (buttons, pulldowns, checkboxes)
             scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"]);
-            ranking_method = PullDown("ranking", "Ranking", ["No Permutation", "Full Connectome", "Within Network Pair", "Winkler/randomise", "Westfall-Young"]);
+            ranking_method = PullDown("ranking", "Ranking", ["Eggebrecht", "Winkler", "Westfall-Young"]);
             cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", false);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
-            multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction", ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
+            multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
+                ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
             network_chord_plot = Button("network_chord", "View Chord Plots");
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots");
             convergence_plot = Button("convergence", "View Convergence Map");
-            convergence_color = PullDown("convergence_color", "Convergence Plot Color", ["Bone", "Winter", "Autumn", "Copper"]);
+            convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
+                ["Bone", "Winter", "Autumn", "Copper"]);
             apply = Button("apply", "Apply");
             upper_limit_box = Number("upper_limit", "Upper Limit", -Inf, 0.3, Inf);
             lower_limit_box = Number("lower_limit", "Lower Limit", -Inf, -0.3, Inf);
-            colormap_choice = Pulldown("colormap_choice", "Colormap", obj.colormap_choices);
-            colormap_example = HTMLField("colormap_example", "", obj.colormap_choice.field.Value, @obj.drawColorMapChoice);
+            colormap_choice = PullDown("colormap_choice", "Colormap", obj.colormap_choices);
 
             % Draw the options
             options = {...
                 {scale_option, ranking_method},...
                 {upper_limit_box, lower_limit_box},...
-                {colormap_choice, colormap_example},...
+                {colormap_choice},...
                 {multiple_comparison_correction},...
                 {cohens_d, centroids},...
                 {network_chord_plot, edge_chord_plot},...
@@ -117,41 +130,47 @@ classdef NetworkTestPlot < handle
                 {apply},...
             };
         
+            settings = {scale_option, ranking_method, cohens_d, centroids, multiple_comparison_correction,...
+                convergence_color, upper_limit_box, lower_limit_box, colormap_choice};
+        
             y = obj.panel_height - LABEL_GAP;
             x = LABEL_GAP;
             for row = options
                 for column = row{1}
                     [x_component, ~] = column{1}.draw(x, y, obj.options_panel, obj.plot_figure);
                     x = x + LABEL_GAP + x_component;
+                    if ~isequal(column{1}.name, "apply") 
+                        if isa(column{1}.field, "matlab.ui.control.Button")
+                            obj.current_settings.(column{1}.name) = column{1}.field.Enable;
+                        else
+                            obj.current_settings.(column{1}.name) = column{1}.field.Value;
+                        end
+                    end
                 end
                 y = y - LABEL_GAP - LABEL_H;
                 x = LABEL_GAP;
             end
-                        
-%             apply.field.ButtonPushedFcn = @(~, ~)obj.applyChanges(~, ~, ~);
+            
+            apply.field.ButtonPushedFcn = {@obj.applyChanges, settings};
 
         end
     end
 
     methods (Access = protected)
         function applyChanges(obj, ~, ~, values)
-
-        end
-
-        function colormap_html = drawColorMapChoice(obj, color)
-
-            colormap_function = str2func(strcat(strcat("@(x) ", lower(color), "(x)")));
-            CData = colormap_function(COLORMAP_SAMPLE_COLORS);
-            new_html_start = "<HTML>";
-            new_html = "";
-            for color_iterator = COLORMAP_SAMPLE_COLORS:-1:1
-                hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
-                    CData(color_iterator, 3)]);
-                new_html = strcat(new_html, "<FONT bgcolor='", hex_code,"' color='", hex_code, "'>__</FONT>");
+            changes = {};
+            for value = values;
+                if isa(value{1}.field, "matlab.ui.control.Button")
+                    setting_value = value{1}.field.Enable;
+                else
+                    setting_value = value{1}.field.Value;
+                end
+                if ~isequal(setting_value, obj.current_settings.(value{1}.name))
+                    changes = [changes, value{1}.name];
+                    obj.current_settings.(value{1}.name) = setting_value;
+                end
             end
-            new_html_end = strcat(new_html, "</HTML>");
-            new_html = strcat(new_html_start, new_html_end);
-            colormap_html = new_html;
+            
         end
     end
 end
