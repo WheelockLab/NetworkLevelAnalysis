@@ -73,11 +73,12 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.network_test_options.d_max = 0.5;
             testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
             testCase.network_test_options.full_connectome = true;
-            testCase.network_test_options.within_net_pair = true;
-            testCase.network_test_options.nonpermuted = true;
+            testCase.network_test_options.within_network_pair = true;
+            testCase.network_test_options.no_permutations = true;
 
             % Basically have to do everything in the TestPool except run the ranking. So, that's what all this is, everything
             % in TestPool.runPerm up until ranking. Luckily, we're only doing one network test
+            testCase.permutations = 9;
             testCase.edge_test_result = testCase.tests.runEdgeTest(testCase.edge_test_options);
             testCase.network_test_result = testCase.tests.runNetTests(testCase.network_test_options,...
                 testCase.edge_test_result, testCase.network_atlas, false);
@@ -99,21 +100,17 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
 
     methods (Test)
         function fullConnectomeRankTest(testCase)
-            result_ranker = nla.net.ResultRank(testCase.network_test_result{1}, testCase.permuted_network_results{1},...
-                testCase.number_of_network_pairs);
-            ranking = testCase.permuted_network_results{1}.copy(); 
-            ranking = result_ranker.fullConnectomeRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
+            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
+            rank_object = result_ranker.rank();
 
-            testCase.verifyEqual(ranking.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
+            testCase.verifyEqual(rank_object.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
         end
 
         function withinNetworkPairTest(testCase)
-           result_ranker = nla.net.ResultRank(testCase.network_test_result{1}, testCase.permuted_network_results{1},...
-               testCase.number_of_network_pairs);
-           ranking = testCase.permuted_network_results{1}.copy();
-           ranking = result_ranker.withinNetworkPairRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
-           
-           testCase.verifyEqual(ranking.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
+            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
+            rank_object = result_ranker.rank();
+            
+            testCase.verifyEqual(rank_object.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
         end
     end
 end
