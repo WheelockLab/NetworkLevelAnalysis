@@ -88,7 +88,7 @@ classdef NLAResult < matlab.apps.AppBase
             
             % add new nodes
             if nesting_by_method
-                if app.net_input_struct.nonpermuted
+                if app.net_input_struct.no_permutations
                     root = app.createNode(app.ResultTree, 'Non-permuted');
                     for i = 1:size(app.results.network_test_results, 2)
                         result = app.results.network_test_results{i};
@@ -99,7 +99,7 @@ classdef NLAResult < matlab.apps.AppBase
                     end
                 end
                 
-                if app.net_input_struct.full_conn
+                if app.net_input_struct.full_connectome
                     root = app.createNode(app.ResultTree, 'Full connectome');
                     for i = 1:size(app.results.permutation_network_test_results, 2)
                         result = app.results.permutation_network_test_results{i};
@@ -111,7 +111,7 @@ classdef NLAResult < matlab.apps.AppBase
                     end
                 end
                 
-                if app.net_input_struct.within_net_pair
+                if app.net_input_struct.within_network_pair
                     root = app.createNode(app.ResultTree, 'Within Net-pair');
                     for i = 1:size(app.results.permutation_network_test_results, 2)
                         result = app.results.permutation_network_test_results{i};
@@ -127,20 +127,20 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, app.results.network_test_results{i}.test_display_name);
                     
                     result = app.results.network_test_results{i};
-                    if app.net_input_struct.nonpermuted 
+                    if app.net_input_struct.no_permutations 
                         flags = struct();
                         flags.show_nonpermuted = true;
                         app.createNode(root, 'Non-permuted', {result, flags});
                     end
                     
-                    if app.net_input_struct.full_conn && result.has_full_conn
+                    if app.net_input_struct.full_connectome && result.has_full_conn
                         perm_result = app.results.permutation_network_test_results{i};
-                        if app.net_input_struct.full_conn && ~isequal(result.full_connectome, false)
+                        if app.net_input_struct.full_connectome && ~isequal(result.full_connectome, false)
                             flags = struct();
                             flags.show_full_conn = true;
                             app.createNode(root, 'Full connectome', {perm_result, flags});
                         end
-                        if app.net_input_struct.within_net_pair && ~isequal(result.within_network_pair, false)
+                        if app.net_input_struct.within_network_pair && ~isequal(result.within_network_pair, false)
                             flags = struct();
                             flags.show_within_net_pair = true;
                             app.createNode(root, 'Within Net-pair', {perm_result, flags});
@@ -381,7 +381,7 @@ classdef NLAResult < matlab.apps.AppBase
             
             net_results = app.test_pool.runNetTests(app.net_input_struct, app.edge_result, app.input_struct.net_atlas, false);
             
-            if app.net_input_struct.full_conn
+            if app.net_input_struct.full_connectome
                 prog.Message = 'Starting parallel pool...';
                 prog.Value = 0.05;
                 
