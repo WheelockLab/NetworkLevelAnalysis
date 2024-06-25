@@ -29,7 +29,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         ranking_statistic = "" 
         within_network_pair = false % Results for within-network-pair tests
         full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
-        no_permutations = false % Results for the network tests with no permutations (the 'observed' results)    
+        no_permutations = false % Results for the network tests with no permutations (the 'observed' results)
         permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods   
     end
 
@@ -203,12 +203,13 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
             %CREATERESULTSSTORAGE Create the substructures for the methods chosen
 
-            % We're just doing them all! The ranking is so short compared to the data collection, just do them all
-            setup_test_methods = ["no_permutations", "full_connectome", "within_network_pair"];
-
             % create the results containers. This replaces the false boolean with a struct of TriMatrices
-            for test_method_index = 1:numel(setup_test_methods)
-                obj.createPValueTriMatrices(number_of_networks, setup_test_methods(test_method_index));
+            for test_method_index = 1:numel(obj.test_methods)
+                if isequal(obj.(obj.test_methods(test_method_index)), false) &&...
+                    isequal(test_options.(obj.test_methods(test_method_index)), true)
+                    obj.(obj.test_methods(test_method_index)) = struct();
+                    obj.createPValueTriMatrices(number_of_networks, obj.test_methods(test_method_index));
+                end
             end
             % This creates all the permutations and test specific stats (chi2, t, w, etc)
             obj.createTestSpecificResultsStorage(number_of_networks, test_specific_statistics);
@@ -220,8 +221,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.TriMatrix nla.TriMatrixDiag
 
             obj.permutation_results.p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
-                TriMatrixDiag.KEEP_DIAGONAL);
+            if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
+                obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
+                    TriMatrixDiag.KEEP_DIAGONAL);
+            end
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
@@ -236,13 +239,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            % I could've looped this, too. Just copy/paste from earlier, so it stays. Plus, this is in every test 
-            % regardless of test or method
-            obj.(test_method) = struct();
-            obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
             obj.(test_method).statistic_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
-            obj.(test_method).statistic_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
+            if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
+                obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            end
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
@@ -458,7 +459,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             name = sprintf("%s %s P < %.2g (%s)", title_prefix, obj.test_display_name, p_value_max, p_breakdown_labels);
         end
 
-        function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(obj, number_of_tests, sig_count_mat, names, sig, name)
+        function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(...
+            obj, number_of_tests, sig_count_mat, names, sig, name...
+        )
             number_of_tests = number_of_tests + 1;
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
