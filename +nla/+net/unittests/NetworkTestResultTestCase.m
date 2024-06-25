@@ -13,7 +13,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             testCase.number_of_networks = 15;
             testCase.test_data = TriMatrix(testCase.number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             testCase.test_data.v = rand(size(testCase.test_data.v));
-            testCase.test_options = struct("within_net_pair", true, "full_conn", true, "nonpermuted", true);
+            testCase.test_options = struct("within_network_pair", true, "full_connectome", true, "no_permutations", true);
             testCase.test = WilcoxonTest();
         end
     end
