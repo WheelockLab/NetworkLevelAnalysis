@@ -99,21 +99,21 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
 
     methods (Test)
         function fullConnectomeRankTest(testCase)
-            result_ranker = nla.net.ResultRank(testCase.network_test_result{1}, testCase.permuted_network_results{1},...
-                testCase.number_of_network_pairs);
-            ranking = testCase.permuted_network_results{1}.copy(); 
-            ranking = result_ranker.fullConnectomeRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
+            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs); 
+            [ranking_statistic, probability, denominator] = result_ranker.getTestParameters("full_connectome");
+            result_ranker.eggebrechtRank("full_connectome", result_ranker.permuted_network_results.permutation_results,...
+                result_ranker.permuted_network_results.no_permutations, ranking_statistic, probability, denominator);
 
             testCase.verifyEqual(ranking.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
         end
 
         function withinNetworkPairTest(testCase)
-           result_ranker = nla.net.ResultRank(testCase.network_test_result{1}, testCase.permuted_network_results{1},...
-               testCase.number_of_network_pairs);
-           ranking = testCase.permuted_network_results{1}.copy();
-           ranking = result_ranker.withinNetworkPairRank(ranking, testCase.permuted_network_results{1}.ranking_statistic);
+           result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
+           [ranking_statistic, probability, denominator] = result_ranker.getTestParameters("within_network_pair");
+           result_ranker.eggebrechtRank("within_network_pair", result_ranker.permuted_network_results.permutation_results,...
+                result_ranker.permuted_network_results.no_permutations, ranking_statistic, probability, denominator);
            
-           testCase.verifyEqual(ranking.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
+           testCase.verifyEqual(result_ranker.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
         end
     end
 end
