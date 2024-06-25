@@ -1,0 +1,1 @@
+var sourceData46 = {"FileContents":["classdef ViewPos","    enumeration","        LAT, MED, POST, DORSAL, LEFT, RIGHT, FRONT, BACK","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}
