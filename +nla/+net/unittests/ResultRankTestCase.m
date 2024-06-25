@@ -78,7 +78,6 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
 
             % Basically have to do everything in the TestPool except run the ranking. So, that's what all this is, everything
             % in TestPool.runPerm up until ranking. Luckily, we're only doing one network test
-            testCase.permutations = 9;
             testCase.edge_test_result = testCase.tests.runEdgeTest(testCase.edge_test_options);
             testCase.network_test_result = testCase.tests.runNetTests(testCase.network_test_options,...
                 testCase.edge_test_result, testCase.network_atlas, false);
@@ -110,7 +109,7 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
             rank_object = result_ranker.rank();
             
-            testCase.verifyEqual(rank_object.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
+            testCase.verifyEqual(rank_object.within_network_pair.single_sample_p_value.v, testCase.ranking.within_network_pair.single_sample_p_value.v);
         end
     end
 end
