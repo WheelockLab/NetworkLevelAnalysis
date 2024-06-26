@@ -93,7 +93,7 @@ classdef NetworkTestPlot < handle
 
         function drawTriMatrixPlot(obj, test_options, network_test_options)
 
-            plot_data = obj.network_test_result.(obj.ranking_method).(obj.choosePlottingMethod(test_options))
+            plot_data = obj.network_test_result.(obj.ranking_method).(obj.choosePlottingMethod(test_options));
             obj.matrix_plot = nla.gfx.plots.MatrixPlot(obj.plot_figure, obj.getPlotTitle(test_options), plot_data, obj.network_atlas.nets, nla.gfx.FigSize.SMALL, 'y_position', obj.y_position + 300);
         end
 
