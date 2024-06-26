@@ -58,7 +58,7 @@ classdef TestPool < nla.DeepCopyable
         end
         
         function ranked_results = collateNetworkPermutationResults(obj, nonpermuted_edge_test_results, network_atlas, nonpermuted_network_test_results,...
-            permuted_network_test_results, input_struct)
+            permuted_network_test_results, network_test_options)
             
             % Run Cohen's D
             cohen_d_test = nla.net.CohenDTest();
@@ -78,9 +78,6 @@ classdef TestPool < nla.DeepCopyable
                     end
                 end
             end
-
-            ranked_results = obj.rankResults(input_struct, nonpermuted_network_test_results,...
-                permuted_network_test_results, network_atlas.numNetPairs());
         end
 
         function [permuted_edge_test_results, permuted_network_test_results] = runPermSeparateEdgeAndNet(obj, input_struct, net_input_struct,...
