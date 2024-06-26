@@ -73,8 +73,8 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.network_test_options.d_max = 0.5;
             testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
             testCase.network_test_options.full_connectome = true;
-            testCase.network_test_options.within_net_pair = true;
-            testCase.network_test_options.nonpermuted = true;
+            testCase.network_test_options.within_network_pair = true;
+            testCase.network_test_options.no_permutations = true;
 
             % Basically have to do everything in the TestPool except run the ranking. So, that's what all this is, everything
             % in TestPool.runPerm up until ranking. Luckily, we're only doing one network test
@@ -99,21 +99,17 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
 
     methods (Test)
         function fullConnectomeRankTest(testCase)
-            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs); 
-            [ranking_statistic, probability, denominator] = result_ranker.getTestParameters("full_connectome");
-            result_ranker.eggebrechtRank("full_connectome", result_ranker.permuted_network_results.permutation_results,...
-                result_ranker.permuted_network_results.no_permutations, ranking_statistic, probability, denominator);
+            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
+            rank_object = result_ranker.rank();
 
-            testCase.verifyEqual(ranking.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
+            testCase.verifyEqual(rank_object.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
         end
 
         function withinNetworkPairTest(testCase)
-           result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
-           [ranking_statistic, probability, denominator] = result_ranker.getTestParameters("within_network_pair");
-           result_ranker.eggebrechtRank("within_network_pair", result_ranker.permuted_network_results.permutation_results,...
-                result_ranker.permuted_network_results.no_permutations, ranking_statistic, probability, denominator);
-           
-           testCase.verifyEqual(result_ranker.within_network_pair.p_value.v, testCase.ranking.within_network_pair.p_value.v);
+            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
+            rank_object = result_ranker.rank();
+            
+            testCase.verifyEqual(rank_object.within_network_pair.single_sample_p_value.v, testCase.ranking.within_network_pair.single_sample_p_value.v);
         end
     end
 end
