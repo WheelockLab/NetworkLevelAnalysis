@@ -1,0 +1,1 @@
+var sourceData92 = {"FileContents":["function h = LABEL_GAP()","    %LABEL_GAP The pixel gap of a label. It has to be provided by a","    %   function because Matlab doesn't support package constants. Sad!","    h = 5;","end","",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":4,"HitCount":[0,0,0,0,0,0,0]}}

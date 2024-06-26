@@ -1,0 +1,1 @@
+var sourceData38 = {"FileContents":["classdef BrainColorMode","    enumeration","        DEFAULT_NETS, COLOR_NETS, COLOR_ROIS, NONE","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}
