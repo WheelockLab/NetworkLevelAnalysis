@@ -137,15 +137,17 @@ classdef ResultRank < handle
             probability = "p_value";
             denominator = obj.permutations * obj.number_of_network_pairs;
             % Only use these for within network pair and not Chi-Squared and Hypergeometric. 
-            if isequal(test_type, "within_network_pair")  && ~any(...
-                strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
-            )
-                ranking_statistic = strcat("single_sample_", ranking_statistic);
-                if isequal(obj.permuted_network_results.test_name, "wilcoxon")
-                    ranking_statistic = "single_sample_ranksum_statistic"
-                end
-                probability = strcat("single_sample_", probability);
+            if isequal(test_type, "within_network_pair")
                 denominator = obj.permutations;
+                if ~any(...
+                    strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
+                )
+                    ranking_statistic = strcat("single_sample_", ranking_statistic);
+                    if isequal(obj.permuted_network_results.test_name, "wilcoxon")
+                        ranking_statistic = "single_sample_ranksum_statistic";
+                    end
+                    probability = strcat("single_sample_", probability);
+                end
             end
         end
 
