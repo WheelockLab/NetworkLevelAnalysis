@@ -266,7 +266,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             name = sprintf("%s %s P < %.2g (%s)", title_prefix, obj.test_display_name, p_value_max, p_breakdown_labels);
         end
 
-        function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(obj, number_of_tests, sig_count_mat, names, sig, name)
+        function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(...
+            obj, number_of_tests, sig_count_mat, names, sig, name...
+        )
             number_of_tests = number_of_tests + 1;
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
