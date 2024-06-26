@@ -324,7 +324,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
                 % but then the plots get put under different layers. 
                 if obj.is_noncorrelation_input
-<<<<<<< HEAD
                     plot_figure = createFigure(1000, 900);
                     plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
                         obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
@@ -332,9 +331,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         "Non-permuted P-values vs. Network-Pair Size");
                     plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
                         "Permuted P-values vs. Net-Pair Size");
-=======
                     plot_figure = createFigure(500, 500);
->>>>>>> changed size of some figures
                     x_coordinate = 25;
                 else
                     plot_figure = createFigure(1200, 900);

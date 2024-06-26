@@ -618,7 +618,7 @@ classdef MatrixPlot < handle
                 end
                 %new_html = new_html(1:end-2);
                 new_html_end = [new_html '</HTML>'];
-                new_html = [new_html_start new_html new_html_end]
+                new_html = [new_html_start new_html new_html_end];
                 colormap_html = [colormap_html; {new_html}];
             end
             set(color_map_select, "Value", 1, "String", colormap_html);
