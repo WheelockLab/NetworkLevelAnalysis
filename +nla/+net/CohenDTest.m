@@ -30,8 +30,12 @@ classdef CohenDTest < handle
                         (std(edge_test_results.coeff.v).^2)));
                     
                     result_object.no_permutations.d.set(row, column, single_sample_d);
-                    result_object.within_network_pair.d.set(row, column, single_sample_d);
-                    result_object.full_connectome.d.set(row, column, d);
+                    if isprop(result_object, "full_connectome") && isequal(result_object.full_connectome, true)
+                        result_object.full_connectome.d.set(row, column, d);
+                    end
+                    if isprop(result_object, "within_network_pair") && isequal(result_object.within_network_pair, true)
+                        result_object.within_network_pair.d.set(row, column, single_sample_d);
+                    end
                 end
             end
         end

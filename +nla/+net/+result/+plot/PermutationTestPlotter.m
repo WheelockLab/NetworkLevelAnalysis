@@ -53,7 +53,11 @@ classdef PermutationTestPlotter < handle
             second_title = sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p_values, rho);
             setTitle(axes, second_title, true);
             lims = ylim(axes);
-            ylim(axes, [0 lims(2)]);
+            if lims(2) < 0
+                ylim(axes, [lims(2) 0]);
+            else
+                ylim(axes, [0 lims(2)]);
+            end
         end
 
         function plotProbabilityHistogram(obj, axes, histogram_data, statistic_input, no_permutations_network_result, test_method,...
