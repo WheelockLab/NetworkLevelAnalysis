@@ -50,6 +50,9 @@ classdef NetworkResultPlotParameter < handle
             statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
 
             % Get the scale max and the labels
+            if isstring(fdr_correction) || ischar(fdr_correction)
+                fdr_correction = nla.net.mcc.(fdr_correction)();
+            end
             p_value_max = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);

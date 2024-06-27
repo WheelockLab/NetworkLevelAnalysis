@@ -42,6 +42,7 @@ classdef Number < nla.inputField.InputField
             field_w = 50;
             obj.field.Position = [x + label_w + label_gap, y - h, field_w, h];
             obj.field.Limits = [obj.min obj.max];
+            obj.field.Value = obj.default;
             
             w = label_w + label_gap + field_w;
         end

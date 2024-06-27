@@ -3,7 +3,9 @@ classdef NetworkTestPlot < handle
     properties
         network_atlas
         network_test_result
-        ranking_method
+        test_method
+        edge_test_options
+        network_test_options
         x_position
         y_position
         plot_figure = false
@@ -12,6 +14,7 @@ classdef NetworkTestPlot < handle
         height = 800
         panel_height = 300
         current_settings = struct()
+        parameters
     end
 
     properties (Dependent)
@@ -38,67 +41,92 @@ classdef NetworkTestPlot < handle
 
     methods
 
-        function obj = NetworkTestPlot(network_test_result, network_atlas, ranking_method, varargin)
+        function obj = NetworkTestPlot(network_test_result, network_atlas, test_method, edge_test_options, network_test_options, varargin)
             
             test_plot_parser = inputParser;
-            addRequired(test_plot_parser, 'network_test_result');
-            addRequired(test_plot_parser, 'network_atlas');
-            addRequired(test_plot_parser, 'ranking_method');
+            addRequired(test_plot_parser, "network_test_result");
+            addRequired(test_plot_parser, "network_atlas");
+            addRequired(test_plot_parser, "test_method");
+            addRequired(test_plot_parser, "edge_test_options");
+            addRequired(test_plot_parser, "network_test_options");
 
             validNumberInput = @(x) isnumeric(x) && isscalar(x);
-            addParameter(test_plot_parser, 'x_position', 300, validNumberInput);
-            addParameter(test_plot_parser, 'y_position', 0, validNumberInput);
+            addParameter(test_plot_parser, "x_position", 300, validNumberInput);
+            addParameter(test_plot_parser, "y_position", 0, validNumberInput);
         
-            parse(test_plot_parser, network_test_result, network_atlas, ranking_method, varargin{:});
-            properties = {'network_test_result', 'network_atlas', 'ranking_method', 'x_position', 'y_position'};
+            parse(test_plot_parser, network_test_result, network_atlas, test_method, edge_test_options, network_test_options, varargin{:});
+            properties = {"network_test_result", "network_atlas", "test_method", "edge_test_options", "network_test_options", "x_position", "y_position"};
             for property = properties
                 obj.(property{1}) = test_plot_parser.Results.(property{1});
             end
         end
 
-        function value = get.is_noncorrelation_input(obj)
-            value = obj.network_test_result.is_noncorrelation_input;
-        end
-
-
-        function p_value = choosePlottingMethod(obj, test_options)
+        function p_value = choosePlottingMethod(obj)
             
             p_value = "p_value";
-            if test_options == nla.gfx.ProbPlotMethod.STATISTIC
+            if obj.edge_test_options == nla.gfx.ProbPlotMethod.STATISTIC
                 p_value = strcat("statistic_", p_value);
             end
-            if ~obj.network_test_result.is_noncorrelation_input && obj.ranking_method == "within_network_pair"
+            if ~obj.network_test_result.is_noncorrelation_input && obj.test_method == "within_network_pair"
                 p_value = strcat("single_sample_", p_value);
             end
         end
 
-        function title = getPlotTitle(obj, test_options)
+        function title = getPlotTitle(obj)
 
-            switch obj.ranking_method
+            switch obj.test_method
                 case "no_permutations"
                     title = sprintf("Non-permuted Method\nNon-permuted Significance");
                 case "full_connectome"
                     title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
                 case "within_network_pair"
                     title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair");
+                case "winkler_method"
+                    title = sprintf("Winkler Method");
+                case "westfall_young"
+                    title = sprintf("Westfall-Young ranking");
             end
         end
 
-        function drawFigure(obj)
+        function drawFigure(obj, edge_test_result)
 
             obj.plot_figure = uifigure();
             obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH, obj.height];
-            obj.options_panel = uipanel(obj.plot_figure, 'Units', 'pixels', 'Position', [10, 10, 480, obj.panel_height]);
+            obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height]);
+            obj.drawOptions()
+            obj.drawTriMatrixPlot(edge_test_result);
         end
 
-        function drawTriMatrixPlot(obj, test_options, network_test_options)
+        function drawTriMatrixPlot(obj, edge_test_result)
 
-            plot_data = obj.network_test_result.(obj.ranking_method).(obj.choosePlottingMethod(test_options));
-            obj.matrix_plot = nla.gfx.plots.MatrixPlot(obj.plot_figure, obj.getPlotTitle(test_options), plot_data, obj.network_atlas.nets, nla.gfx.FigSize.SMALL, 'y_position', obj.y_position + 300);
+            plot_data = obj.network_test_result.(obj.test_method).(obj.choosePlottingMethod());
+
+            obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
+                obj.network_test_options);
+            probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, edge_test_result,...
+                obj.test_method, "p_value", "", obj.current_settings.mcc, obj.createSignificanceFilter());
+
+            obj.matrix_plot = nla.gfx.plots.MatrixPlot(...
+                obj.plot_figure, obj.getPlotTitle(), plot_data, obj.network_atlas.nets, nla.gfx.FigSize.SMALL,...
+                "y_position", obj.y_position + 300, "lower_limit", obj.current_settings.lower_limit,...
+                "upper_limit", obj.current_settings.upper_limit, "color_map", obj.current_settings.colormap_choice,...
+                "network_clicked_callback", probability_parameters.callback,...
+                "marked_networks", probability_parameters.significance_plot, "plot_scale", probability_parameters.plot_scale...
+            );
             obj.matrix_plot.displayImage();
         end
 
-        function drawOptions(obj, test_options, network_test_options)
+        function cohens_d_filter = createSignificanceFilter(obj)
+            cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
+            if ~isequal(obj.network_test_result.full_connectome, false)
+                cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
+            end
+            if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")
+                cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
+            end
+        end
+
+        function drawOptions(obj)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
             import nla.inputField.Button nla.inputField.Number
 
@@ -153,8 +181,13 @@ classdef NetworkTestPlot < handle
             end
             
             apply.field.ButtonPushedFcn = {@obj.applyChanges, settings};
-
         end
+
+        %% getters for dependent props
+        function value = get.is_noncorrelation_input(obj)
+            value = obj.network_test_result.is_noncorrelation_input;
+        end
+        %%
     end
 
     methods (Access = protected)

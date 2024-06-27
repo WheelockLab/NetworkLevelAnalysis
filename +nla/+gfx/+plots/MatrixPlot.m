@@ -155,7 +155,7 @@ classdef MatrixPlot < handle
             end
 
             if obj.draw_colorbar
-                obj.createColorbar();
+%                 obj.createColorbar();
             end
            
             % Title plot and center title
@@ -554,7 +554,7 @@ classdef MatrixPlot < handle
             obj.color_bar.Title.FontSize = 7;
 
             % Enables callback for clicking on colorbar to scale data
-            set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
+            % set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
         end
@@ -668,7 +668,7 @@ classdef MatrixPlot < handle
             end
             obj.color_map = new_color_map;
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
-            obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+            % obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
         end
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
