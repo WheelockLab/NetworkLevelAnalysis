@@ -668,7 +668,7 @@ classdef MatrixPlot < handle
             end
             obj.color_map = new_color_map;
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
-            % obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+            obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
         end
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)

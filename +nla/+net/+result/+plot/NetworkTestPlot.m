@@ -93,8 +93,8 @@ classdef NetworkTestPlot < handle
             obj.plot_figure = uifigure();
             obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH, obj.height];
             obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height]);
-            obj.drawOptions()
-            obj.drawTriMatrixPlot(edge_test_result);
+            % obj.drawOptions()
+            % obj.drawTriMatrixPlot(edge_test_result);
         end
 
         function drawTriMatrixPlot(obj, edge_test_result)
@@ -106,14 +106,8 @@ classdef NetworkTestPlot < handle
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, edge_test_result,...
                 obj.test_method, "p_value", "", obj.current_settings.mcc, obj.createSignificanceFilter());
 
-            obj.matrix_plot = nla.gfx.plots.MatrixPlot(...
-                obj.plot_figure, obj.getPlotTitle(), plot_data, obj.network_atlas.nets, nla.gfx.FigSize.SMALL,...
-                "y_position", obj.y_position + 300, "lower_limit", obj.current_settings.lower_limit,...
-                "upper_limit", obj.current_settings.upper_limit, "color_map", obj.current_settings.colormap_choice,...
-                "network_clicked_callback", probability_parameters.callback,...
-                "marked_networks", probability_parameters.significance_plot, "plot_scale", probability_parameters.plot_scale...
-            );
-            obj.matrix_plot.displayImage();
+            plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
+            plotter.plotProbability(obj.plot_figure, probability_parameters, nla.inputField.LABEL_GAP, obj.y_position + 300);
         end
 
         function cohens_d_filter = createSignificanceFilter(obj)
