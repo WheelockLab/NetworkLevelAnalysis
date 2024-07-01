@@ -27,7 +27,7 @@ classdef NetworkResultPlotParameter < handle
         end
 
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
-                plot_title, fdr_correction, significance_filter)
+                plot_title, fdr_correction, significance_filter, ranking_method)
             % plot_title - this will be a string
             % plot_statistic - this is the stat that will be plotted
             % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
@@ -47,7 +47,7 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % Grab the data from the NetworkTestResult object
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, ranking_method);
 
             % Get the scale max and the labels
             if isstring(fdr_correction) || ischar(fdr_correction)
@@ -167,12 +167,22 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function statistic = getStatsFromMethodAndName(obj, test_method, plot_statistic)
+        function statistic = getStatsFromMethodAndName(obj, test_method, plot_statistic, ranking_method)
             % combining the method and stat name to get the data. With a fail safe for forgetting 'single_sample'
+            
             if test_method == "within_network_pair" && ~startsWith(plot_statistic, "single_sample")
                 plot_statistic = strcat("single_sample_", plot_statistic);
             end
+            
             statistic = obj.network_test_results.(test_method).(plot_statistic);
+            if nargin > 2 && ~isequal(ranking_method, "Eggebrecht")
+                if isequal(ranking_method, "Winkler")
+                    ranking_method = "winkler";
+                elseif isequal(ranking_method, "Westfall-Young")
+                    ranking_method = "westfall_young";
+                end
+                statistic = obj.network_test_results.(test_method).(strcat((ranking_method), "_", (plot_statistic)));
+            end
         end
     end
 
