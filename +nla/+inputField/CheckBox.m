@@ -38,7 +38,7 @@ classdef CheckBox < nla.inputField.InputField
                 obj.field = uicheckbox(parent, "Text", obj.display_name, "Position", [x_offset, y_offset - height, label_width + obj.BOX_WIDTH, height]);
             end
             if obj.default_value
-                obj.Value = true;
+                obj.field.Value = true;
             end
 
             width = label_width + nla.inputField.LABEL_GAP + obj.BOX_WIDTH;

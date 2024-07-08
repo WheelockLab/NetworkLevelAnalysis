@@ -147,7 +147,7 @@ classdef NetworkTestPlot < handle
             % All the options (buttons, pulldowns, checkboxes)
             scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"]);
             ranking_method = PullDown("ranking", "Ranking", ["Eggebrecht", "Winkler", "Westfall-Young"]);
-            cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", false);
+            cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", true);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
                 ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
@@ -222,7 +222,7 @@ classdef NetworkTestPlot < handle
             end
 
             if any(strcmp("parameters", changes)) || any(strcmp("ranking", changes))
-                if isgraphics(obj.matrix_plot)
+                if isobject(obj.matrix_plot)
                     delete(obj.matrix_plot);
                 end
                 obj.drawTriMatrixPlot();
