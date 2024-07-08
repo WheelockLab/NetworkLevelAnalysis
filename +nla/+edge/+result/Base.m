@@ -40,7 +40,7 @@ classdef Base < nla.TestResult
             matrix_plot.displayImage();
             w = matrix_plot.image_dimensions("image_width");
             h = matrix_plot.image_dimensions("image_height");
-
+            
             if ~isfield(flags, 'display_sig')
                 flags.display_sig = true;
             end
