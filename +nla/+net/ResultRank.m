@@ -98,8 +98,7 @@ classdef ResultRank < handle
                     squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
                 );
             end
-            ranking.(test_type).winkler_p_value.v =...
-                ranking.(test_type).winkler_p_value.v ./ denominator;
+            ranking.(test_type).winkler_p_value.v = ranking.(test_type).winkler_p_value.v ./ obj.permutations;
         end
 
         function ranking = westfallYoungMethodRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
@@ -125,10 +124,10 @@ classdef ResultRank < handle
             end
             max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
 
-            ranking.(test_type).westfall_young.p_value.v = mean(...
+            ranking.(test_type).westfall_young_p_value.v = mean(...
                 sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
-            ranking.(test_type).westfall_young.p_value.v(sorted_statistic_indexes) =...
-                ranking.(test_type).westfall_young.p_value.v;
+            ranking.(test_type).westfall_young_p_value.v(sorted_statistic_indexes) =...
+                ranking.(test_type).westfall_young_p_value.v;
         end 
 
         function [ranking_statistic, probability, denominator] = getTestParameters(obj, test_type)
