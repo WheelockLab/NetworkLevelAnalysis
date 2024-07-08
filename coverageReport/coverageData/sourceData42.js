@@ -1,0 +1,1 @@
+var sourceData42 = {"FileContents":["classdef MatrixType","    enumeration","        MATRIX, TRIMATRIX","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}

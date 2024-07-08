@@ -1,0 +1,225 @@
+/* Styles for containers */
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+    margin:0px;                
+}
+.bodyContainerDiv {                           
+    /* Make the report center-aligned. */
+    padding-left: 50px;
+    padding-right: 50px;
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;    
+    overflow: auto;
+}
+#OverallCoverageSummaryDiv {
+    margin-bottom: 22px;
+    overflow: auto;
+}
+.ContainerForMidAndBottomDivs {
+    margin-bottom: 100px;
+}
+#CoverageTableForSourcesDiv{
+    /*Share the space for the coverage by source table and the source display*/                
+    max-height: 350px;
+    overflow: auto;
+    margin: 0px;
+    margin-bottom: 22px;
+}
+#SourceCodeMarkupDiv{  
+    overflow: auto;
+}
+
+#goToTopBtn.showButton {
+    display:block;
+}
+
+#goToTopBtn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    z-index: 99;
+    font-size: 15px;
+    border: none;
+    outline: none;
+    background-color: rgba(242, 242, 242, 1);
+    color: rgba(51, 122, 183, 1);
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.sticky {
+    position: fixed;
+    top: 0;
+    margin-top: 0px;
+    background-color: rgba(68,114,196,1);
+    color:white;
+}
+
+#sourceFileNameDiv {
+    font-size: 15px;
+    word-wrap: break-word;
+}
+
+#sourceFileNameSpan {
+    font-size: 14px; 
+    font-family: monospace;
+}
+
+
+/* Table Styles */
+.coverageReportTable {
+    font-size: 12px;
+    width:100%;
+    border-collapse: collapse;
+    color: rgba(0,0,0,0.75)
+}
+.borderlessTable {
+    margin: 0px; 
+    padding: 0px;
+    margin-top: 10px;
+}
+
+.borderedTable {
+    border-left: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+}
+
+table.borderedTable th{
+    background-color: rgba(245, 245, 245, 1);
+    color: rgba(0,0,0,0.75);
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: 1px solid  #ddd;
+}
+table.borderedTable th, table.borderedTable td {
+    border-top: 1px solid  #ddd;
+    border-right:1px solid  #ddd;
+    padding: 8px 6px;
+    height: 20px; 
+}
+
+#OverallCoverageSummaryTable{
+    text-align: left;
+}
+
+#CoverageListTable td{
+    text-align: right;
+}
+
+#CoverageListTable th {
+    text-align: left;
+}
+
+#CoverageListTable .leftAlign {
+    text-align: left;
+}
+
+
+#DivForRootLocation {
+    display:none;
+    cursor: default;
+    font-size: 15px;
+    padding-bottom: 12px;
+    word-wrap: break-word;
+}
+
+#RootLocationSpan {
+    font-family: monospace;
+}
+
+#CoverageListTable tr:hover {
+    background-color: rgba(0,0,0,0.10);
+    cursor: pointer;
+}
+
+.sortableTableHeader:hover {
+    background-color: rgb(250,250,250);
+}
+
+#SourceCodeDispTable #SourceCodeDispTable_LineNumberHead {
+    width: 4%
+}
+#SourceCodeDispTable #SourceCodeDispTable_HitCountHead {
+    width: 2%
+}
+#SourceCodeDispTable #SourceCodeDispTable_SourceCodeHead {
+    width: 94%
+}
+
+#SourceCodeDispTable td {    /* remove white lines in code displayed*/
+    padding: 0px;
+}
+
+.sortableTableHeader:hover > .img_unsorted {
+    visibility: visible;
+}
+
+.sortableTableHeader {
+    cursor: pointer;
+}
+
+/* Style for text */
+.bodyContainerDiv h2 {
+    font-size: 30px;
+    font-weight: 500;
+}
+
+.bodyContainerDiv h2 sup{
+    vertical-align: super;
+    font-size: 12px;
+}
+
+.bodyContainerDiv p {
+    font-size: 20px; 
+    margin-bottom: 5px;
+}
+
+#SourceCodeMarkupDiv pre { 
+    margin: 0px; 
+    border: 0px; 
+    padding: 0px;
+
+    word-break: break-all;
+    word-wrap: break-word;
+}
+
+/*Coverage markup highlights*/
+.hitLine {background-color: rgba(34,172,60,0.35);}
+.missedLine {background-color: rgba(226,61,45,0.35);}
+.codeLine {background-color: rgba(245, 245, 245, 1);}
+
+/* Spans */
+span.img_unsorted {
+    visibility: hidden;
+    background: url(../images/unsorted_icon.jpg) 0px 0px;    
+}
+span.img_ascendingsorted {
+   background: url(../images/sorted_Ascending_icon.jpg) 0px 0px;
+}
+span.img_descendingsorted {
+    background: url(../images/sorted_Descending_icon.jpg) 0px 0px; 
+}
+span.sortIcon {    
+    width: 10px; 
+    height: 14px;
+    display: inline-block;
+    background-size: 10px 14px;
+    background-repeat: no-repeat;
+}
+
+hr {
+    margin-top: 0px;
+    margin-bottom: 10px;
+    border-color: rgba(68,114,196,0.75);
+}
+
+tr.selectedRow {
+    background-color: rgba(0,153,255,0.15);
+}
