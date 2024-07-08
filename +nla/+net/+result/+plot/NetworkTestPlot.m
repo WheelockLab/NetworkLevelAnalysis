@@ -132,10 +132,11 @@ classdef NetworkTestPlot < handle
 
         function cohens_d_filter = createSignificanceFilter(obj)
             cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if ~isequal(obj.network_test_result.full_connectome, false)
+            if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
                 cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
             end
-            if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")
+            if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
+                && ~isequal(obj.test_method, "full_connectome")
                 cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
             end
         end
@@ -223,7 +224,8 @@ classdef NetworkTestPlot < handle
 
             if any(strcmp("parameters", changes)) || any(strcmp("ranking", changes))
                 if isobject(obj.matrix_plot)
-                    delete(obj.matrix_plot);
+                    delete(obj.matrix_plot.image_display);
+                    delete(obj.matrix_plot.color_bar);
                 end
                 obj.drawTriMatrixPlot();
             elseif any(strcmp("scale", changes))
