@@ -259,5 +259,14 @@ classdef NetworkTestPlot < handle
             obj.network_test_result.output(obj.edge_test_options, obj.network_test_options, obj.network_atlas,...
                 obj.edge_test_result, flags);
         end
+
+        function openConvergencePlot(obj, ~, ~, flags)
+            
+            significance_count_matrix = nla.TriMatrix(obj.network_atlas.numNets(), "double",...
+                nla.TriMatrixDiag.KEEP_DIAGONAL);
+            names = [];
+
+            
+        end
     end
 end
