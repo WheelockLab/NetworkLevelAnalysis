@@ -44,7 +44,7 @@ classdef Base < nla.TestResult
             if ~isfield(flags, 'display_sig')
                 flags.display_sig = true;
             end
-
+            
             if flags.display_sig
                 if ~exist('prob_label', 'var')
                     prob_label = [sprintf('Edge-level Significance (P < %g)', obj.prob_max), prob_label_appended];
