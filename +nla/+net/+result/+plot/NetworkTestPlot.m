@@ -43,7 +43,8 @@ classdef NetworkTestPlot < handle
 
     methods
 
-        function obj = NetworkTestPlot(network_test_result, edge_test_result, network_atlas, test_method, edge_test_options, network_test_options, varargin)
+        function obj = NetworkTestPlot(network_test_result, edge_test_result, network_atlas, test_method,...
+                edge_test_options, network_test_options, varargin)
             
             test_plot_parser = inputParser;
             addRequired(test_plot_parser, "network_test_result");
@@ -57,8 +58,10 @@ classdef NetworkTestPlot < handle
             addParameter(test_plot_parser, "x_position", 300, validNumberInput);
             addParameter(test_plot_parser, "y_position", 0, validNumberInput);
         
-            parse(test_plot_parser, network_test_result, edge_test_result, network_atlas, test_method, edge_test_options, network_test_options, varargin{:});
-            properties = {"network_test_result", "edge_test_result", "network_atlas", "test_method", "edge_test_options", "network_test_options", "x_position", "y_position"};
+            parse(test_plot_parser, network_test_result, edge_test_result, network_atlas, test_method, edge_test_options,...
+                network_test_options, varargin{:});
+            properties = {"network_test_result", "edge_test_result", "network_atlas", "test_method", "edge_test_options",...
+                "network_test_options", "x_position", "y_position"};
             for property = properties
                 obj.(property{1}) = test_plot_parser.Results.(property{1});
             end
@@ -86,9 +89,9 @@ classdef NetworkTestPlot < handle
                 case "within_network_pair"
                     title = "Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair";
             end
-            if isequal(obj.ranking, "winkler_method")
+            if isequal(obj.current_settings.ranking, "Winkler")
                 title = strcat(title, "\nRanking by Winkler Method");
-            elseif isequal(obj.ranking, "westfall_yount")
+            elseif isequal(obj.current_settings.ranking, "Westfall-Young")
                 title = strcat(title, "\nRanking by Westfall-Young Method");
             else
                 title = strcat(title, "\nRanking by Eggebrecht Method");
@@ -100,7 +103,8 @@ classdef NetworkTestPlot < handle
             import nla.inputField.LABEL_GAP
 
             obj.plot_figure = uifigure();
-            obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH, obj.panel_height + (4 * LABEL_GAP)];
+            obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH,...
+                obj.panel_height + (4 * LABEL_GAP)];
             obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height]);
             obj.drawOptions()
             [width, height] = obj.drawTriMatrixPlot();
@@ -122,7 +126,8 @@ classdef NetworkTestPlot < handle
                 obj.current_settings.ranking);
 
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
-            [width, height, obj.matrix_plot] = plotter.plotProbability(obj.plot_figure, probability_parameters, nla.inputField.LABEL_GAP, obj.y_position + obj.panel_height);
+            [width, height, obj.matrix_plot] = plotter.plotProbability(obj.plot_figure, probability_parameters,...
+                nla.inputField.LABEL_GAP, obj.y_position + obj.panel_height);
             
             obj.settings{7}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{end});
             obj.settings{8}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{1});
@@ -152,8 +157,8 @@ classdef NetworkTestPlot < handle
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
                 ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
-            network_chord_plot = Button("network_chord", "View Chord Plots");
-            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots");
+            network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD});
+            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD_EDGE});
             convergence_plot = Button("convergence", "View Convergence Map");
             convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
                 ["Bone", "Winter", "Autumn", "Copper"]);
@@ -233,6 +238,26 @@ classdef NetworkTestPlot < handle
                     obj.current_settings.lower_limit, obj.current_settings.plot_scale,...
                     obj.current_settings.colormap_choice);   
             end  
+        end
+
+        function openChordPlot(obj, ~, ~, chord_type)
+
+            flags = struct();
+            flags.plot_type = chord_type;
+            flags.show_full_conn = false;
+            flags.show_within_net_pair = false;
+            flags.show_nonpermuted = false;
+            switch obj.test_method
+                case "no_permutations"
+                    flags.show_nonpermuted = true;
+                case "full_connectome"
+                    flags.show_full_conn = true;
+                case "within_network_pair"
+                    flags.show_within_net_pair = true;
+            end
+            flags.ranking_method = obj.current_settings.ranking;
+            obj.network_test_result.output(obj.edge_test_options, obj.network_test_options, obj.network_atlas,...
+                obj.edge_test_result, flags);
         end
     end
 end

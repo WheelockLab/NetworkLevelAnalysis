@@ -294,9 +294,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
-            import nla.net.result.chord.ChordPlotter
+        function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options,...
+            cohens_d_filter, flags)
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter
+            import nla.net.result.chord.ChordPlotter nla.net.result.plot.PermutationTestPlotter
             
             plot_test_type = "full_connectome";
 
@@ -308,15 +309,20 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
+            ranking_method = "Eggebrecht";
+            if isfield(flags, "ranking_method") && ~isequal(flags.ranking_method, "")
+                ranking_method = flags.ranking_method;
+            end
+
             % Get the plot parameters (titles, stats, labels, etc.)
             full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
                 edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
-                nla.net.mcc.None(), false);
+                nla.net.mcc.None(), false, ranking_method);
 
             % Mark the probability trimatrix with cohen's d results
             full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
                 edge_test_options, edge_test_result, plot_test_type, p_value, plot_title_threshold, ...
-                nla.net.mcc.None(), cohens_d_filter);
+                nla.net.mcc.None(), cohens_d_filter, ranking_method);
 
             if flags.plot_type == nla.PlotType.FIGURE
                 plotter = PermutationTestPlotter(edge_test_options.net_atlas);
