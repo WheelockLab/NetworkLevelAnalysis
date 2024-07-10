@@ -159,7 +159,7 @@ classdef NetworkTestPlot < handle
                 ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
             network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD});
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD_EDGE});
-            convergence_plot = Button("convergence", "View Convergence Map");
+            convergence_plot = Button("convergence", "View Convergence Map", @obj.openConvergencePlot);
             convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
                 ["Bone", "Winter", "Autumn", "Copper"]);
             apply = Button("apply", "Apply");
@@ -260,13 +260,32 @@ classdef NetworkTestPlot < handle
                 obj.edge_test_result, flags);
         end
 
-        function openConvergencePlot(obj, ~, ~, flags)
+        function openConvergencePlot(obj, ~, ~)
             
-            significance_count_matrix = nla.TriMatrix(obj.network_atlas.numNets(), "double",...
-                nla.TriMatrixDiag.KEEP_DIAGONAL);
-            names = [];
+            flags = struct();
+            flags.show_full_conn = false;
+            flags.show_within_net_pair = false;
+            flags.show_nonpermuted = false;
+            switch obj.test_method
+                case "no_permutations"
+                    flags.show_nonpermuted = true;
+                case "full_connectome"
+                    flags.show_full_conn = true;
+                case "within_network_pair"
+                    flags.show_within_net_pair = true;
+            end
+            [test_number, significance_count_matrix, names] = obj.network_test_result.getSigMat(obj.network_test_options,...
+                obj.network_atlas, flags);
+            
+                colors = str2func(lower(obj.current_settings.convergence_color));
+            if isequal(obj.current_settings.convergence_color, "Bone");
+                color_map = flip(colors());
+            else
+                color_map = [[1, 1, 1]; flip(colors())];
+            end
 
-            
+            nla.gfx.drawConvergenceMap(obj.edge_test_options, obj.network_test_options, obj.network_atlas, significance_count_matrix,...
+                test_number, names, obj.edge_test_result, color_map);
         end
     end
 end
