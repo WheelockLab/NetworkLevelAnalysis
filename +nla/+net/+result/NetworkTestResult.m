@@ -363,7 +363,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 end
 
                 chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+                if ~obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
                 else
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
