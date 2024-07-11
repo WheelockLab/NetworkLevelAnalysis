@@ -1,1 +1,0 @@
-var sourceData83 = {"FileContents":["function returned = triNum(n)","    %TRINUM Calculate the nth triangular number","    returned = (n .* (n + 1)) ./ 2;","end",""],"CoverageData":{"CoveredLineNumbers":3,"UnhitLineNumbers":[],"HitCount":[0,0,5087,0,0]}}
