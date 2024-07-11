@@ -17,6 +17,7 @@ classdef NetworkTestPlot < handle
         current_settings = struct()
         settings
         parameters
+        title = ""
     end
 
     properties (Dependent)
@@ -78,25 +79,26 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function title = getPlotTitle(obj)
+        function getPlotTitle(obj)
             
-            title = "";
             switch obj.test_method
                 case "no_permutations"
-                    title = "Non-permuted Method\nNon-permuted Significance";
+                    obj.title = "Non-permuted Method\nNon-permuted Significance";
                 case "full_connectome"
-                    title = "Full Connectome Method\nNetwork vs. Connectome Significance";
+                    obj.title = "Full Connectome Method\nNetwork vs. Connectome Significance";
                 case "within_network_pair"
-                    title = "Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair";
+                    obj.title = "Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair";
+            end
+            if isequal(obj.current_settings.cohens_d, true)
+                obj.title = sprintf("%s (D < %g)", obj.title, obj.network_test_options.d_max);
             end
             if isequal(obj.current_settings.ranking, "Winkler")
-                title = strcat(title, "\nRanking by Winkler Method");
+                obj.title = strcat(obj.title, "\nRanking by Winkler Method");
             elseif isequal(obj.current_settings.ranking, "Westfall-Young")
-                title = strcat(title, "\nRanking by Westfall-Young Method");
+                obj.title = strcat(obj.title, "\nRanking by Westfall-Young Method");
             else
-                title = strcat(title, "\nRanking by Eggebrecht Method");
+                obj.title = strcat(obj.title, "\nRanking by Eggebrecht Method");
             end
-            title = sprintf(title);
         end
 
         function drawFigure(obj)
@@ -118,12 +120,15 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function [width, height] = drawTriMatrixPlot(obj)
+        function [width, height] = drawTriMatrixPlot(obj, varargin)
 
             obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
                 obj.network_test_options);
+                        
+            obj.getPlotTitle();
+
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
-                obj.test_method, "p_value", "", obj.current_settings.mcc, obj.createSignificanceFilter(),...
+                obj.test_method, "p_value", sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
 
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
@@ -214,6 +219,9 @@ classdef NetworkTestPlot < handle
     methods (Access = protected)
         function applyChanges(obj, ~, ~, values)
             
+            progress_bar = uiprogressdlg(obj.plot_figure, "Title", "Please Wait", "Message", "Applying Changes...",...
+                "Indeterminate", true);
+
             changes = {};
             for value = values
                 if isa(value{1}.field, "matlab.ui.control.Button")
@@ -233,12 +241,15 @@ classdef NetworkTestPlot < handle
                     delete(obj.matrix_plot.image_display);
                     delete(obj.matrix_plot.color_bar);
                 end
+                progress_bar.Message = "Redrawing TriMatrix..."
                 obj.drawTriMatrixPlot();
             elseif any(strcmp("scale", changes))
+                progress_bar.Message = "Changing scale of existing TriMatrix..."
                 obj.matrix_plot.applyScale(false, false, obj.current_settings.upper_limit,...
                     obj.current_settings.lower_limit, obj.current_settings.plot_scale,...
                     obj.current_settings.colormap_choice);   
             end  
+            close(progress_bar)
         end
 
         function openChordPlot(obj, ~, ~, chord_type)
