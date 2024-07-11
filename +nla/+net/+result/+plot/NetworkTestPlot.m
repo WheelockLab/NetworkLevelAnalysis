@@ -102,10 +102,11 @@ classdef NetworkTestPlot < handle
         function drawFigure(obj)
             import nla.inputField.LABEL_GAP
 
-            obj.plot_figure = uifigure();
+            obj.plot_figure = uifigure("Color", "w");
             obj.plot_figure.Position = [obj.plot_figure.Position(1), obj.plot_figure.Position(2), obj.WIDTH,...
                 obj.panel_height + (4 * LABEL_GAP)];
-            obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height]);
+            obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height],...
+                "BackgroundColor", "w");
             obj.drawOptions()
             [width, height] = obj.drawTriMatrixPlot();
             if obj.plot_figure.Position(4) < obj.plot_figure.Position(4) + height
