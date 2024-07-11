@@ -1,1 +1,0 @@
-var sourceData22 = {"FileContents":["classdef Test < handle","    %TEST Base class of tests","end",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0]}}

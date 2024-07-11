@@ -1,1 +1,0 @@
-var sourceData45 = {"FileContents":["classdef SigType","    enumeration","        INCREASING, DECREASING, ABS_INCREASING","    end","end"],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0]}}

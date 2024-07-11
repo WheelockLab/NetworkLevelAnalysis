@@ -1,1 +1,0 @@
-var sourceData18 = {"FileContents":["classdef PlotType","    enumeration","        FIGURE, CHORD, CHORD_EDGE","    end","end","",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0,0,0]}}
