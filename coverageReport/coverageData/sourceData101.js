@@ -1,1 +1,0 @@
-var sourceData101 = {"FileContents":["classdef (Abstract) IndexGroup < handle","    %INDEXGROUP Abstract class for passing to UI interfaces","    ","    properties (Abstract)","        name","        color","        indexes","    end","end","",""],"CoverageData":{"CoveredLineNumbers":[],"UnhitLineNumbers":[],"HitCount":[0,0,0,0,0,0,0,0,0,0,0]}}
