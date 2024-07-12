@@ -101,7 +101,7 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function drawFigure(obj)
+        function drawFigure(obj, plot_type)
             import nla.inputField.LABEL_GAP
 
             obj.plot_figure = uifigure("Color", "w");
@@ -110,7 +110,11 @@ classdef NetworkTestPlot < handle
             obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height],...
                 "BackgroundColor", "w");
             obj.drawOptions()
-            [width, height] = obj.drawTriMatrixPlot();
+            if isequal(plot_type, nla.PlotType.FIGURE)
+                [width, height] = obj.drawTriMatrixPlot();
+            else
+                [width, height] = obj.drawChord(plot_type)
+            end
             if obj.plot_figure.Position(4) < obj.plot_figure.Position(4) + height
                 obj.plot_figure.Position(4) = (2 * LABEL_GAP) + obj.plot_figure.Position(4) + height;
             end
@@ -120,7 +124,7 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function [width, height] = drawTriMatrixPlot(obj, varargin)
+        function [width, height] = drawTriMatrixPlot(obj)
 
             obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
                 obj.network_test_options);
@@ -139,6 +143,10 @@ classdef NetworkTestPlot < handle
             obj.settings{8}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{1});
             obj.current_settings.upper_limit = str2double(obj.matrix_plot.color_bar.TickLabels{end});
             obj.current_settings.lower_limit = str2double(obj.matrix_plot.color_bar.TickLabels{1});
+        end
+
+        function [width, height] = drawChord(obj, plot_type)
+
         end
 
         function cohens_d_filter = createSignificanceFilter(obj)
