@@ -110,6 +110,9 @@ classdef NetworkTestPlot < handle
             obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height],...
                 "BackgroundColor", "w");
             obj.drawOptions()
+
+            obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
+                obj.network_test_options);
             if isequal(plot_type, nla.PlotType.FIGURE)
                 [width, height] = obj.drawTriMatrixPlot();
             else
@@ -125,10 +128,7 @@ classdef NetworkTestPlot < handle
         end
 
         function [width, height] = drawTriMatrixPlot(obj)
-
-            obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
-                obj.network_test_options);
-                        
+                     
             obj.getPlotTitle();
 
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
@@ -147,16 +147,34 @@ classdef NetworkTestPlot < handle
 
         function [width, height] = drawChord(obj, plot_type)
 
+            obj.getPlotTitle();
+
+            probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
+                obj.test_method, "p_value", sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
+                obj.current_settings.ranking);
+            
+            chord_plotter = nla.net.result.chord.ChordPlotter(obj.network_atlas, obj.edge_test_result);
+
+            if isfield(updated_test_options, "edge_chord_plot_method")
+                probability_parameters.edge_chord_plot_method = obj.updated_test_options.edge_chord_plot_method;
+            end
+            chord_plotter.generateChordFigure(probability_parameters, plot_type)
+            
         end
 
         function cohens_d_filter = createSignificanceFilter(obj)
+
             cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
-                cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
-            end
-            if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
-                && ~isequal(obj.test_method, "full_connectome")
-                cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
+            if isequal(obj.current_settings.cohens_d, true) && ~isequal(obj.test_method, "no_permutations")
+                if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
+                    cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
+                end
+                if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
+                    && ~isequal(obj.test_method, "full_connectome")
+                    cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
+                end
+            else
+                cohens_d_filter.v = true(numel(cohens_d_filter.v), 1);
             end
         end
 
