@@ -49,14 +49,14 @@ classdef ChordPlotter < handle
 
             % Create the figure windows that all the plots will go in
             if obj.split_plot && chord_type == nla.PlotType.CHORD_EDGE
-                plot_figure = nla.gfx.createFigure((obj.axis_width * 2) + obj.trimatrix_width - 100, obj.axis_width);
+                plot_figure = nla.gfx.createFigure((obj.axis_width * 2), obj.axis_width);
             else
-                plot_figure = nla.gfx.createFigure(obj.axis_width + obj.trimatrix_width, obj.axis_width);
+                plot_figure = nla.gfx.createFigure(obj.axis_width , obj.axis_width);
             end
             
             % Plot a standard chord plot
             if chord_type == nla.PlotType.CHORD
-                figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width,...
+                figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [0, 0, obj.axis_width,...
                     obj.axis_width]);
                 nla.gfx.hideAxes(figure_axis);
 
@@ -78,11 +78,7 @@ classdef ChordPlotter < handle
                 obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
             end
 
-            % Plot Trimatrix with the chord plots
-            plotter = PermutationTestPlotter(obj.network_atlas);
-            plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height);
 
-            obj.generatePlotText(plot_figure, chord_type);
         end
     end
 
@@ -163,7 +159,7 @@ classdef ChordPlotter < handle
                 end
             end
 
-            plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width - 50,...
+            plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [0, 0, obj.axis_width - 50,...
                 obj.axis_width - 50]);
             nla.gfx.hideAxes(plot_axis);
             plot_axis.Visible = true;
@@ -179,7 +175,7 @@ classdef ChordPlotter < handle
 
                 % create another axis, I hate this naming but we can overwrite the old one
                 plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position',...
-                    [obj.trimatrix_width + obj.axis_width - 100, 0 , obj.axis_width - 50, obj.axis_width - 50]);
+                    [obj.axis_width - 100, 0 , obj.axis_width - 50, obj.axis_width - 50]);
                 nla.gfx.hideAxes(plot_axis);
                 plot_axis.Visible = true;
             end
@@ -205,16 +201,6 @@ classdef ChordPlotter < handle
                 labels{tick + 1} = sprintf("%.2g", coefficient_min + (tick * ((coefficient_max - coefficient_min) / number_ticks)));
             end
             color_bar.TickLabels = labels;
-        end
-
-        function generatePlotText(obj, plot_figure, chord_type)
-            text_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [55, obj.bottom_text_height + 15, 450, 75]);
-            nla.gfx.hideAxes(text_axis);
-            info_text = "Click any net-pair in the above plot to view its edge-level correlations.";
-            if chord_type == nla.PlotType.CHORD_EDGE
-                info_text = sprintf("%s\n\nChord plot:\nEach ROI is marked by a dot next to its corresponding network.\nROIs are placed in increasing order counter-clockwise, the first ROI in\na network being the most clockwise, the last being the most counter-\nclockwise.", info_text);
-            end
-            text(text_axis, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
     end
 end

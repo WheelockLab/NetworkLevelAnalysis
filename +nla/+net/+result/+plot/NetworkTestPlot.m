@@ -113,18 +113,13 @@ classdef NetworkTestPlot < handle
 
             obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
                 obj.network_test_options);
-            if isequal(plot_type, nla.PlotType.FIGURE)
-                [width, height] = obj.drawTriMatrixPlot();
-            else
-                [width, height] = obj.drawChord(plot_type)
+            
+            [width, plot_height] = obj.drawTriMatrixPlot();
+            if ~isequal(plot_type, nla.PlotType.FIGURE)
+                obj.drawChord(plot_type);
             end
-            if obj.plot_figure.Position(4) < obj.plot_figure.Position(4) + height
-                obj.plot_figure.Position(4) = (2 * LABEL_GAP) + obj.plot_figure.Position(4) + height;
-            end
-            if obj.plot_figure.Position(3) <= width
-                obj.plot_figure.Position(3) = width + (2 * LABEL_GAP);
-                obj.options_panel.Position(1) = ((obj.plot_figure.Position(3) - obj.options_panel.Position(3)) / 2);
-            end
+
+            obj.resizeFigure(width, plot_height);
         end
 
         function [width, height] = drawTriMatrixPlot(obj)
@@ -145,7 +140,7 @@ classdef NetworkTestPlot < handle
             obj.current_settings.lower_limit = str2double(obj.matrix_plot.color_bar.TickLabels{1});
         end
 
-        function [width, height] = drawChord(obj, plot_type)
+        function drawChord(obj, plot_type)
 
             obj.getPlotTitle();
 
@@ -155,11 +150,27 @@ classdef NetworkTestPlot < handle
             
             chord_plotter = nla.net.result.chord.ChordPlotter(obj.network_atlas, obj.edge_test_result);
 
-            if isfield(updated_test_options, "edge_chord_plot_method")
-                probability_parameters.edge_chord_plot_method = obj.updated_test_options.edge_chord_plot_method;
+            if isfield(obj.network_test_options, "edge_chord_plot_method")
+                probability_parameters.edge_chord_plot_method = obj.network_test_options.edge_chord_plot_method;
             end
             chord_plotter.generateChordFigure(probability_parameters, plot_type)
             
+        end
+
+        function resizeFigure(obj, plot_width, plot_height)
+            import nla.inputField.LABEL_GAP
+
+            current_width = obj.plot_figure.Position(3);
+            current_height = obj.plot_figure.Position(4);
+
+            if ~isequal(current_width, plot_width + (2 * LABEL_GAP))
+                obj.plot_figure.Position(3) = plot_width + (2 * LABEL_GAP);
+                obj.options_panel.Position(1) = ((obj.plot_figure.Position(3) - obj.options_panel.Position(3)) / 2);
+            end
+
+            if ~isequal(current_height, (2 * LABEL_GAP) + obj.plot_figure.Position(4) + plot_height)
+                obj.plot_figure.Position(4) = (2 * LABEL_GAP) + current_height + plot_height;
+            end
         end
 
         function cohens_d_filter = createSignificanceFilter(obj)
@@ -189,8 +200,9 @@ classdef NetworkTestPlot < handle
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
                 ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
-            network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD});
-            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD_EDGE});
+            network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.drawChord, nla.PlotType.CHORD});
+            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.drawChord, nla.PlotType.CHORD_EDGE});
+            edge_chord_type = 
             convergence_plot = Button("convergence", "View Convergence Map", @obj.openConvergencePlot);
             convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
                 ["Bone", "Winter", "Autumn", "Copper"]);
@@ -276,26 +288,6 @@ classdef NetworkTestPlot < handle
                     obj.current_settings.colormap_choice);   
             end  
             close(progress_bar)
-        end
-
-        function openChordPlot(obj, ~, ~, chord_type)
-
-            flags = struct();
-            flags.plot_type = chord_type;
-            flags.show_full_conn = false;
-            flags.show_within_net_pair = false;
-            flags.show_nonpermuted = false;
-            switch obj.test_method
-                case "no_permutations"
-                    flags.show_nonpermuted = true;
-                case "full_connectome"
-                    flags.show_full_conn = true;
-                case "within_network_pair"
-                    flags.show_within_net_pair = true;
-            end
-            flags.ranking_method = obj.current_settings.ranking;
-            obj.network_test_result.output(obj.edge_test_options, obj.network_test_options, obj.network_atlas,...
-                obj.edge_test_result, flags);
         end
 
         function openConvergencePlot(obj, ~, ~)

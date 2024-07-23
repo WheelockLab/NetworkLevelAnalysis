@@ -81,6 +81,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 test_method = "full_connectome";
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 test_method = "within_network_pair";
+            end
 
             network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas,...
                 test_method, edge_test_options, updated_test_options);
