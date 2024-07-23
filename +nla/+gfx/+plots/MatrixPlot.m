@@ -54,7 +54,8 @@ classdef MatrixPlot < handle
     end
 
     properties (SetAccess = immutable)
-        original_matrix % The original matrix for scaling purposes
+        original_matrix % The original matrix for scaling purposes. Despite it saying "immutable",
+        % this property is mutable since it's a mutable object type and not a static value.
     end
 
     methods
@@ -637,7 +638,7 @@ classdef MatrixPlot < handle
         
             import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
 
-            obj.matrix = obj.original_matrix;
+            obj.matrix = copy(obj.original_matrix);
 
             button_group_value = get(get(button_group, "SelectedObject"), "String");
 
