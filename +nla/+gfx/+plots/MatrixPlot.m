@@ -31,6 +31,7 @@ classdef MatrixPlot < handle
         image_display % The actual displayed values
         color_bar % The colorbar
         plot_scale % The scale and values being plotted (Linear, log, -log10, p-value, statistic p-value)
+        current_settings % the settings for the plot (upper, lower, scale)
     end
 
     properties (Dependent)
@@ -118,6 +119,8 @@ classdef MatrixPlot < handle
                 end
             end
             obj.original_matrix = matrix;
+            obj.current_settings = struct("upper_limit", obj.upper_limit, "lower_limit", obj.lower_limit,...
+                "plot_scale", obj.plot_scale, "color_map", 1);
         end
 
         function displayImage(obj)
@@ -565,13 +568,13 @@ classdef MatrixPlot < handle
 
             % source is the colorbar, not the figure
             d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2),...
-                source.Position(3) * 15, source.Position(4)/ 1.75]);
+                source.Position(3) * 16, source.Position(4)/ 1.75]);
             % These are the boxes that are the upper and lower end of the scale
             upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
-                'Position', [90, d.Position(4) - 30, 100, 30], "String", obj.upper_limit);
+                'Position', [90, d.Position(4) - 30, 100, 30], "String", obj.current_settings.upper_limit);
             upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
             lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
-                'Position', [90, upper_limit_box.Position(2) - 30, 100, 30], "String", obj.lower_limit); 
+                'Position', [90, upper_limit_box.Position(2) - 30, 100, 30], "String", obj.current_settings.lower_limit); 
             lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
             uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
                 [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
@@ -587,9 +590,9 @@ classdef MatrixPlot < handle
             neg_log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "-Log10", "Units", "pixels",...
                 "Position", [130, 5, 80, 20]);
             % Here we're setting the initial setting for the linear or log button
-            if obj.plot_scale == ProbPlotMethod.DEFAULT || obj.plot_scale == ProbPlotMethod.STATISTIC
+            if obj.current_settings.plot_scale == ProbPlotMethod.DEFAULT || obj.current_settings.plot_scale == ProbPlotMethod.STATISTIC
                 selected_value = linear_button;
-            elseif obj.plot_scale == ProbPlotMethod.LOG || obj.plot_scale == ProbPlotMethod.LOG_STATISTIC
+            elseif obj.current_settings.plot_scale == ProbPlotMethod.LOG || obj.current_settings.plot_scale == ProbPlotMethod.LOG_STATISTIC
                 selected_value = log_button;
             else
                 selected_value = neg_log_button;
@@ -601,25 +604,26 @@ classdef MatrixPlot < handle
             uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
                 "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
             color_map_select = uicontrol('Style', 'popupmenu',...
-                'Position', [100, scaleBaseButtons.Position(2) - 45, 242, 30]);
+                'Position', [90, scaleBaseButtons.Position(2) - 45, 280, 30], "Units", "pixels",...
+                'FontName', 'Courier');
             initial_colors = 16;
-            colormap_html = [];
+            colormap_html = {};
             for colors = 1:numel(obj.colormap_choices)
-                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors}), "(x)")));
+                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors})), "(x)"));
                 CData = colormap_function(initial_colors);
-                new_html_start = '<HTML>';
+                new_html_start = '<HTML> ';
                 new_html = '';
                 for color_iterator = initial_colors:-1:1
                     hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
                         CData(color_iterator, 3)]);
                     new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
                 end
-                %new_html = new_html(1:end-2);
-                new_html_end = [new_html '</HTML>'];
-                new_html = [new_html_start new_html new_html_end]
-                colormap_html = [colormap_html; {new_html}];
+                new_html_end = [new_html ' </HTML>'];
+                new_html = [new_html_start new_html_end];
+                colormap_html = [colormap_html; new_html];
             end
-            set(color_map_select, "Value", 1, "String", colormap_html);
+
+            set(color_map_select, "Value", obj.current_settings.color_map, "String", colormap_html);
 
             apply_button_position = [10, 10, 100, 30];
             apply_button = uicontrol('String', 'Apply',...
@@ -642,14 +646,6 @@ classdef MatrixPlot < handle
 
             button_group_value = get(get(button_group, "SelectedObject"), "String");
 
-            if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
-                ismember(button_group_value, ["Linear", "Log"])
-                obj.matrix.v = 10.^(-obj.matrix.v);
-            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
-                ~ismember(button_group_value, ["Linear", "Log"])
-                obj.matrix.v = -log10(obj.matrix.v);
-            end
-
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
             color_map = get(color_map_select, "Value");
             if button_group_value == "Linear"
@@ -667,6 +663,10 @@ classdef MatrixPlot < handle
             obj.color_map = new_color_map;
             obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
             obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
+            obj.current_settings.upper_limit = get(upper_limit_box, "String");
+            obj.current_settings.lower_limit = get(lower_limit_box, "String");
+            obj.current_settings.plot_scale = obj.plot_scale;
+            obj.current_settings.color_map = get(color_map_select, "Value");
         end
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
