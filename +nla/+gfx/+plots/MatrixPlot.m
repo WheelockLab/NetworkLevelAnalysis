@@ -57,6 +57,7 @@ classdef MatrixPlot < handle
     properties (SetAccess = immutable)
         original_matrix % The original matrix for scaling purposes. Despite it saying "immutable",
         % this property is mutable since it's a mutable object type and not a static value.
+        default_settings
     end
 
     methods
@@ -121,6 +122,7 @@ classdef MatrixPlot < handle
             obj.original_matrix = matrix;
             obj.current_settings = struct("upper_limit", obj.upper_limit, "lower_limit", obj.lower_limit,...
                 "plot_scale", obj.plot_scale, "color_map", 1);
+            obj.default_settings = obj.current_settings;
         end
 
         function displayImage(obj)
@@ -630,10 +632,26 @@ classdef MatrixPlot < handle
                 'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
                 "Units", "pixels",...
                 'Position', apply_button_position);
-            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
+            default_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
                 apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
-            uicontrol('String', 'Close', 'Callback', @(~, ~)close(d), "Units", "pixels", 'Position',...
-                close_button_position);
+            uicontrol('String', 'Default',...
+                'Callback', {@obj.setDefault, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
+                "Units", "pixels", 'Position',...
+                default_button_position);
+            close_button_position = [default_button_position(1) + default_button_position(3) + 10,...
+                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            uicontrol("String", "Close", "Callback", @(~, ~)close(d), "Units", "pixels", "Position", close_button_position);
+        end
+
+        function setDefault(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
+
+            button_group.Children(end).Value = true;
+            for child = 1:numel(button_group.Children) - 1
+                button_group.Children(child).Value = false;
+            end
+            set(upper_limit_box, "String", obj.default_settings.upper_limit);
+            set(lower_limit_box, "String", obj.default_settings.lower_limit);
+            set(color_map_select, "Value", obj.default_settings.color_map);
         end
 
         function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
