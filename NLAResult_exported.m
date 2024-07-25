@@ -499,13 +499,13 @@ classdef NLAResult < matlab.apps.AppBase
         function PValModeDropDownValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
             value = app.NetlevelplottingDropDown.Value;
-            if strcmp(value, 'linear')
+            if strcmp(value, 'p-value linear')
                 % Plot p-values on linear scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.DEFAULT;
             elseif strcmp(value, 'p-value log')
                 % Plot p-values on logarithmic scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.LOG;
-            elseif strcmp(value, 'p-value -log')
+            elseif strcmp(value, 'p-value -log10')
                 % Plot p-values on negative logarithmic scale
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEG_LOG_10;
             else
