@@ -157,7 +157,20 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
         end
     end
     
-    function onePlot(ax, pos, color_mode, color_mat)
+    function onePlot(varargin)
+        if nargin >= 3
+            ax = varargin{1};
+            pos = varargin{2};
+            color_mode = varargin{3};
+        end
+        if nargin >= 4
+            color_mat = varargin{4};
+        end
+        if nargin > 4
+            ulimit = str2double(varargin{5});
+            llimit = str2double(varargin{6});
+        end    
+
         if color_mode == nla.gfx.BrainColorMode.NONE
             ROI_final_pos = nla.gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, pos, surface_parcels,...
                 nla.gfx.BrainColorMode.NONE);
@@ -213,6 +226,37 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
     hold(ax, 'off'); 
     nla.gfx.hideAxes(ax);
     
+    function openModal(source, ~)
+        d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [source.Parent.Position(1), source.Parent.Position(2), 250, 150]);
+        upper_limit_box = uicontrol("Style", "edit", "Units", "pixels", "Position", [d.Position(3) / 2, d.Position(4) / 2 + 5, 50, 25], "String", ulimit);
+        lower_limit_box = uicontrol("Style", "edit", "Units", "pixels", "Position", [d.Position(3) / 2, d.Position(4) / 2 - upper_limit_box.Position(4) - 5, 50, 25], "String", llimit);
+        uicontrol("Style", "text", "String", "Upper Limit", "Units", "pixels", "Position", [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 5, 80, upper_limit_box.Position(4)]);
+        uicontrol("Style", "text", "String", "Lower Limit", "Units", "pixels", "Position", [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 5, 80, lower_limit_box.Position(4)]);
+
+        apply_button_position = [d.Position(3) / 2 - 85, 10, 80, 25];
+        close_button_position = [apply_button_position(1) + 85, apply_button_position(2), apply_button_position(3), apply_button_position(4)];
+        uicontrol("String", "Apply", "Units", "pixels", "Position", apply_button_position, "Callback", {@applyScale, upper_limit_box, lower_limit_box});
+        uicontrol("String", "Close", "Units", "pixels", "Position", close_button_position, "Callback", @(~, ~)close(d));
+    end
+
+    function applyScale(~, ~, upper_limit_box, lower_limit_box)
+        upper_limit = get(upper_limit_box, "String");
+        lower_limit = get(lower_limit_box, "String");
+        figure(fig)
+        if surface_parcels && ~islogical(net_atlas.parcels)
+            onePlot(subplot('Position',[.45,0.505,.53,.45]), nla.gfx.ViewPos.LAT, nla.gfx.BrainColorMode.COLOR_ROIS, color_mat, upper_limit, lower_limit);
+            onePlot(subplot('Position',[.45,0.055,.53,.45]), nla.gfx.ViewPos.MED, nla.gfx.BrainColorMode.COLOR_ROIS, color_mat, upper_limit, lower_limit);
+        else
+            onePlot(subplot('Position',[.45,0.505,.26,.45]), nla.gfx.ViewPos.BACK, nla.gfx.BrainColorMode.NONE, false, upper_limit, lower_limit);
+            onePlot(subplot('Position',[.73,0.505,.26,.45]), nla.gfx.ViewPos.FRONT, nla.gfx.BrainColorMode.NONE, false,  upper_limit, lower_limit);
+            onePlot(subplot('Position',[.45,0.055,.26,.45]), nla.gfx.ViewPos.LEFT, nla.gfx.BrainColorMode.NONE, false, upper_limit, lower_limit);
+            onePlot(subplot('Position',[.73,0.055,.26,.45]), nla.gfx.ViewPos.RIGHT, nla.gfx.BrainColorMode.NONE, false, upper_limit, lower_limit);
+        end
+        % ROI_final_pos = nla.gfx.drawROIsOnCortex(ax, net_atlas, ctx, mesh_alpha, ROI_radius, pos, surface_parcels,...
+        %         nla.gfx.BrainColorMode.NONE);   
+        % drawEdges(ROI_final_pos, ax, net_atlas, net1, net2, color_map, color_map_p, color_map_n, color_fx, fc_exists, lower_limit, upper_limit);
+    end
+
     %% Display colormap
     if color_fc
         % legend(ax, 'Location', 'best');
@@ -232,6 +276,7 @@ function drawBrainVis(edge_input_struct, input_struct, net_atlas, ctx, mesh_alph
         cb = colorbar(ax);
         cb.Location = 'southoutside';
         cb.Label.String = 'Coefficient Magnitude';
+        cb.ButtonDownFcn = @openModal;
         ticks = [0:num_ticks];
         cb.Ticks = double(ticks) ./ num_ticks;
 
