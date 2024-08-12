@@ -38,9 +38,10 @@ classdef WelchT < nla.edge.BaseTest
             result.dof.v = dof_vec;
             
             % Have to divide by 2 to get 2 tailed probability
-            t_sig = tinv(1 - (input_struct.prob_max / 2), total_size - 2);
-            result.prob_sig.v = (abs(t_vec) > t_sig);
-            result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
+%             t_sig = tinv(1 - (input_struct.prob_max / 2), total_size - 2);
+%             result.prob_sig.v = (abs(t_vec) > t_sig);
+            result.prob_sig.v =+ p_vec < input_struct.prob_max;
+            result.avg_prob_sig = sum(result.prob.v(result.prob_sig.v == 1)) ./ numel(result.prob_sig.v);
         end
     end
     
