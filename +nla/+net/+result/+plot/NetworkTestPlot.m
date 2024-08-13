@@ -140,7 +140,8 @@ classdef NetworkTestPlot < handle
             obj.current_settings.lower_limit = str2double(obj.matrix_plot.color_bar.TickLabels{1});
         end
 
-        function drawChord(obj, plot_type)
+        function drawChord(obj, ~, ~, plot_type)
+            import nla.gfx.EdgeChordPlotMethod
 
             obj.getPlotTitle();
 
@@ -150,8 +151,23 @@ classdef NetworkTestPlot < handle
             
             chord_plotter = nla.net.result.chord.ChordPlotter(obj.network_atlas, obj.edge_test_result);
 
-            if isfield(obj.network_test_options, "edge_chord_plot_method")
-                probability_parameters.edge_chord_plot_method = obj.network_test_options.edge_chord_plot_method;
+            for setting = obj.settings
+                if setting{1}.name == "edge_type"
+                    switch setting{1}.field.Value
+                        case "p-value"
+                            method = EdgeChordPlotMethod.PROB;
+                        case "Coefficient"
+                            method = EdgeChordPlotMethod.COEFF;
+                        case "Coefficient (Split)"
+                            method = EdgeChordPlotMethod.COEFF_SPLIT;
+                        case "Coefficient (Basic)"
+                            method = EdgeChordPlotMethod.COEFF_BASE;
+                        otherwise
+                            method = EdgeChordPlotMethod.COEFF_BASE_SPLIT;
+                    end
+                    probability_parameters.edge_chord_plot_method = method;
+                    break
+                end
             end
             chord_plotter.generateChordFigure(probability_parameters, plot_type)
             
@@ -201,8 +217,8 @@ classdef NetworkTestPlot < handle
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
                 ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
             network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.drawChord, nla.PlotType.CHORD});
+            edge_chord_type = PullDown("edge_type", "Edge-level Chord Type", ["p-value", "Coefficient", "Coefficient (Split)", "Coefficient (Basic)", "Coefficient (Baseic, Split)"]);
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.drawChord, nla.PlotType.CHORD_EDGE});
-            edge_chord_type = 
             convergence_plot = Button("convergence", "View Convergence Map", @obj.openConvergencePlot);
             convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
                 ["Bone", "Winter", "Autumn", "Copper"]);
@@ -219,12 +235,13 @@ classdef NetworkTestPlot < handle
                 {multiple_comparison_correction},...
                 {cohens_d, centroids},...
                 {network_chord_plot, edge_chord_plot},...
+                {edge_chord_type},...
                 {convergence_plot, convergence_color},...
                 {apply},...
             };
         
             obj.settings = {scale_option, ranking_method, cohens_d, centroids, multiple_comparison_correction,...
-                convergence_color, upper_limit_box, lower_limit_box, colormap_choice};
+                convergence_color, upper_limit_box, lower_limit_box, colormap_choice, edge_chord_type};
         
             y = obj.panel_height - LABEL_GAP;
             x = LABEL_GAP;
