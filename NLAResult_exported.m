@@ -270,16 +270,23 @@ classdef NLAResult < matlab.apps.AppBase
                 commit_short = result.commit_short();
             end
             branchLabel(app, helpers.git.commitString(), commit_short);
-            app.EdgeLevelLabel.Text = result.edge_test_results.name;
             
-            app.input_struct = result.test_options;
-            app.net_input_struct = result.network_test_options;
+            if isprop(result, "edge_test_results") % We're basically checking for NetworkTestResult object or older here
+                app.EdgeLevelLabel.Text = result.edge_test_results.name;
+                app.input_struct = result.test_options;
+                app.net_input_struct = result.network_test_options;
+                app.edge_result = result.edge_test_results;
+            else
+                app.EdgeLevelLabel.Text = result.edge_result.name;
+                app.input_struct = result.input_struct;
+                app.net_input_struct = result.net_input_struct;
+                app.edge_result = result.edge_result;
+            end
             
             if isfield(app.net_input_struct, 'prob_max_original')
                 app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
             end
             
-            app.edge_result = result.edge_test_results;
             app.results = result;
             
             app.ViewEdgeLevelButton.Enable = true;
