@@ -38,7 +38,9 @@ classdef NetworkTestPlot < handle
             "cohens_d", "parameters",...
             "centroids", "centroids",...
             "mcc", "parameters",...
-            "convergence_color", "convergence"...
+            "convergence_color", "convergence",...
+            "p_threshold", "parameters",...
+            "d_threshold", "parameters"...
         )
     end
 
@@ -109,7 +111,8 @@ classdef NetworkTestPlot < handle
                 obj.panel_height + (4 * LABEL_GAP)];
             obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height],...
                 "BackgroundColor", "w");
-            obj.drawOptions()
+            obj.drawOptions();
+            % obj.resizeOptions();
 
             obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
                 obj.network_test_options);
@@ -119,15 +122,28 @@ classdef NetworkTestPlot < handle
                 obj.drawChord(plot_type);
             end
 
+
             obj.resizeFigure(width, plot_height);
         end
 
         function [width, height] = drawTriMatrixPlot(obj)
                      
+            if ~isequal(obj.matrix_plot, false)
+               obj.matrix_plot.plot_title.String = {};
+            end
             obj.getPlotTitle();
 
+            switch obj.current_settings.mcc
+                case "Benjamini-Hochberg"
+                    mcc = "BenjaminiHochberg";
+                case "Benjamini-Yekutieli"
+                    mcc = "BenjaminiYekutieli";
+                otherwise
+                    mcc = obj.current_settings.mcc;
+            end
+
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
-                obj.test_method, "p_value", sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
+                obj.test_method, "p_value", sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
 
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
@@ -169,7 +185,7 @@ classdef NetworkTestPlot < handle
                     break
                 end
             end
-            chord_plotter.generateChordFigure(probability_parameters, plot_type)
+            chord_plotter.generateChordFigure(probability_parameters, plot_type);
             
         end
 
@@ -205,7 +221,7 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function drawOptions(obj)
+        function [width, height] = drawOptions(obj)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
             import nla.inputField.Button nla.inputField.Number
 
@@ -215,7 +231,7 @@ classdef NetworkTestPlot < handle
             cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", true);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
-                ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
+                ["None", "Bonferroni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
             network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.drawChord, nla.PlotType.CHORD});
             edge_chord_type = PullDown("edge_type", "Edge-level Chord Type", ["p-value", "Coefficient", "Coefficient (Split)", "Coefficient (Basic)", "Coefficient (Baseic, Split)"]);
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.drawChord, nla.PlotType.CHORD_EDGE});
@@ -226,11 +242,14 @@ classdef NetworkTestPlot < handle
             upper_limit_box = Number("upper_limit", "Upper Limit", -Inf, 0.3, Inf);
             lower_limit_box = Number("lower_limit", "Lower Limit", -Inf, -0.3, Inf);
             colormap_choice = PullDown("colormap_choice", "Colormap", obj.colormap_choices);
+            p_value_threshold = Number("p_threshold", "p-value Threshold", -Inf, 0.05, Inf);
+            cohens_d_threshold = Number("d_threshold", "Cohen's D Threshold", -Inf, 0.5, Inf);
 
             % Draw the options
             options = {...
                 {scale_option, ranking_method},...
                 {upper_limit_box, lower_limit_box},...
+                {p_value_threshold, cohens_d_threshold},...
                 {colormap_choice},...
                 {multiple_comparison_correction},...
                 {cohens_d, centroids},...
@@ -241,7 +260,8 @@ classdef NetworkTestPlot < handle
             };
         
             obj.settings = {scale_option, ranking_method, cohens_d, centroids, multiple_comparison_correction,...
-                convergence_color, upper_limit_box, lower_limit_box, colormap_choice, edge_chord_type};
+                convergence_color, upper_limit_box, lower_limit_box, colormap_choice, edge_chord_type, p_value_threshold,...
+                cohens_d_threshold};
         
             y = obj.panel_height - LABEL_GAP;
             x = LABEL_GAP;
@@ -261,6 +281,10 @@ classdef NetworkTestPlot < handle
                 x = LABEL_GAP;
             end
             
+            if y < 0
+                obj.panel_height = obj.panel_height - y; % y is < 0 so subtract to "add" it here
+                obj.options_panel.Position(4) = obj.panel_height;
+            end
             apply.field.ButtonPushedFcn = {@obj.applyChanges, obj.settings};
         end
 
@@ -296,15 +320,15 @@ classdef NetworkTestPlot < handle
                     delete(obj.matrix_plot.image_display);
                     delete(obj.matrix_plot.color_bar);
                 end
-                progress_bar.Message = "Redrawing TriMatrix..."
+                progress_bar.Message = "Redrawing TriMatrix...";
                 obj.drawTriMatrixPlot();
             elseif any(strcmp("scale", changes))
-                progress_bar.Message = "Changing scale of existing TriMatrix..."
+                progress_bar.Message = "Changing scale of existing TriMatrix...";
                 obj.matrix_plot.applyScale(false, false, obj.current_settings.upper_limit,...
                     obj.current_settings.lower_limit, obj.current_settings.plot_scale,...
                     obj.current_settings.colormap_choice);   
             end  
-            close(progress_bar)
+            close(progress_bar);
         end
 
         function openConvergencePlot(obj, ~, ~)

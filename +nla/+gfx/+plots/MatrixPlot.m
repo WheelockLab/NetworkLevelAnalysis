@@ -30,6 +30,7 @@ classdef MatrixPlot < handle
         axes % The axes of the plot
         image_display % The actual displayed values
         color_bar % The colorbar
+        plot_title = false
         plot_scale % The scale and values being plotted (Linear, log, -log10, p-value, statistic p-value)
     end
 
@@ -157,12 +158,12 @@ classdef MatrixPlot < handle
             if obj.draw_colorbar
                 obj.createColorbar();
             end
-           
+
             % Title plot and center title
             if ~isempty(obj.name)
-                plot_title = title(obj.axes, ' ');
-                text(obj.axes, dimensions("plot_width") / 2 , dimensions("offset_y") / 2, obj.name,...
-                    'FontName', plot_title.FontName, 'FontSize', 14, 'FontWeight', plot_title.FontWeight,...
+                obj.plot_title = title(obj.axes, '');
+                obj.plot_title = text(obj.axes, dimensions("plot_width") / 2 , dimensions("offset_y") / 2, obj.name,...
+                    'FontName', obj.plot_title.FontName, 'FontSize', 14, 'FontWeight', obj.plot_title.FontWeight,...
                     'HorizontalAlignment', 'center');
             end
 
