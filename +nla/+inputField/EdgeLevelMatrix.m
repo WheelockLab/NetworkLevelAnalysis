@@ -83,23 +83,21 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
                 ~islogical(input_struct.net_atlas) &&...
                 ~islogical(obj.matrix)
                 
-                dims = size(obj.matrix);
+                matrix_dimensions = size(obj.matrix);
                 
-                desired_dims = obj.substituteDims(obj.dimensions, input_struct.net_atlas.numROIs,...
+                desired_dimensions = obj.substituteDims(obj.dimensions, input_struct.net_atlas.numROIs,...
                     nla.helpers.triNum(input_struct.net_atlas.numROIs - 1), input_struct.perm_count);
-                if numel(dims) == numel(desired_dims) && all(dims == desired_dims)
-                    if obj.dimensions(1) == nla.inputField.DimensionType.NROIPAIRS
-                        obj.matrix_ordered = nla.TriMatrix(input_struct.net_atlas.numROIs);
-                        obj.matrix_ordered.v = obj.matrix;
-                    else
-                        obj.matrix_ordered = nla.TriMatrix(input_struct.net_atlas.numROIs);
-                        obj.matrix_ordered.v = obj.matrix;
-                    end
+
+                valid_dimensions = obj.validateDimensions(obj.dimensions, matrix_dimensions, input_struct.net_atlas.numROIs,...
+                    nla.helpers.triNum(input_struct.net_atlas.numROIs - 1), input_struct.perm_count);
+                if numel(matrix_dimensions) == numel(valid_dimensions) && all(valid_dimensions)
+                    obj.matrix_ordered = nla.TriMatrix(input_struct.net_atlas.numROIs);
+                    obj.matrix_ordered.v = obj.matrix;
                     
                     input_struct.(obj.name) = obj.matrix_ordered;
                 else
                     error = sprintf('Matrix does not match network atlas/permutation dimensions (should be %s, is %s)!',...
-                        join(string(desired_dims), "x"), join(string(dims), "x"));
+                        join(string(desired_dimensions), "x"), join(string(matrix_dimensions), "x"));
                 end
             else
                 error = 'Something has gone badly wrong with inputField.EdgeLevelMatrix, please report this on the NLA Github or contact an author';
@@ -170,6 +168,27 @@ classdef EdgeLevelMatrix < nla.inputField.InputField
                         dims(i) = string(dim);
                     else
                         dims(i) = dim;
+                    end
+                end
+            end
+        end
+
+        function valid = validateDimensions(obj, input_dimensions, matrix_dimensions, number_of_rois, roi_pairs, permutations)
+            import nla.inputField.DimensionType
+
+            for index = 1:numel(input_dimensions)
+                dimension = input_dimensions(index);
+                if dimension == DimensionType.NROIS
+                    valid(index) = (matrix_dimensions(index) == number_of_rois);
+                elseif dimension == DimensionType.NROIPAIRS
+                    valid(index) = (matrix_dimensions(index) == roi_pairs);
+                elseif dimension == DimensionType.NPERMS
+                    valid(index) = (matrix_dimensions(index) >= permutations);
+                else
+                    if isstring(number_of_rois)
+                        valid(index) = (matrix_dimensions(index) == string(dimension));
+                    else
+                        valid(index) = (matrix_dimensions(index) == dimension);
                     end
                 end
             end
