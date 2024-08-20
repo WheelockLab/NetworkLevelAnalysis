@@ -31,9 +31,14 @@ classdef PairedT < nla.edge.BaseTest
             obj.setResultFields(test_options.net_atlas, result, stats.tstat, p_values, test_options.prob_max);
             result.dof.v = stats.df;
 
-            t_significance = tinv(1 - (test_options.prob_max / 2), total_size - 2);
-            result.prob_sig.v = (abs(stats.tstat) > t_significance);
-            result.avg_prob_sig = sum(result.prob_sig.v) ./ numel(result.prob_sig.v);
+            result.prob_sig.v =+ p_values < test_options.prob_max;
+            result.avg_prob_sig = sum(result.prob.v(result.prob_sig.v == 1)) ./ numel(result.prob_sig.v);
+            
+            % Uncomment these lines only if you want to see sparsity values
+            % for setting binarization threshold
+%             num_hits = size(find(result.prob_sig.v == 1),1);
+%             num_total = size(result.prob_sig.v,1);
+%             sparsity = num_hits/num_total
         end
     end
 

@@ -11,6 +11,8 @@ classdef ResultPool
         permutation_edge_test_results
         permutation_network_test_results
         version
+        commit
+        commit_short
     end
     
     methods
@@ -23,6 +25,8 @@ classdef ResultPool
             obj.permutation_edge_test_results = permutation_edge_test_results;
             obj.network_test_results = network_test_results;
             obj.permutation_network_test_results = permutation_network_test_results;
+            obj.commit = nla.helpers.git.commitString(true);
+            obj.commit_short = nla.helpers.git.commitString();
             obj.version = nla.VERSION;
         end
         
