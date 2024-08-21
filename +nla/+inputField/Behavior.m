@@ -12,6 +12,8 @@ classdef Behavior < nla.inputField.InputField
         covariates = false
         covariates_idx = false
         cols_selected = false
+        permutation_groups = false
+        permutation_group_idx = false
         covariates_enabled
     end
     
@@ -23,6 +25,8 @@ classdef Behavior < nla.inputField.InputField
         button_add_cov = false
         button_sub_cov = false
         button_view_design_mtx = false
+        button_add_permutation_level = false
+        button_remove_permutation_level = false
         select_partial_variance_label = false
         select_partial_variance = false
     end
@@ -41,15 +45,14 @@ classdef Behavior < nla.inputField.InputField
         end
         
         function [w, h] = draw(obj, x, y, parent, fig)
-            import nla.inputField.LABEL_H
+            import nla.inputField.LABEL_H nla.inputField.LABEL_GAP
 
             obj.fig = fig;
             
-            table_w = max(parent.Position(3) - (nla.inputField.LABEL_GAP * 4), 500);
+            table_w = max(parent.Position(3) - (LABEL_GAP * 4), 500);
             table_h = 300;
             
-            label_gap = nla.inputField.LABEL_GAP;
-            h = LABEL_H + label_gap + table_h + label_gap + LABEL_H + label_gap + LABEL_H;
+            h = LABEL_H + LABEL_GAP + table_h + LABEL_GAP + LABEL_H + LABEL_GAP + LABEL_H;
             
             %% Create label
             if ~isgraphics(obj.label)
@@ -58,16 +61,16 @@ classdef Behavior < nla.inputField.InputField
             obj.label.Text = 'Behavior:';
             label_w = nla.inputField.widthOfString(obj.label.Text, LABEL_H);
             obj.label.HorizontalAlignment = 'left';
-            obj.label.Position = [x, y - LABEL_H, label_w + label_gap, LABEL_H];
+            obj.label.Position = [x, y - LABEL_H, label_w + LABEL_GAP, LABEL_H];
             
             %% Create button
             if ~isgraphics(obj.button)
                 obj.button = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.buttonClickedCallback());
             end
             button_w = 100;
-            obj.button.Position = [x + label_w + label_gap, y - LABEL_H, button_w, LABEL_H];
+            obj.button.Position = [x + label_w + LABEL_GAP, y - LABEL_H, button_w, LABEL_H];
             
-            w = label_w + label_gap + button_w;
+            w = label_w + LABEL_GAP + button_w;
             
             %% Create table
             if ~isgraphics(obj.table)
@@ -76,48 +79,62 @@ classdef Behavior < nla.inputField.InputField
                 obj.table.SelectionType = 'column';
                 obj.table.ColumnName = {'None'};
                 obj.table.RowName = {};
-                obj.table.Position = [x, y - (table_h + label_gap + LABEL_H), table_w, table_h];
+                obj.table.Position = [x, y - (table_h + LABEL_GAP + LABEL_H), table_w, table_h];
             end
             
             w2 = table_w;
             
             %% 'Set Behavior' button
             [obj.button_set_bx, w3] = obj.createButton(obj.button_set_bx, 'Set Behavior', parent, x,...
-                y - h + LABEL_H + label_gap + LABEL_H, @(h,e)obj.button_set_bxClickedCallback());
+                y - h + LABEL_H + LABEL_GAP + LABEL_H, @(h,e)obj.button_set_bxClickedCallback());
             obj.button_set_bx.BackgroundColor = '#E3FDD8';
             
             %% 'Add Covariate' button
-            [obj.button_add_cov, w4] = obj.createButton(obj.button_add_cov, 'Add Covariate', parent, x + w3 + label_gap,...
-                y - h + LABEL_H + label_gap + LABEL_H, @(h,e)obj.button_add_covClickedCallback());
+            [obj.button_add_cov, w4] = obj.createButton(obj.button_add_cov, 'Add Covariate', parent, x + w3 + LABEL_GAP,...
+                y - h + LABEL_H + LABEL_GAP + LABEL_H, @(h,e)obj.button_add_covClickedCallback());
             obj.button_add_cov.BackgroundColor = '#FADADD';
             
             %% 'Remove Covariate' button
             [obj.button_sub_cov, w5] = obj.createButton(obj.button_sub_cov, 'Remove Covariate', parent,...
-                x + w3 + label_gap + w4 + label_gap, y - h + LABEL_H + label_gap + LABEL_H,...
+                x + w3 + LABEL_GAP + w4 + LABEL_GAP, y - h + LABEL_H + LABEL_GAP + LABEL_H,...
                 @(h,e)obj.button_sub_covClickedCallback());
             obj.button_sub_cov.BackgroundColor = '#FADADD';
             
             %% 'View Design Matrix' button
             [obj.button_view_design_mtx, w6] = obj.createButton(obj.button_view_design_mtx, 'View Design Matrix', parent,...
-                x + w3 + label_gap + w4 + label_gap + w5 + label_gap, y - h + LABEL_H + label_gap + LABEL_H,...
+                x + w3 + LABEL_GAP + w4 + LABEL_GAP + w5 + LABEL_GAP, y - h + LABEL_H + LABEL_GAP + LABEL_H,...
                 @(h,e)obj.button_view_design_mtxClickedCallback());
             
+            %% Add Permutation button
+            [obj.button_add_permutation_level, permutation_button_width] = obj.createButton(...
+                obj.button_add_permutation_level, "Add Permutation Group Level", parent, x, y - h + LABEL_H,...
+                @(h,e)obj.addPermutationGroup()...
+            );
+            obj.button_add_permutation_level.BackgroundColor = "#8CABFB";
+
+            %% Remove Permutation button
+            [obj.button_remove_permutation_level, remove_permutation_button_width] = obj.createButton(...
+                obj.button_remove_permutation_level, "Remove Last Permutation Group", parent,...
+                x + permutation_button_width + LABEL_GAP, y - h + LABEL_H, @(h,e)obj.removePermutationGroup()...
+            );
+            obj.button_remove_permutation_level.BackgroundColor = "#8CABFB";
+
             %% 'Partial Variance' options
             obj.select_partial_variance_label = uilabel(parent);
             obj.select_partial_variance_label.HorizontalAlignment = 'left';
             obj.select_partial_variance_label.Text = 'Remove shared variance from covariates:';
             select_partial_variance_label_w = nla.inputField.widthOfString(obj.select_partial_variance_label.Text, LABEL_H);
-            obj.select_partial_variance_label.Position = [x, y - h, select_partial_variance_label_w, LABEL_H];
+            obj.select_partial_variance_label.Position = [x, y - h - LABEL_H - LABEL_GAP, select_partial_variance_label_w, LABEL_H];
             
             select_partial_variance_w = 100;
             obj.select_partial_variance = uidropdown(parent);
             obj.genPartialVarianceOpts();
-            obj.select_partial_variance.Position = [x + select_partial_variance_label_w + label_gap, y - h,...
+            obj.select_partial_variance.Position = [x + select_partial_variance_label_w + LABEL_GAP, y - h - LABEL_H - LABEL_GAP,...
                 select_partial_variance_w, LABEL_H];
             obj.select_partial_variance.Value = nla.PartialVarianceType.NONE;
-            w7 = x + select_partial_variance_label_w + label_gap + select_partial_variance_w;
+            w7 = x + select_partial_variance_label_w + LABEL_GAP + select_partial_variance_w;
             
-            w = max([w, w2, w3 + label_gap + w4 + label_gap + w5 + label_gap + w6, w7]);
+            w = max([w, w2, w3 + LABEL_GAP + w4 + LABEL_GAP + w5 + LABEL_GAP + w6, w7]);
         end
         
         function undraw(obj)
@@ -148,6 +165,12 @@ classdef Behavior < nla.inputField.InputField
             end
             if isgraphics(obj.select_partial_variance)
                 delete(obj.select_partial_variance)
+            end
+            if isgraphics(obj.button_add_permutation_level)
+                delete(obj.button_add_permutation_level)
+            end
+            if isgraphics(obj.button_remove_permutation_level)
+                delete(obj.button_remove_permutation_level)
             end
         end
         
@@ -192,6 +215,7 @@ classdef Behavior < nla.inputField.InputField
             input_struct.covariates = obj.covariates;
             input_struct.covariates_idx = obj.covariates_idx;
             input_struct.partial_variance = obj.select_partial_variance.Value;
+            input_struct.permutation_groups = obj.permutation_groups;
             error = false;
         end
     end
@@ -364,6 +388,34 @@ classdef Behavior < nla.inputField.InputField
             end
         end
         
+        function addPermutationGroup(obj, ~)
+            if islogical(obj.permutation_group_idx)
+                obj.permutation_group_idx = [];
+            end
+            if obj.cols_selected
+                obj.permutation_group_idx = union(obj.permutation_group_idx, obj.cols_selected);
+                obj.permutation_groups = table2array(obj.table.Data(:, obj.permutation_group_idx));
+            end
+            if isempty(obj.permutation_group_idx)
+                obj.permutation_group_idx = false;
+            end
+            obj.update();
+        end
+
+        function removePermutationGroup(obj, ~)
+            if islogical(obj.permutation_group_idx)
+                obj.permutation_group_idx = [];
+            end
+            if obj.cols_selected
+                obj.permutation_group_idx = setdiff(obj.permutation_group_idx, obj.cols_selected);
+                obj.permutation_groups = table2array(obj.table.Data(:, obj.permutation_group_idx));
+            end
+            if isempty(obj.permutation_group_idx)
+                obj.permutation_group_idx = false;
+            end
+            obj.update();
+        end
+
         function update(obj)
             import nla.inputField.widthOfString nla.inputField.LABEL_H
                     
@@ -385,6 +437,8 @@ classdef Behavior < nla.inputField.InputField
                 obj.button_view_design_mtx.Enable = false;
                 obj.select_partial_variance.Enable = false;
                 obj.select_partial_variance_label.Enable = false;
+                obj.button_add_permutation_level.Enable = false;
+                obj.button_remove_permutation_level.Enable = false;
             else
                 obj.table.Data = obj.behavior_full;
                 obj.table.ColumnName = obj.behavior_full.Properties.VariableNames;
@@ -402,14 +456,22 @@ classdef Behavior < nla.inputField.InputField
                     addStyle(obj.table, cov_s, 'column', obj.covariates_idx)
                 end
                 
+                if ~islogical(obj.permutation_group_idx)
+                    permutation_groups_style = uistyle("BackgroundColor", "#8CABFB");
+                    addStyle(obj.table, permutation_groups_style, "column", obj.permutation_group_idx);
+                end
+
                 % Enable buttons
                 obj.table.Enable = 'on';
                 obj.button_set_bx.Enable = true;
-                
+                obj.button_add_permutation_level.Enable = true;
+                obj.button_remove_permutation_level.Enable = true;
+
                 enable_cov = (obj.covariates_enabled ~= nla.inputField.CovariatesEnabled.NONE);
                 obj.button_add_cov.Enable = enable_cov;
                 obj.button_sub_cov.Enable = enable_cov;
                 obj.button_view_design_mtx.Enable = enable_cov;
+
                 
                 obj.genPartialVarianceOpts();
                 
