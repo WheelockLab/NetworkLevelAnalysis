@@ -53,6 +53,7 @@ classdef WelchT < nla.edge.BaseTest
             behavior_handle = nla.helpers.firstInstanceOfClass(inputs, 'nla.inputField.Behavior');
             behavior_handle.covariates_enabled = nla.inputField.CovariatesEnabled.ONLY_FC;
             
+            inputs{end + 1} = nla.inputField.Label("", "");
             inputs{end + 1} = nla.inputField.String('group1_name', 'Group 1 name:', 'Group1');
             inputs{end + 1} = nla.inputField.Number('group1_val', 'Group 1 behavior value:', -Inf, 1, Inf);
             inputs{end + 1} = nla.inputField.String('group2_name', 'Group 2 name:', 'Group2');
