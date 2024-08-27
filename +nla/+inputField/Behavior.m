@@ -398,6 +398,7 @@ classdef Behavior < nla.inputField.InputField
             end
             if isempty(obj.permutation_group_idx)
                 obj.permutation_group_idx = false;
+                obj.permutation_groups = false;
             end
             obj.update();
         end
@@ -412,6 +413,7 @@ classdef Behavior < nla.inputField.InputField
             end
             if isempty(obj.permutation_group_idx)
                 obj.permutation_group_idx = false;
+                obj.permutation_groups = false;
             end
             obj.update();
         end
