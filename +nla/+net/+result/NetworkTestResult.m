@@ -275,165 +275,164 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
-            import nla.gfx.createFigure nla.net.result.plot.PermutationTestPlotter nla.net.result.chord.ChordPlotter
+            % import nla.gfx.createFigure nla.net.result.plot.PermutationTestPlotter nla.net.result.chord.ChordPlotter
             
             plot_test_type = "no_permutations";
 
             % Get the plot parameters (titles, stats, labels, max, min, etc)
-            plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
+            % plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
             
-            p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
-            p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
-                plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
+            % p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
+            % p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
+            %     plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
 
             % No permutations results
-            if flags.plot_type == nla.PlotType.FIGURE
-                plot_figure = createFigure(500, 500);
+            % if flags.plot_type == nla.PlotType.FIGURE
+            network_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, plot_parameters.network_atlas,...
+                plot_test_type, edge_test_options. updated_test_options);
+            network_plot.drawFigure();
 
-                plotter = PermutationTestPlotter(plot_parameters.network_atlas);
-                % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
-                % plot the probability
-
-                % Hard-coding sucks, but to make this adaptable for every type of test and method, here we are
-                x_coordinate = 0;
-                y_coordinate = 0;
-                plotter.plotProbability(plot_figure, p_value_plot_parameters, x_coordinate, y_coordinate);
-
-            elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                if isfield(updated_test_options, 'edge_chord_plot_method')
-                    p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                end
-                chord_plotter = ChordPlotter(plot_parameters.network_atlas, edge_test_result);
-                chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
-            end
+            % elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+            %     if isfield(updated_test_options, 'edge_chord_plot_method')
+            %         p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+            %     end
+            %     chord_plotter = ChordPlotter(plot_parameters.network_atlas, edge_test_result);
+            %     chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
+            % end
         end
 
         function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options,...
             cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter
-            import nla.net.result.chord.ChordPlotter nla.net.result.plot.PermutationTestPlotter
+            % import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter
+            % import nla.net.result.chord.ChordPlotter nla.net.result.plot.PermutationTestPlotter
             
             plot_test_type = "full_connectome";
 
-            plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
-            plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
+            network_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas, plot_test_type,...
+                edge_test_options, updated_test_options);
+            network_plot.drawFigure();
+            % plot_title = sprintf("Full Connectome Method\nNetwork vs. Connectome Significance");
+            % plot_title_threshold = sprintf('%s (D > %g)', plot_title, updated_test_options.d_max);
             
-            p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
+            % p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
             
-            % This is the object that will do the calculations for the plots
-            result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
+            % % This is the object that will do the calculations for the plots
+            % result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
-            ranking_method = "Eggebrecht";
-            if isfield(flags, "ranking_method") && ~isequal(flags.ranking_method, "")
-                ranking_method = flags.ranking_method;
-            end
+            % ranking_method = "Eggebrecht";
+            % if isfield(flags, "ranking_method") && ~isequal(flags.ranking_method, "")
+            %     ranking_method = flags.ranking_method;
+            % end
 
-            % Get the plot parameters (titles, stats, labels, etc.)
-            full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
-                edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
-                nla.net.mcc.None(), false, ranking_method);
+            % % Get the plot parameters (titles, stats, labels, etc.)
+            % full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
+            %     edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
+            %     nla.net.mcc.None(), false, ranking_method);
 
-            % Mark the probability trimatrix with cohen's d results
-            full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                edge_test_options, edge_test_result, plot_test_type, p_value, plot_title_threshold, ...
-                nla.net.mcc.None(), cohens_d_filter, ranking_method);
+            % % Mark the probability trimatrix with cohen's d results
+            % full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+            %     edge_test_options, edge_test_result, plot_test_type, p_value, plot_title_threshold, ...
+            %     nla.net.mcc.None(), cohens_d_filter, ranking_method);
 
-            if flags.plot_type == nla.PlotType.FIGURE
-                plotter = PermutationTestPlotter(edge_test_options.net_atlas);
+            % if flags.plot_type == nla.PlotType.FIGURE
+            %     plotter = PermutationTestPlotter(edge_test_options.net_atlas);
                 
-                % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
-                % but then the plots get put under different layers. 
-                if obj.is_noncorrelation_input
-                    plot_figure = createFigure(1000, 900);
-                    plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
-                        obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
-                    plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,2,3),...
-                        "Non-permuted P-values vs. Network-Pair Size");
-                    plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
-                        "Permuted P-values vs. Net-Pair Size");
-                    plot_figure = createFigure(500, 500);
-                    x_coordinate = 25;
-                else
-                    plot_figure = createFigure(1200, 900);
-                    plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,3,5),...
-                        "Non-permuted P-values vs. Network-Pair Size");
-                    plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,3,6),...
-                        "Permuted P-values vs. Net-Pair Size");
-                    plotter.plotProbabilityHistogram(subplot(2,3,4), p_value_histogram,  obj.full_connectome.p_value.v,...
-                        obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
-                    x_coordinate = 75;
-                end
+            %     % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
+            %     % but then the plots get put under different layers. 
+            %     if obj.is_noncorrelation_input
+            %         plot_figure = createFigure(1000, 900);
+            %         plotter.plotProbabilityHistogram(subplot(2,2,2), p_value_histogram,  obj.full_connectome.p_value.v,...
+            %             obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
+            %         plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,2,3),...
+            %             "Non-permuted P-values vs. Network-Pair Size");
+            %         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
+            %             "Permuted P-values vs. Net-Pair Size");
+            %         plot_figure = createFigure(500, 500);
+            %         x_coordinate = 25;
+            %     else
+            %         plot_figure = createFigure(1200, 900);
+            %         plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, subplot(2,3,5),...
+            %             "Non-permuted P-values vs. Network-Pair Size");
+            %         plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,3,6),...
+            %             "Permuted P-values vs. Net-Pair Size");
+            %         plotter.plotProbabilityHistogram(subplot(2,3,4), p_value_histogram,  obj.full_connectome.p_value.v,...
+            %             obj.no_permutations.p_value.v, obj.test_display_name, updated_test_options.prob_max);
+            %         x_coordinate = 75;
+            %     end
 
-                y_coordinate = 0;
-                [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
-                if ~obj.is_noncorrelation_input
-                    plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
-                end
+            %     y_coordinate = 0;
+            %     [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
+            %     if ~obj.is_noncorrelation_input
+            %         plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
+            %     end
 
-            elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                if isfield(updated_test_options, 'edge_chord_plot_method')
-                    full_connectome_p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                    full_connectome_p_value_plot_parameters_with_cohensd.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                end
+            % elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+            %     if isfield(updated_test_options, 'edge_chord_plot_method')
+            %         full_connectome_p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+            %         full_connectome_p_value_plot_parameters_with_cohensd.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+            %     end
 
-                chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if ~obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
-                    chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
-                else
-                    chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
-                end
-            end
+            %     chord_plotter = ChordPlotter(network_atlas, edge_test_result);
+            %     if ~obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+            %         chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
+            %     else
+            %         chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
+            %     end
+            % end
         end
 
         function withinNetworkPairPlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
-            import nla.net.result.chord.ChordPlotter
+            % import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
+            % import nla.net.result.chord.ChordPlotter
 
             plot_test_type = "within_network_pair";
+            network_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas, plot_test_type,...
+                edge_test_options, update_test_options);
+            network_plot.drawFigure();
 
-            plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
+            % plot_title = sprintf('Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair');
 
-            result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
+            % result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
-            p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
+            % p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
 
-            within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
-                edge_test_result, plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
+            % within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
+            %     edge_test_result, plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
 
-            plot_title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
-                updated_test_options.d_max);
-            within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
-                edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
-                updated_test_options.fdr_correction, cohens_d_filter);
+            % plot_title = sprintf("Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair (D > %g)",...
+            %     updated_test_options.d_max);
+            % within_network_pair_p_value_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
+            %     edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
+            %     updated_test_options.fdr_correction, cohens_d_filter);
 
-            if flags.plot_type == nla.PlotType.FIGURE
+            % if flags.plot_type == nla.PlotType.FIGURE
 
-                plotter = PermutationTestPlotter(edge_test_options.net_atlas);
-                y_coordinate = 0;
-                if obj.is_noncorrelation_input
-                    plot_figure = createFigure(500, 500);
-                    x_coordinate = 0;
-                    plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
-                else
-                    plot_figure = createFigure(1000,450);
-                    x_coordinate = 25;
-                    [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
-                    plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
-                end
+            %     plotter = PermutationTestPlotter(edge_test_options.net_atlas);
+            %     y_coordinate = 0;
+            %     if obj.is_noncorrelation_input
+            %         plot_figure = createFigure(500, 500);
+            %         x_coordinate = 0;
+            %         plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
+            %     else
+            %         plot_figure = createFigure(1000,450);
+            %         x_coordinate = 25;
+            %         [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
+            %         plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
+            %     end
 
-            elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-                if isfield(updated_test_options, 'edge_chord_plot_method')
-                    within_network_pair_p_value_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                    within_network_pair_p_value_parameters_with_cohensd.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-                end
+            % elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+            %     if isfield(updated_test_options, 'edge_chord_plot_method')
+            %         within_network_pair_p_value_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+            %         within_network_pair_p_value_parameters_with_cohensd.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+            %     end
 
-                chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
-                    chord_plotter.generateChordFigure(within_network_pair_p_value_parameters_with_cohensd, flags.plot_type);
-                else
-                    chord_plotter.generateChordFigure(within_network_pair_p_value_parameters, flags.plot_type);
-                end
-            end
+            %     chord_plotter = ChordPlotter(network_atlas, edge_test_result);
+            %     if obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+            %         chord_plotter.generateChordFigure(within_network_pair_p_value_parameters_with_cohensd, flags.plot_type);
+            %     else
+            %         chord_plotter.generateChordFigure(within_network_pair_p_value_parameters, flags.plot_type);
+            %     end
+            % end
         end
 
         function p_value = choosePlottingMethod(obj, test_options, plot_test_type)
