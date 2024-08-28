@@ -110,6 +110,20 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %%
         end
 
+        function outputDiagnosticPlots(obj,  edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
+
+            diagnostic_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options, edge_test_result,...
+                network_atlas, obj);
+            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
+                ranking_algorithm = "no_permutations";
+            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
+                ranking_algorithm = "full_connectome";
+            else
+                ranking_algorithm = "within_network_pair";
+            end
+            diagnostic_plot.displayPlots(ranking_algorithm);
+        end
+
         function merge(obj, other_objects)
             %MERGE Merge two groups of results together. Not guaranteed to be ordered
             if ~iscell(other_objects)
@@ -140,6 +154,18 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
 
             obj.last_index = obj.last_index + 1;
+        end
+
+        function histogram = createHistogram(obj, statistic)
+            if ~endsWith(statistic, "_permutations")
+                statistic = strcat(statistic, "_permutations");
+            end
+            permutation_data = obj.permutation_results.(statistic);
+            histogram = zeros(nla.HistBin.SIZE, "uint32");
+
+            for permutation = 1:obj.permutation_count
+                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
+            end
         end
 
         % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
@@ -246,18 +272,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-        end
-
-        function histogram = createHistogram(obj, statistic)
-            if ~endsWith(statistic, "_permutations")
-                statistic = strcat(statistic, "_permutations");
-            end
-            permutation_data = obj.permutation_results.(statistic);
-            histogram = zeros(nla.HistBin.SIZE, "uint32");
-
-            for permutation = 1:obj.permutation_count
-                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
-            end
         end
 
         function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
