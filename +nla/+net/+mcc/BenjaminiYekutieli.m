@@ -12,7 +12,11 @@ classdef BenjaminiYekutieli < nla.net.mcc.Base
             if p_max == 0
                 correction_label = sprintf('FDR_{BY} produced no significant nets');
             else
-                correction_label = sprintf('FDR_{BY}(%g/%d tests)', input_struct.prob_max * input_struct.behavior_count,...
+                format_specs = "%g/%d tests";
+                if isequal(input_struct.behavior_count, 1)
+                    format_specs = "%g/%d test";
+                end
+                correction_label = sprintf(strcat("FDR_{BY}(", format_specs, ")"), input_struct.prob_max * input_struct.behavior_count,...
                     input_struct.behavior_count);
             end
         end

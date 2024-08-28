@@ -11,7 +11,7 @@ classdef PermutationTestPlotter < handle
             end
         end
 
-        function [w, h] = plotProbability(obj, plot_figure, parameters, x_coordinate, y_coordinate)
+        function [w, h, matrix_plot] = plotProbability(obj, plot_figure, parameters, x_coordinate, y_coordinate)
             color_map = parameters.color_map;
             statistic_matrix = parameters.statistic_plot_matrix;
             p_value_max = parameters.p_value_plot_max;

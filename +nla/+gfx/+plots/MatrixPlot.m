@@ -50,6 +50,9 @@ classdef MatrixPlot < handle
         colorbar_offset = 15; % Offset of the colorbar
         colorbar_text_w = 50; % Width of label on colorbar
         legend_offset = 5; % Offset of the Legend
+    end
+
+    properties (Constant)
         colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
             "Bone", "Copper", "Pink"}; % Colorbar choices
     end
@@ -174,6 +177,61 @@ classdef MatrixPlot < handle
 
         end
 
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, scale, color_map_select)
+            % This callback gets the colormap/scale and then applies the new bounds to the data.
+            % Only works with APPLY button, will not work with only CLOSE
+        
+            import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
+
+            color_map = color_map_select;
+            if ~isstring(color_map_select) && ~ischar(color_map_select)
+                color_map = get(color_map_select, "Value");
+                color_map = obj.colormap_choices{color_map};
+            end
+            if ischar(color_map)
+                color_map = string(color_map);
+            end
+
+            if isnumeric(upper_limit_box)
+                upper_limit = upper_limit_box;
+            else
+                upper_limit = get(upper_limit_box, "String");
+            end
+
+            if isnumeric(lower_limit_box)
+                lower_limit = lower_limit_box;
+            else
+                lower_limit = get(lower_limit_box, "String");
+            end
+
+            obj.matrix = obj.original_matrix;
+
+            if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ismember(scale, ["Linear", "Log"])
+                obj.matrix.v = 10.^(-obj.matrix.v);
+            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
+                ~ismember(scale, ["Linear", "Log"])
+                obj.matrix.v = -log10(obj.matrix.v);
+            end
+
+            discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
+
+            if scale == "Linear"
+                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, upper_limit, color_map);
+                obj.plot_scale = ProbPlotMethod.DEFAULT;
+            elseif scale == "Log"
+                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, upper_limit, color_map);
+                obj.plot_scale = ProbPlotMethod.LOG;
+            else
+                color_map_name = str2func(lower(color_map));
+                new_color_map = color_map_name(discrete_colors);
+                obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
+            end
+            obj.color_map = new_color_map;
+            obj.embiggenMatrix(lower_limit, upper_limit);
+            obj.createColorbar(lower_limit, upper_limit);
+        end
+
         % getters for dependent properties
         function value = get.number_networks(obj)
             value = numel(obj.networks);
@@ -248,6 +306,7 @@ classdef MatrixPlot < handle
                 value = MatrixType.TRIMATRIX;
             end
         end
+        %%
     end
 
     methods (Access = protected)
@@ -320,8 +379,14 @@ classdef MatrixPlot < handle
                 lower_value = obj.lower_limit;
             else
                 initial_render = false;
-                upper_value = str2double(varargin{2});
-                lower_value = str2double(varargin{1});
+                upper_value = varargin{2};
+                lower_value = varargin{1};
+                if isstring(upper_value)
+                    upper_value = str2double(upper_value);
+                end
+                if isstring(lower_value)
+                    lower_value = str2double(lower_value);
+                end
             end
 
             number_of_networks = obj.number_networks;
@@ -515,8 +580,14 @@ classdef MatrixPlot < handle
             else
                 obj.color_bar.TickLabels = {};
                 obj.color_bar.Ticks = [];
-                upper_value = str2double(varargin{2});
-                lower_value = str2double(varargin{1});
+                upper_value = varargin{2};
+                lower_value = varargin{1};
+                if isstring(upper_value)
+                    upper_value = str2double(upper_value);
+                end
+                if isstring(lower_value)
+                    lower_value = str2double(lower_value);
+                end
             end
 
             if obj.discrete_colorbar
@@ -553,138 +624,13 @@ classdef MatrixPlot < handle
                 obj.color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width,...
                 dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
             obj.color_bar.Title.Position(2) = 0 - dimensions("offset_y") * 2 / 3;
-            obj.color_bar.Title.String = sprintf("Click to\nchange scale\n");
+            % obj.color_bar.Title.String = sprintf("Click to\nchange scale\n");
             obj.color_bar.Title.FontSize = 7;
 
             % Enables callback for clicking on colorbar to scale data
-            set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
+            % set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
-        end
-
-        function openModal(obj, source, ~)
-            % Callback for clicking on the colorbar.
-            % This opens a modal with the upper and lower bounds along with a radio selector between linear and 
-            % log.
-            import nla.gfx.ProbPlotMethod
-
-            % source is the colorbar, not the figure
-            d = figure('WindowStyle', 'normal', "Units", "pixels", 'Position', [source.Position(1), source.Position(2),...
-                source.Position(3) * 16, source.Position(4)/ 1.75]);
-            % These are the boxes that are the upper and lower end of the scale
-            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
-                'Position', [90, d.Position(4) - 30, 100, 30], "String", obj.current_settings.upper_limit);
-            upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
-            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels",...
-                'Position', [90, upper_limit_box.Position(2) - 30, 100, 30], "String", obj.current_settings.lower_limit); 
-            lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
-            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
-                [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
-            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position',...
-                [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
-
-            % These are the buttons that make the scale log or linear
-            scaleBaseButtons = uibuttongroup(d, "Units", "pixels", "Position", [10, lower_limit_box.Position(2) - 40, 210, 30]);
-            linear_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Linear", "Units", "pixels",...
-                "Position", [10, 5, 60, 20]);
-            log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "Log", "Units", "pixels",...
-                "Position", [80, 5, 60, 20]);
-            neg_log_button = uicontrol(scaleBaseButtons, "Style", "radiobutton", "String", "-Log10", "Units", "pixels",...
-                "Position", [130, 5, 80, 20]);
-            % Here we're setting the initial setting for the linear or log button
-            if obj.current_settings.plot_scale == ProbPlotMethod.DEFAULT || obj.current_settings.plot_scale == ProbPlotMethod.STATISTIC
-                selected_value = linear_button;
-            elseif obj.current_settings.plot_scale == ProbPlotMethod.LOG || obj.current_settings.plot_scale == ProbPlotMethod.LOG_STATISTIC
-                selected_value = log_button;
-            else
-                selected_value = neg_log_button;
-            end
-            scaleBaseButtons.SelectedObject = selected_value;
-            
-            % Color Map selector
-            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu 
-            uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
-                "Position", [10, scaleBaseButtons.Position(2) - 45, 80, 25]);
-            color_map_select = uicontrol('Style', 'popupmenu',...
-                'Position', [90, scaleBaseButtons.Position(2) - 45, 280, 30], "Units", "pixels",...
-                'FontName', 'Courier');
-            initial_colors = 16;
-            colormap_html = {};
-            for colors = 1:numel(obj.colormap_choices)
-                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors})), "(x)"));
-                CData = colormap_function(initial_colors);
-                new_html_start = '<HTML> ';
-                new_html = '';
-                for color_iterator = initial_colors:-1:1
-                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
-                        CData(color_iterator, 3)]);
-                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
-                end
-                new_html_end = [new_html ' </HTML>'];
-                new_html = [new_html_start new_html_end];
-                colormap_html = [colormap_html; new_html];
-            end
-
-            set(color_map_select, "Value", obj.current_settings.color_map, "String", colormap_html);
-
-            apply_button_position = [10, 10, 100, 30];
-            apply_button = uicontrol('String', 'Apply',...
-                'Callback', {@obj.applyScale, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
-                "Units", "pixels",...
-                'Position', apply_button_position);
-            default_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
-                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
-            uicontrol('String', 'Default',...
-                'Callback', {@obj.setDefault, upper_limit_box, lower_limit_box, scaleBaseButtons, color_map_select},...
-                "Units", "pixels", 'Position',...
-                default_button_position);
-            close_button_position = [default_button_position(1) + default_button_position(3) + 10,...
-                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
-            uicontrol("String", "Close", "Callback", @(~, ~)close(d), "Units", "pixels", "Position", close_button_position);
-        end
-
-        function setDefault(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
-
-            button_group.Children(end).Value = true;
-            for child = 1:numel(button_group.Children) - 1
-                button_group.Children(child).Value = false;
-            end
-            set(upper_limit_box, "String", obj.default_settings.upper_limit);
-            set(lower_limit_box, "String", obj.default_settings.lower_limit);
-            set(color_map_select, "Value", obj.default_settings.color_map);
-        end
-
-        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, button_group, color_map_select)
-            % This callback gets the colormap/scale and then applies the new bounds to the data.
-            % Only works with APPLY button, will not work with only CLOSE
-        
-            import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
-
-            obj.matrix = copy(obj.original_matrix);
-
-            button_group_value = get(get(button_group, "SelectedObject"), "String");
-
-            discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
-            color_map = get(color_map_select, "Value");
-            if button_group_value == "Linear"
-                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, get(upper_limit_box, "String"),...
-                    obj.colormap_choices{color_map});
-                obj.plot_scale = ProbPlotMethod.DEFAULT;
-            elseif button_group_value == "Log"
-                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, get(upper_limit_box, "String"), obj.colormap_choices{color_map});
-                obj.plot_scale = ProbPlotMethod.LOG;
-            else
-                color_map_name = str2func(lower(obj.colormap_choices{color_map}));
-                new_color_map = color_map_name(discrete_colors);
-                obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
-            end
-            obj.color_map = new_color_map;
-            obj.embiggenMatrix(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
-            obj.createColorbar(get(lower_limit_box, "String"), get(upper_limit_box, "String"));
-            obj.current_settings.upper_limit = get(upper_limit_box, "String");
-            obj.current_settings.lower_limit = get(lower_limit_box, "String");
-            obj.current_settings.plot_scale = obj.plot_scale;
-            obj.current_settings.color_map = get(color_map_select, "Value");
         end
 
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)

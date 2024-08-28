@@ -288,23 +288,16 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             % No permutations results
             if flags.plot_type == nla.PlotType.FIGURE
-                plot_figure = createFigure(500, 900);
+                plot_figure = createFigure(500, 500);
 
-                p_value_vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
-                    p_value);
                 plotter = PermutationTestPlotter(plot_parameters.network_atlas);
                 % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
                 % plot the probability
 
                 % Hard-coding sucks, but to make this adaptable for every type of test and method, here we are
                 x_coordinate = 0;
-                y_coordinate = 425;
+                y_coordinate = 0;
                 plotter.plotProbability(plot_figure, p_value_plot_parameters, x_coordinate, y_coordinate);
-
-                % do need to create a reference here for the axes since this just uses matlab builtins
-                axes = subplot(2,1,2);
-                plotter.plotProbabilityVsNetworkSize(p_value_vs_network_size_parameters, axes,...
-                    "Non-permuted P-values vs. Network-Pair Size");
 
             elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
                 if isfield(updated_test_options, 'edge_chord_plot_method')
@@ -315,9 +308,10 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options, cohens_d_filter, flags)
-            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter nla.net.result.plot.PermutationTestPlotter
-            import nla.net.result.chord.ChordPlotter
+        function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options,...
+            cohens_d_filter, flags)
+            import nla.gfx.createFigure nla.net.result.NetworkResultPlotParameter
+            import nla.net.result.chord.ChordPlotter nla.net.result.plot.PermutationTestPlotter
             
             plot_test_type = "full_connectome";
 
@@ -329,27 +323,22 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % This is the object that will do the calculations for the plots
             result_plot_parameters = NetworkResultPlotParameter(obj, edge_test_options.net_atlas, updated_test_options);
 
+            ranking_method = "Eggebrecht";
+            if isfield(flags, "ranking_method") && ~isequal(flags.ranking_method, "")
+                ranking_method = flags.ranking_method;
+            end
+
             % Get the plot parameters (titles, stats, labels, etc.)
             full_connectome_p_value_plot_parameters = result_plot_parameters.plotProbabilityParameters(...
                 edge_test_options, edge_test_result, plot_test_type, p_value, plot_title,...
-                nla.net.mcc.None(), false);
+                nla.net.mcc.None(), false, ranking_method);
 
             % Mark the probability trimatrix with cohen's d results
             full_connectome_p_value_plot_parameters_with_cohensd = result_plot_parameters.plotProbabilityParameters(...
                 edge_test_options, edge_test_result, plot_test_type, p_value, plot_title_threshold, ...
-                nla.net.mcc.None(), cohens_d_filter);
+                nla.net.mcc.None(), cohens_d_filter, ranking_method);
 
             if flags.plot_type == nla.PlotType.FIGURE
-                
-               
-                p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
-                    p_value);
-                full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
-                    plot_test_type, p_value);
-
-                % create a histogram
-                p_value_histogram = obj.createHistogram(p_value);
-
                 plotter = PermutationTestPlotter(edge_test_options.net_atlas);
                 
                 % With the way subplot works, we have to do the plotting this way. I tried assigning variables to the subplots,
@@ -362,6 +351,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         "Non-permuted P-values vs. Network-Pair Size");
                     plotter.plotProbabilityVsNetworkSize(full_connectome_p_value_vs_network_size_parameters, subplot(2,2,4),...
                         "Permuted P-values vs. Net-Pair Size");
+                    plot_figure = createFigure(500, 500);
                     x_coordinate = 25;
                 else
                     plot_figure = createFigure(1200, 900);
@@ -374,7 +364,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     x_coordinate = 75;
                 end
 
-                y_coordinate = 425;
+                y_coordinate = 0;
                 [w, ~] = plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters, x_coordinate, y_coordinate);
                 if ~obj.is_noncorrelation_input
                     plotter.plotProbability(plot_figure, full_connectome_p_value_plot_parameters_with_cohensd, w + 50, y_coordinate);
@@ -387,7 +377,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 end
 
                 chord_plotter = ChordPlotter(network_atlas, edge_test_result);
-                if obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
+                if ~obj.is_noncorrelation_input && isfield(updated_test_options, 'd_thresh_chord_plot') && updated_test_options.d_thresh_chord_plot
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters_with_cohensd, flags.plot_type);
                 else
                     chord_plotter.generateChordFigure(full_connectome_p_value_plot_parameters, flags.plot_type)
@@ -407,9 +397,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
 
-            within_network_pair_p_value_vs_network_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
-                plot_test_type, p_value);
-
             within_network_pair_p_value_parameters = result_plot_parameters.plotProbabilityParameters(edge_test_options,...
                 edge_test_result, plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
 
@@ -422,18 +409,14 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             if flags.plot_type == nla.PlotType.FIGURE
 
                 plotter = PermutationTestPlotter(edge_test_options.net_atlas);
-                y_coordinate = 425;
+                y_coordinate = 0;
                 if obj.is_noncorrelation_input
-                    plot_figure = createFigure(500, 900);
+                    plot_figure = createFigure(500, 500);
                     x_coordinate = 0;
-                    plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,1,2),...
-                        "Within Net-Pair P-values vs. Net-Pair Size");
                     plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                 else
-                    plot_figure = createFigure(1000,900);
+                    plot_figure = createFigure(1000,450);
                     x_coordinate = 25;
-                    plotter.plotProbabilityVsNetworkSize(within_network_pair_p_value_vs_network_parameters, subplot(2,2,3),...
-                        "Within Net-Pair P-values vs. Net-Pair Size");
                     [w, ~] = plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters, x_coordinate, y_coordinate);
                     plotter.plotProbability(plot_figure, within_network_pair_p_value_parameters_with_cohensd, w - 50, y_coordinate);
                 end
