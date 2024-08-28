@@ -38,7 +38,9 @@ classdef NetworkTestPlot < handle
             "cohens_d", "parameters",...
             "centroids", "centroids",...
             "mcc", "parameters",...
-            "convergence_color", "convergence"...
+            "convergence_color", "convergence",...
+            "p_threshold", "parameters",...
+            "d_threshold", "parameters"...
         )
     end
 
@@ -101,7 +103,7 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function drawFigure(obj)
+        function drawFigure(obj, plot_type)
             import nla.inputField.LABEL_GAP
 
             obj.plot_figure = uifigure("Color", "w");
@@ -109,26 +111,40 @@ classdef NetworkTestPlot < handle
                 obj.panel_height + (4 * LABEL_GAP)];
             obj.options_panel = uipanel(obj.plot_figure, "Units", "pixels", "Position", [10, 10, 480, obj.panel_height],...
                 "BackgroundColor", "w");
-            obj.drawOptions()
-            [width, height] = obj.drawTriMatrixPlot();
-            if obj.plot_figure.Position(4) < obj.plot_figure.Position(4) + height
-                obj.plot_figure.Position(4) = (2 * LABEL_GAP) + obj.plot_figure.Position(4) + height;
-            end
-            if obj.plot_figure.Position(3) <= width
-                obj.plot_figure.Position(3) = width + (2 * LABEL_GAP);
-                obj.options_panel.Position(1) = ((obj.plot_figure.Position(3) - obj.options_panel.Position(3)) / 2);
-            end
-        end
-
-        function [width, height] = drawTriMatrixPlot(obj, varargin)
+            obj.drawOptions();
+            % obj.resizeOptions();
 
             obj.parameters = nla.net.result.NetworkResultPlotParameter(obj.network_test_result, obj.network_atlas,...
                 obj.network_test_options);
-                        
+            
+            [width, plot_height] = obj.drawTriMatrixPlot();
+            if ~isequal(plot_type, nla.PlotType.FIGURE)
+                obj.drawChord(plot_type);
+            end
+
+
+            obj.resizeFigure(width, plot_height);
+        end
+
+        function [width, height] = drawTriMatrixPlot(obj)
+                     
+            if ~isequal(obj.matrix_plot, false)
+               obj.matrix_plot.plot_title.String = {};
+               obj.parameters.updated_test_options.prob_max = obj.current_settings.p_threshold;
+            end
             obj.getPlotTitle();
 
+            switch obj.current_settings.mcc
+                case "Benjamini-Hochberg"
+                    mcc = "BenjaminiHochberg";
+                case "Benjamini-Yekutieli"
+                    mcc = "BenjaminiYekutieli";
+                otherwise
+                    mcc = obj.current_settings.mcc;
+            end
+
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
-                obj.test_method, "p_value", sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
+                obj.test_method, "p_value", sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
 
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
@@ -141,18 +157,72 @@ classdef NetworkTestPlot < handle
             obj.current_settings.lower_limit = str2double(obj.matrix_plot.color_bar.TickLabels{1});
         end
 
-        function cohens_d_filter = createSignificanceFilter(obj)
-            cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
-                cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
+        function drawChord(obj, ~, ~, plot_type)
+            import nla.gfx.EdgeChordPlotMethod
+
+            obj.getPlotTitle();
+
+            probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
+                obj.test_method, "p_value", sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
+                obj.current_settings.ranking);
+            
+            chord_plotter = nla.net.result.chord.ChordPlotter(obj.network_atlas, obj.edge_test_result);
+
+            for setting = obj.settings
+                if setting{1}.name == "edge_type"
+                    switch setting{1}.field.Value
+                        case "p-value"
+                            method = EdgeChordPlotMethod.PROB;
+                        case "Coefficient"
+                            method = EdgeChordPlotMethod.COEFF;
+                        case "Coefficient (Split)"
+                            method = EdgeChordPlotMethod.COEFF_SPLIT;
+                        case "Coefficient (Basic)"
+                            method = EdgeChordPlotMethod.COEFF_BASE;
+                        otherwise
+                            method = EdgeChordPlotMethod.COEFF_BASE_SPLIT;
+                    end
+                    probability_parameters.edge_chord_plot_method = method;
+                    break
+                end
             end
-            if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
-                && ~isequal(obj.test_method, "full_connectome")
-                cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
+            chord_plotter.generateChordFigure(probability_parameters, plot_type);
+            
+        end
+
+        function resizeFigure(obj, plot_width, plot_height)
+            import nla.inputField.LABEL_GAP
+
+            current_width = obj.plot_figure.Position(3);
+            current_height = obj.plot_figure.Position(4);
+
+            if ~isequal(current_width, plot_width + (2 * LABEL_GAP))
+                obj.plot_figure.Position(3) = plot_width + (2 * LABEL_GAP);
+                obj.options_panel.Position(1) = ((obj.plot_figure.Position(3) - obj.options_panel.Position(3)) / 2);
+            end
+
+            if ~isequal(current_height, (2 * LABEL_GAP) + obj.plot_figure.Position(4) + plot_height)
+                obj.plot_figure.Position(4) = (2 * LABEL_GAP) + current_height + plot_height;
             end
         end
 
-        function drawOptions(obj)
+        function cohens_d_filter = createSignificanceFilter(obj)
+
+            cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
+            if isequal(obj.current_settings.cohens_d, true) && ~isequal(obj.test_method, "no_permutations")
+                if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
+                    cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
+                end
+                if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
+                    && ~isequal(obj.test_method, "full_connectome")
+                    cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
+                end
+            else
+                cohens_d_filter.v = true(numel(cohens_d_filter.v), 1);
+            end
+        end
+
+        function [width, height] = drawOptions(obj)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
             import nla.inputField.Button nla.inputField.Number
 
@@ -162,9 +232,10 @@ classdef NetworkTestPlot < handle
             cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", true);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
-                ["None", "Bonferonni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
-            network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD});
-            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.openChordPlot, nla.PlotType.CHORD_EDGE});
+                ["None", "Bonferroni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
+            network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.drawChord, nla.PlotType.CHORD});
+            edge_chord_type = PullDown("edge_type", "Edge-level Chord Type", ["p-value", "Coefficient", "Coefficient (Split)", "Coefficient (Basic)", "Coefficient (Baseic, Split)"]);
+            edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.drawChord, nla.PlotType.CHORD_EDGE});
             convergence_plot = Button("convergence", "View Convergence Map", @obj.openConvergencePlot);
             convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
                 ["Bone", "Winter", "Autumn", "Copper"]);
@@ -172,23 +243,28 @@ classdef NetworkTestPlot < handle
             upper_limit_box = Number("upper_limit", "Upper Limit", -Inf, 0.3, Inf);
             lower_limit_box = Number("lower_limit", "Lower Limit", -Inf, -0.3, Inf);
             colormap_choice = PullDown("colormap_choice", "Colormap", obj.colormap_choices);
+            p_value_threshold = Number("p_threshold", "p-value Threshold", -Inf, 0.05, Inf);
+            cohens_d_threshold = Number("d_threshold", "Cohen's D Threshold", -Inf, 0.5, Inf);
 
             % Draw the options
             options = {...
-                {scale_option, ranking_method},...
-                {upper_limit_box, lower_limit_box},...
-                {colormap_choice},...
-                {multiple_comparison_correction},...
-                {cohens_d, centroids},...
-                {network_chord_plot, edge_chord_plot},...
-                {convergence_plot, convergence_color},...
                 {apply},...
+                {convergence_plot, convergence_color},...
+                {edge_chord_type},...
+                {network_chord_plot, edge_chord_plot},...
+                {cohens_d, centroids},...
+                {multiple_comparison_correction},...
+                {colormap_choice},...
+                {p_value_threshold, cohens_d_threshold},...
+                {upper_limit_box, lower_limit_box},...
+                {scale_option, ranking_method}...
             };
         
             obj.settings = {scale_option, ranking_method, cohens_d, centroids, multiple_comparison_correction,...
-                convergence_color, upper_limit_box, lower_limit_box, colormap_choice};
+                convergence_color, upper_limit_box, lower_limit_box, colormap_choice, edge_chord_type, p_value_threshold,...
+                cohens_d_threshold};
         
-            y = obj.panel_height - LABEL_GAP;
+            y = LABEL_GAP;
             x = LABEL_GAP;
             for row = options
                 for column = row{1}
@@ -202,10 +278,22 @@ classdef NetworkTestPlot < handle
                         end
                     end
                 end
-                y = y - LABEL_GAP - LABEL_H;
+                y = y + LABEL_GAP + LABEL_H;
                 x = LABEL_GAP;
             end
             
+            if y > obj.panel_height
+                obj.options_panel.Position(4) = y + LABEL_GAP;
+                height_difference = y - obj.panel_height;
+                for row = options
+                    for column = row{1}
+                        column{1}.field.Position(2) = column{1}.field.Position(2) + height_difference;
+                        if isa(column{1}.label, "matlab.ui.control.Label")
+                            column{1}.label.Position(2) = column{1}.label.Position(2) + height_difference;
+                        end
+                    end
+                end
+            end
             apply.field.ButtonPushedFcn = {@obj.applyChanges, obj.settings};
         end
 
@@ -241,35 +329,15 @@ classdef NetworkTestPlot < handle
                     delete(obj.matrix_plot.image_display);
                     delete(obj.matrix_plot.color_bar);
                 end
-                progress_bar.Message = "Redrawing TriMatrix..."
+                progress_bar.Message = "Redrawing TriMatrix...";
                 obj.drawTriMatrixPlot();
             elseif any(strcmp("scale", changes))
-                progress_bar.Message = "Changing scale of existing TriMatrix..."
+                progress_bar.Message = "Changing scale of existing TriMatrix...";
                 obj.matrix_plot.applyScale(false, false, obj.current_settings.upper_limit,...
                     obj.current_settings.lower_limit, obj.current_settings.plot_scale,...
                     obj.current_settings.colormap_choice);   
             end  
-            close(progress_bar)
-        end
-
-        function openChordPlot(obj, ~, ~, chord_type)
-
-            flags = struct();
-            flags.plot_type = chord_type;
-            flags.show_full_conn = false;
-            flags.show_within_net_pair = false;
-            flags.show_nonpermuted = false;
-            switch obj.test_method
-                case "no_permutations"
-                    flags.show_nonpermuted = true;
-                case "full_connectome"
-                    flags.show_full_conn = true;
-                case "within_network_pair"
-                    flags.show_within_net_pair = true;
-            end
-            flags.ranking_method = obj.current_settings.ranking;
-            obj.network_test_result.output(obj.edge_test_options, obj.network_test_options, obj.network_atlas,...
-                obj.edge_test_result, flags);
+            close(progress_bar);
         end
 
         function openConvergencePlot(obj, ~, ~)

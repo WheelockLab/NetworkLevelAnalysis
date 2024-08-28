@@ -400,6 +400,7 @@ classdef ChordPlot < handle
                             chord1_start_cartesian, 50);
 
                         mesh_vertices = [outer; flip(inner, 1)];
+                        warning("off", "MATLAB:polyshape:boundary3Points");
                         mesh = polyshape(mesh_vertices(:, 1), mesh_vertices(:, 2));
 
                         plot(obj.axes, mesh, 'FaceAlpha', network_alpha, 'FaceColor', network_color,...

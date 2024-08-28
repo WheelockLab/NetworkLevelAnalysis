@@ -74,54 +74,39 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
-            import nla.TriMatrix nla.TriMatrixDiag nla.net.result.NetworkResultPlotParameter
 
-            % This is the object that will do the calculations for the plots
-            result_plot_parameters = NetworkResultPlotParameter(obj, network_atlas, updated_test_options);
-
-            % Cohen's D results for markers
-            cohens_d_filter = TriMatrix(network_atlas.numNets, 'logical', TriMatrixDiag.KEEP_DIAGONAL);
-            if ~obj.is_noncorrelation_input
-                cohens_d_filter.v = (obj.full_connectome.d.v >= updated_test_options.d_max);
+            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
+                test_method = "no_permutations";
+            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
+                test_method = "full_connectome";
+            elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
+                test_method = "within_network_pair";
             end
 
+            network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas,...
+                test_method, edge_test_options, updated_test_options);
+            network_result_plot.drawFigure()
             %%
             % Nonpermuted Plotting
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                obj.noPermutationsPlotting(result_plot_parameters, edge_test_options, edge_test_result,...
+                obj.noPermutationsPlotting(edge_test_result, network_atlas, test_method, edge_test_options,...
                     updated_test_options, flags);
-            end
             %%
-
             %%
             % Full Connectome Plotting
-            if isfield(flags, "show_full_conn") && flags.show_full_conn
+            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
                 obj.fullConnectomePlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options,...
                     cohens_d_filter, flags);       
-            end
             %%
-
             %%
             % Within network pair plotting
-            if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
+            elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 obj.withinNetworkPairPlotting(network_atlas, edge_test_options, edge_test_result, updated_test_options,...
                     cohens_d_filter, flags);
-            end
             %%
-        end
-
-        function outputDiagnosticPlots(obj,  edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
-
-            diagnostic_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options, edge_test_result,...
-                network_atlas, obj);
-            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                ranking_algorithm = "no_permutations";
-            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
-                ranking_algorithm = "full_connectome";
             else
-                ranking_algorithm = "within_network_pair";
+                error("There seems to be an error in determining the test method to plot");
             end
-            diagnostic_plot.displayPlots(ranking_algorithm);
         end
 
         function merge(obj, other_objects)
@@ -274,31 +259,43 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
 
-        function noPermutationsPlotting(obj, plot_parameters, edge_test_options, edge_test_result, updated_test_options, flags)
+        function noPermutationsPlotting(obj, edge_test_result, network_atlas, test_method, edge_test_options,...
+                    updated_test_options, flags)
             % import nla.gfx.createFigure nla.net.result.plot.PermutationTestPlotter nla.net.result.chord.ChordPlotter
             
-            plot_test_type = "no_permutations";
+            % plot_test_type = "no_permutations";
 
-            % Get the plot parameters (titles, stats, labels, max, min, etc)
+            % % Get the plot parameters (titles, stats, labels, max, min, etc)
             % plot_title = sprintf('Non-permuted Method\nNon-permuted Significance');
             
             % p_value = obj.choosePlottingMethod(updated_test_options, plot_test_type);
             % p_value_plot_parameters = plot_parameters.plotProbabilityParameters(edge_test_options, edge_test_result,...
             %     plot_test_type, p_value, plot_title, updated_test_options.fdr_correction, false);
 
-            % No permutations results
+            % % No permutations results
             % if flags.plot_type == nla.PlotType.FIGURE
-            network_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, plot_parameters.network_atlas,...
-                plot_test_type, edge_test_options. updated_test_options);
-            network_plot.drawFigure();
+            %     % plot_figure = createFigure(500, 500);
 
-            % elseif flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
-            %     if isfield(updated_test_options, 'edge_chord_plot_method')
-            %         p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
-            %     end
-            %     chord_plotter = ChordPlotter(plot_parameters.network_atlas, edge_test_result);
-            %     chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
-            % end
+            %     % plotter = PermutationTestPlotter(plot_parameters.network_atlas);
+            %     % % don't need to create a reference to axis since drawMatrixOrg takes a figure as a reference
+            %     % % plot the probability
+
+            %     % % Hard-coding sucks, but to make this adaptable for every type of test and method, here we are
+            %     % x_coordinate = 0;
+            %     % y_coordinate = 0;
+            %     % plotter.plotProbability(plot_figure, p_value_plot_parameters, x_coordinate, y_coordinate);
+
+                    
+            if flags.plot_type == nla.PlotType.CHORD || flags.plot_type == nla.PlotType.CHORD_EDGE
+                if isfield(updated_test_options, 'edge_chord_plot_method')
+                    p_value_plot_parameters.edge_chord_plot_method = updated_test_options.edge_chord_plot_method;
+                end
+                chord_plotter = ChordPlotter(plot_parameters.network_atlas, edge_test_result);
+                chord_plotter.generateChordFigure(p_value_plot_parameters, flags.plot_type);
+            end
+            
+            network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas,...
+                "no_permutations", edge_test_options, updated_test_options)
         end
 
         function fullConnectomePlotting(obj, network_atlas, edge_test_options, edge_test_result, updated_test_options,...
