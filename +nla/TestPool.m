@@ -78,6 +78,9 @@ classdef TestPool < nla.DeepCopyable
                     end
                 end
             end
+
+            ranked_results = obj.rankResults(network_test_options, permuted_network_test_results,...
+                network_atlas.numNetPairs());
         end
 
         function [permuted_edge_test_results, permuted_network_test_results] = runPermSeparateEdgeAndNet(obj, input_struct, net_input_struct,...
@@ -107,37 +110,42 @@ classdef TestPool < nla.DeepCopyable
                 network_result_blocks{process} = network_result_block;
             end
             
-            edge_results_perm = nla.edge.result.PermBase();
-            edge_results_perm.perm_count = num_perms;
+            permuted_edge_results = nla.edge.result.PermBase();
+            permuted_edge_results.perm_count = num_perms;
             % and net level result chunks
-            net_results_perm = {};
-            for test_index = 1:numNetTests(obj)
-                for proc_index = 1:num_procs
-                    cur_proc_net_results = net_result_blocks{proc_index};
-                    cur_test_net_results(proc_index) = cur_proc_net_results(test_index);
+            permuted_network_results = network_result_blocks{1};
+            for process = 2:number_of_processes
+                current_network_test_results = network_result_blocks{process};
+                for test_index = 1:numNetTests(obj)
+                    current_test_network_result = current_network_test_results(test_index);
+                    permuted_network_results{test_index}.merge(current_test_network_result);
                 end
-                net_results_perm{test_index} = cur_test_net_results{1};
-                net_results_perm{test_index}.merge(net_input_struct, edge_result_nonperm, edge_results_perm, net_atlas, {cur_test_net_results{2:end}});
             end
-            
         end
-
+        
         function network_result_block = runEdgeAndNetPermBlock(obj, edge_input_struct, net_input_struct, net_atlas,...
             block_start, block_end, perm_seed)
         
             for iteration = block_start:block_end - 1
-                % set RNG per-iteration based on the random seed and
-                % iteration number, so the # of processes doesn't impact
-                % the result(important for repeatability if running
-                % permutations with the same seed intentionally)
-                rng(bitxor(perm_seed, iteration));
+                rng(iteration);
                 permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
                 permuted_input.iteration = iteration;
                 
                 single_edge_result = obj.runEdgeTest(permuted_input);
-                %net_input_struct.iteration = iteration;
-                obj.runNetTests(net_input_struct, single_edge_result, net_atlas, net_result_block);
+                network_results = obj.runNetTests(net_input_struct, single_edge_result, net_atlas, true);
                 
+                % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
+                % indexes
+                if iteration - block_start + 1 == 1
+                    for test = 1:numNetTests(obj)
+                        network_result_block{test} = copy(network_results{test});
+                    end
+                else
+                    for test = 1:numNetTests(obj)
+                        network_result_block{test}.merge(network_results{test});
+                    end
+                end
+
                 if ~islogical(obj.data_queue)
                     send(obj.data_queue, iteration);
                 end
@@ -271,7 +279,6 @@ classdef TestPool < nla.DeepCopyable
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
                 ranked_results{test}.permutation_results = permuted_network_results{test}.permutation_results;
-            
             end
         end
     end
