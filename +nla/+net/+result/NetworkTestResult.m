@@ -327,7 +327,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             if flags.plot_type == nla.PlotType.FIGURE
                 
-               
                 p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize("no_permutations",...
                     p_value);
                 full_connectome_p_value_vs_network_size_parameters = result_plot_parameters.plotProbabilityVsNetworkSize(...
