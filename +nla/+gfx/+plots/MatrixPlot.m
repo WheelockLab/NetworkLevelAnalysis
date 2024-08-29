@@ -625,11 +625,7 @@ classdef MatrixPlot < handle
                 obj.color_bar.Position(2) + dimensions("offset_y"), obj.colorbar_width,...
                 dimensions("image_height") - (dimensions("offset_y") * 2) - 20];
             obj.color_bar.Title.Position(2) = 0 - dimensions("offset_y") * 2 / 3;
-            % obj.color_bar.Title.String = sprintf("Click to\nchange scale\n");
             obj.color_bar.Title.FontSize = 7;
-
-            % Enables callback for clicking on colorbar to scale data
-            % set(obj.color_bar, 'ButtonDownFcn', @obj.openModal)
 
             caxis(obj.axes, [0, 1]);
         end

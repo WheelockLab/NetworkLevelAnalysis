@@ -125,7 +125,7 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityVsNetworkSize(obj, test_method, plot_statistic)
             % Two convience methods
             network_size = obj.getNetworkSizes();
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, obj.updated_test_options.ranking_method);
 
             negative_log10_statistics = -log10(statistic_input.v);
 

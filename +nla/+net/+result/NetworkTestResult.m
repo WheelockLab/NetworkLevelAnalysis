@@ -132,6 +132,21 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
+        function runDiagnosticPlots(obj, edge_test_options, updated_test_options, edge_test_result, network_atlas, flags)
+            diagnostics_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options,...
+                edge_test_result, network_atlas, obj);
+
+            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
+                test_method = "no_permutations";
+            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
+                test_method = "full_connectome";
+            elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
+                test_method = "within_network_pair";
+            end
+
+            diagnostics_plot.displayPlots(test_method);
+        end
+
         % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
         % Any help on renaming would be great.
         function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)

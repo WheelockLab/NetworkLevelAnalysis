@@ -24,45 +24,40 @@ classdef DiagnosticPlot < handle
             end
         end
 
-        function displayPlots(obj, ranking_algorithm)
+        function displayPlots(obj, test_method)
 
-            p_value = obj.choosePlottingStatistic(ranking_algorithm);
-            
-            
+            p_value = obj.choosePlottingStatistic(test_method);
+                        
+            obj.network_test_options.ranking_method = "Eggebrecht";
             plot_parameters = nla.net.result.NetworkResultPlotParameter(obj.networkTestResult, obj.network_atlas, obj.network_test_options);
-            vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize(ranking_algorithm, p_value);
+            vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize(test_method, p_value);
             no_permutations_vs_network_parameters = plot_parameters.plotProbabilityVsNetworkSize("no_permutations", p_value);
             p_value_histogram = obj.networkTestResult.createHistogram(p_value);
 
             non_permuted_title = sprintf("Non-permuted P-values vs.\nNetwork-Pair Size");
             permuted_title = sprintf("Permuted P-values vs Network-Pair Size");
 
-            switch ranking_algorithm
-                case "no_permutations"
+            plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
+            if test_method == "no_permutations"
                     nla.gfx.createFigure(500, 500);
-                    plotter = nla.net.result.plot.NoPermutationPlotter(obj.network_atlas);
                     plotter.plotProbabilityVsNetworkSize(vs_network_size_parameters, subplot(1, 1, 1), non_permuted_title);
-                    return
-                case "full_connectome"
-                    plotter = nla.net.result.plot.FullConnectomePlotter(obj.network_atlas);
-                case "within_network_pair"
-                    plotter = nla.net.result.plot.WithinNetworkPairPlotter(obj.network_atlas);
+            else
+                nla.gfx.createFigure(1200, 500);
+                p_value_histogram = obj.networkTestResult.createHistogram(p_value);
+                plotter.plotProbabilityHistogram(subplot(1, 3, 1), p_value_histogram, obj.networkTestResult.full_connectome.p_value.v, obj.networkTestResult.permutation_results.p_value_permutations.v(:, 1), obj.networkTestResult.test_display_name, obj.network_test_options.prob_max);
+                plotter.plotProbabilityVsNetworkSize(no_permutations_vs_network_parameters, subplot(1, 3, 2), non_permuted_title);
+                plotter.plotProbabilityVsNetworkSize(vs_network_size_parameters, subplot(1, 3, 3), permuted_title);
             end
-            nla.gfx.createFigure(1200, 500);
-            p_value_histogram = obj.networkTestResult.createHistogram(p_value);
-            plotter.plotProbabilityHistogram(subplot(1, 3, 1), p_value_histogram, obj.networkTestResult.full_connectome.p_value.v, obj.networkTestResult.permutation_results.p_value_permutations.v(:, 1), obj.networkTestResult.test_display_name, obj.network_test_options.prob_max);
-            plotter.plotProbabilityVsNetworkSize(no_permutations_vs_network_parameters, subplot(1, 3, 2), non_permuted_title);
-            plotter.plotProbabilityVsNetworkSize(vs_network_size_parameters, subplot(1, 3, 3), permuted_title);
         end
     end
 
     methods (Access = private)
-        function p_value = choosePlottingStatistic(obj, ranking_algorithm)
+        function p_value = choosePlottingStatistic(obj, test_method)
             p_value = "p_value";
             if obj.network_test_options == nla.gfx.ProbPlotMethod.STATISTIC
                 p_value = strcat("statistic_", p_value);
             end
-            if ~obj.networkTestResult.is_noncorrelation_input && ranking_algorithm == "within_network_pair"
+            if ~obj.networkTestResult.is_noncorrelation_input && test_method == "within_network_pair"
                 p_value = strcat("single_sample_", p_value);
             end
         end
