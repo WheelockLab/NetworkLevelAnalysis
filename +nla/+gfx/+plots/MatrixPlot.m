@@ -687,11 +687,6 @@ classdef MatrixPlot < handle
             obj.current_settings.color_map = get(color_map_select, "Value");
         end
 
-        function openModal(obj, source, ~)
-            % Callback for clicking on the colorbar.
-
-        end
-
         function chunk_color = getChunkColor(obj, chunk_raw, upper_value, lower_value)
             % Get color for the chunk (square)
 
