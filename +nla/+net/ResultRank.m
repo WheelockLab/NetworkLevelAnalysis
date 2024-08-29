@@ -87,7 +87,6 @@ classdef ResultRank < handle
                         ) / (1 + denominator);
                 end
             end
-            ranking.full_connectome.d.v = obj.permuted_network_results.full_connectome.d.v;
         end
 
         function ranking = winklerMethodRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
