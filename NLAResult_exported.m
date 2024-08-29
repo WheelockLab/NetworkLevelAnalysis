@@ -314,13 +314,6 @@ classdef NLAResult < matlab.apps.AppBase
             else
                 app.AdjustableNetParamsPanel.Enable = 'off';
             end
-            
-            % dropdowns that need net-level data to be used
-%             net_dropdowns = {app.FDRCorrection, app.EdgeLevelTypeDropDown, app.NetlevelplottingDropDown};
-%             for i = 1:numel(net_dropdowns)
-%                 net_dropdowns{i}.Enable = val;
-%                 net_dropdowns{i}.ValueChangedFcn(app, true);
-%             end
         end
         
         function displayManyPlots(app, extra_flags, plot_type)
@@ -482,9 +475,22 @@ classdef NLAResult < matlab.apps.AppBase
         end
 
         % Button pushed function: OpenTriMatrixPlotButton
-        function DisplaySelectedButtonPushed(app, event)
+        function OpenTriMatrixPlotButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             displayManyPlots(app, struct('plot_type', PlotType.FIGURE), 'figures');
+        end
+
+        % Button pushed function: OpenDiagnosticPlotsButton
+        function OpenDiagnosticPlotsButtonPushed(app, event)
+            selected_nodes = app.ResultTree.SelectedNodes;
+            for i = 1:size(selected_nodes, 1)
+                if ~isempty(selected_nodes(i).NodeData)
+                    result = selected_nodes(i).NodeData{1};
+                    node_flags = selected_nodes(i).NodeData{2};
+                                        
+                    result.runDiagnosticPlots(app.input_struct, app.net_input_struct, app.edge_result, app.input_struct.net_atlas, node_flags);
+                end
+            end
         end
 
         % Callback function
@@ -699,12 +705,13 @@ classdef NLAResult < matlab.apps.AppBase
 
             % Create OpenTriMatrixPlotButton
             app.OpenTriMatrixPlotButton = uibutton(app.UIFigure, 'push');
-            app.OpenTriMatrixPlotButton.ButtonPushedFcn = createCallbackFcn(app, @DisplaySelectedButtonPushed, true);
+            app.OpenTriMatrixPlotButton.ButtonPushedFcn = createCallbackFcn(app, @OpenTriMatrixPlotButtonPushed, true);
             app.OpenTriMatrixPlotButton.Position = [435 127 146 22];
             app.OpenTriMatrixPlotButton.Text = 'Open TriMatrix Plot';
 
             % Create OpenDiagnosticPlotsButton
             app.OpenDiagnosticPlotsButton = uibutton(app.UIFigure, 'push');
+            app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
             app.OpenDiagnosticPlotsButton.Position = [435 98 147 22];
             app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
 
