@@ -90,66 +90,6 @@ classdef TestPool < nla.DeepCopyable
             if ~exist('perm_seed', 'var')
                 perm_seed = false;
             end
-            edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
-            net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, net_results_nonperm, edge_results_perm, edge_result_nonperm);
-            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
-        end
-        
-        function ranked_results = collateNetworkPermutationResults(obj, nonpermuted_edge_test_results, network_atlas, nonpermuted_network_test_results,...
-            permuted_network_test_results, network_test_options)
-            
-            % Run Cohen's D
-            cohen_d_test = nla.net.CohenDTest();
-
-            % Warning: Hacky code. Because of the way non-permuted network tests and permuted are called from the front, they are stored
-            % in different objects. (Notice the input argument for non-permuted network results). Eventually, it should probably be done
-            % that we do them all here. That may be another ticket. For now, we're copying over.
-            for test_index = 1:numNetTests(obj)
-                for proc_index = 1:num_procs
-                    cur_proc_net_results = net_result_blocks{proc_index};
-                    cur_test_net_results(proc_index) = cur_proc_net_results(test_index);
-                end
-                net_results_perm{test_index} = cur_test_net_results{1};
-                net_results_perm{test_index}.merge(net_input_struct, edge_result_nonperm, edge_results_perm, net_atlas, {cur_test_net_results{2:end}});
-            end
-            
-        end
-        
-        function net_result_block = runEdgeAndNetPermBlock(obj, edge_input_struct, net_input_struct, net_atlas, net_result_block, block_start, block_end, perm_seed)
-            
-            
-            for iteration = block_start:block_end - 1
-                % set RNG per-iteration based on the random seed and
-                % iteration number, so the # of processes doesn't impact
-                % the result(important for repeatability if running
-                % permutations with the same seed intentionally)
-                rng(bitxor(perm_seed, iteration));
-                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
-                permuted_input.iteration = iteration;
-                
-                single_edge_result = obj.runEdgeTest(permuted_input);
-                %net_input_struct.iteration = iteration;
-                obj.runNetTests(net_input_struct, single_edge_result, net_atlas, net_result_block);
-                
-                if ~islogical(obj.data_queue)
-                    send(obj.data_queue, iteration);
-                end
-            end
-
-            ranked_results = obj.rankResults(network_test_options, permuted_network_test_results,...
-                network_atlas.numNetPairs());
-        end
-
-        function [permuted_edge_test_results, permuted_network_test_results] = runPermSeparateEdgeAndNet(obj, input_struct, net_input_struct,...
-            network_atlas, num_perms, perm_seed)
-            
-            %This is code that first runs all edge permutations, and then
-            %runs all net permutations
-            %NOTE: This currently involves saving all edge results from all
-            %permutations in the working results object
-            if ~exist('perm_seed', 'var')
-                perm_seed = false;
-            end
 
             permuted_edge_test_results = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
             permuted_network_test_results = obj.runNetTestsPerm(net_input_struct, network_atlas, permuted_edge_test_results);
