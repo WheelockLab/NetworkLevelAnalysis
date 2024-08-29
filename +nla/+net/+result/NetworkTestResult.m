@@ -465,8 +465,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
         end
-
-        end
     end
 
     methods (Static)
