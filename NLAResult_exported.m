@@ -16,6 +16,7 @@ classdef NLAResult < matlab.apps.AppBase
         BranchLabel                matlab.ui.control.Label
         OpenTriMatrixPlotButton    matlab.ui.control.Button
         OpenDiagnosticPlotsButton  matlab.ui.control.Button
+        OpenChordPlotButton        matlab.ui.control.Button
     end
 
     
@@ -477,7 +478,12 @@ classdef NLAResult < matlab.apps.AppBase
         % Button pushed function: OpenTriMatrixPlotButton
         function OpenTriMatrixPlotButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
-            displayManyPlots(app, struct('plot_type', PlotType.FIGURE), 'figures');
+            displayManyPlots(app, struct('plot_type', nla.PlotType.FIGURE), 'figures');
+        end
+
+        % Button pushed function: OpenChordPlotButton
+        function OpenChordPlotButtonPushed(app, event)
+            displayManyPlots(app, struct('plot_type', nla.PlotType.CHORD), 'chord plots')
         end
 
         % Button pushed function: OpenDiagnosticPlotsButton
@@ -706,14 +712,20 @@ classdef NLAResult < matlab.apps.AppBase
             % Create OpenTriMatrixPlotButton
             app.OpenTriMatrixPlotButton = uibutton(app.UIFigure, 'push');
             app.OpenTriMatrixPlotButton.ButtonPushedFcn = createCallbackFcn(app, @OpenTriMatrixPlotButtonPushed, true);
-            app.OpenTriMatrixPlotButton.Position = [435 127 146 22];
+            app.OpenTriMatrixPlotButton.Position = [434 135 145 22];
             app.OpenTriMatrixPlotButton.Text = 'Open TriMatrix Plot';
 
             % Create OpenDiagnosticPlotsButton
             app.OpenDiagnosticPlotsButton = uibutton(app.UIFigure, 'push');
             app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
-            app.OpenDiagnosticPlotsButton.Position = [435 98 147 22];
+            app.OpenDiagnosticPlotsButton.Position = [434 106 145 22];
             app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
+
+            % Create OpenChordPlotButton
+            app.OpenChordPlotButton = uibutton(app.UIFigure, 'push');
+            app.OpenChordPlotButton.ButtonPushedFcn = createCallbackFcn(app, @OpenChordPlotButtonPushed, true);
+            app.OpenChordPlotButton.Position = [434 76 145 22];
+            app.OpenChordPlotButton.Text = 'Open Chord Plot';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
