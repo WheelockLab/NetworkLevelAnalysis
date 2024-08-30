@@ -158,7 +158,7 @@ classdef ResultRank < handle
         %% Getters for dependent properties
         % This takes the above statistic and gets the property to use its size to find the number of permutations
         function value = get.permutations(obj)
-            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2); 
+            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2);
         end
 
         function value = get.number_of_networks(obj)
