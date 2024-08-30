@@ -122,7 +122,6 @@ classdef NetworkTestPlot < handle
                 obj.drawChord(plot_type);
             end
 
-
             obj.resizeFigure(width, plot_height);
         end
 
