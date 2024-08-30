@@ -199,15 +199,5 @@ classdef ChordPlotter < handle
             end
             color_bar.TickLabels = labels;
         end
-
-        function generatePlotText(obj, plot_figure, chord_type)
-            text_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [55, obj.bottom_text_height + 15, 450, 75]);
-            nla.gfx.hideAxes(text_axis);
-            info_text = "Click any net-pair in the above plot to view its edge-level correlations.";
-            if chord_type == nla.PlotType.CHORD_EDGE
-                info_text = sprintf("%s\n\nChord plot:\nEach ROI is marked by a dot next to its corresponding network.\nROIs are placed in increasing order counter-clockwise, the first ROI in\na network being the most clockwise, the last being the most counter-\nclockwise.", info_text);
-            end
-            text(text_axis, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-        end
     end
 end
