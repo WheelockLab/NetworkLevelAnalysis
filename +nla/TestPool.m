@@ -79,8 +79,7 @@ classdef TestPool < nla.DeepCopyable
                 end
             end
 
-            ranked_results = obj.rankResults(network_test_options, permuted_network_test_results,...
-                network_atlas.numNetPairs());
+            ranked_results = obj.rankResults(network_test_options, permuted_network_test_results, network_atlas.numNetPairs());
         end
 
         function [permuted_edge_test_results, permuted_network_test_results] = runPermSeparateEdgeAndNet(obj, input_struct, net_input_struct,...
@@ -278,7 +277,6 @@ classdef TestPool < nla.DeepCopyable
                 ranker = ResultRank(permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
-                ranked_results{test}.permutation_results = permuted_network_results{test}.permutation_results;
             end
         end
     end

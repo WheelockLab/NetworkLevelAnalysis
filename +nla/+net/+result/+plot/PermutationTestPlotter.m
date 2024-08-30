@@ -11,7 +11,7 @@ classdef PermutationTestPlotter < handle
             end
         end
 
-        function [w, h] = plotProbability(obj, plot_figure, parameters, x_coordinate, y_coordinate)
+        function [w, h, matrix_plot] = plotProbability(obj, plot_figure, parameters, x_coordinate, y_coordinate)
             color_map = parameters.color_map;
             statistic_matrix = parameters.statistic_plot_matrix;
             p_value_max = parameters.p_value_plot_max;
@@ -47,10 +47,10 @@ classdef PermutationTestPlotter < handle
             hold("on");
             plot(least_squares_line_x, least_squares_line_y, "r");
 
-            xlabel(axes, "Number of ROI pairs within network pair");
+            xlabel(axes, sprintf("Number of ROI pairs\nwithin network pair"));
             ylabel(axes, "-log_1_0(Asymptotic P-value)");
             setTitle(axes, plot_title);
-            second_title = sprintf('Check if P-values correlate with net-pair size\n(corr: p = %.2f, r = %.2f)', p_values, rho);
+            second_title = sprintf('Check if P-values correlate with\nnet-pair size (corr: p = %.2f, r = %.2f)', p_values, rho);
             setTitle(axes, second_title, true);
             lims = ylim(axes);
             if lims(2) < 0
