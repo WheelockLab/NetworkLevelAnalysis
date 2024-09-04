@@ -7,10 +7,11 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
         edge_test_options
         edge_test_result
         network_test_options
-        network_results
+        network_test_results
         legacy_results
-        permutation_edge_results
-        nonpermuted_network_results
+        permuted_edge_results
+        permuted_network_results
+        ranked_results
     end
 
     properties (Constant)
@@ -80,30 +81,97 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
             testCase.network_test_options.within_network_pair = true;
             testCase.network_test_options.no_permutations = true;
 
-            % testCase.permutation_edge_results = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations);
-            testCase.nonpermuted_network_results = testCase.tests.runNetTests(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
+            % The ResultPool uses nla.helpers.git.commitString, which won't work for our test runner. So
+            % we're skipping that
+            testCase.edge_test_result = testCase.tests.runEdgeTest(testCase.edge_test_options);
+            testCase.network_test_results = testCase.tests.runNetTests(testCase.network_test_options,...
+                testCase.edge_test_result, testCase.network_atlas, false);
+            testCase.permuted_edge_results = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations);
+            testCase.permuted_network_results = testCase.tests.runNetTestsPerm(testCase.network_test_options,...
+                testCase.network_atlas, testCase.permuted_edge_results);
+            testCase.ranked_results = [];
+            for test = 1:numel(testCase.permuted_network_results)
+                testCase.permuted_network_results{test}.no_permutations = testCase.network_test_results{test}.no_permutations;
+                result_ranker = nla.net.ResultRank(testCase.permuted_network_results{test}, testCase.number_of_network_pairs);
+                testCase.ranked_results = [testCase.ranked_results, result_ranker.rank()];
+            end
 
-            testCase.network_results = testCase.tests.runPerm(...
-                testCase.edge_test_options,...
-                testCase.network_test_options,...
-                testCase.network_atlas,...
-                testCase.edge_test_result,...
-                testCase.nonpermuted_network_results,...
-                testCase.permutations...
-            );
-            testCase.legacy_results = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'legacy_pearson_results.mat')));
+            testCase.legacy_results = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'LegacyNetworkResults.mat')));
+            testCase.legacy_results = testCase.legacy_results.legacy_results;
         end
     end
 
     methods (Test)
         function chiSquaredTestCase(testCase)
-            legacy_result = testCase.legacy_results.noPerm;
-            for test = 1:numel(testCase.network_results.permutation_network_test_results)
-                if testCase.network_results.permutation_network_test_results(test).name == "chi_squared"
-                    result = endtestCase.network_results.permutation_network_test_results(test);
+            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+                test_type_legacy_result = testCase.legacy_results.(test_type);
+                for test = 1:numel(testCase.ranked_results)
+                    if testCase.ranked_results(test).test_name == "chi_squared"
+                        result = testCase.ranked_results(test);
+                    end
                 end
+                testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.Chi_pval_figs, "RelTol", 0.05)
             end
-            testCase.verifyEqual(result.no_permutations.p_value, legacy_result)
+        end
+
+        function hypergeometricTestCase(testCase)
+            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+                test_type_legacy_result = testCase.legacy_results.(test_type);
+                for test = 1:numel(testCase.ranked_results)
+                    if testCase.ranked_results(test).test_name == "hypergeometric"
+                        result = testCase.ranked_results(test);
+                    end
+                end
+                testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.HG_pval_figs, "RelTol", 0.05)
+            end
+        end
+
+        function kolmogorovSmirnovTestCase(testCase)
+            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+                test_type_legacy_result = testCase.legacy_results.(test_type);
+                for test = 1:numel(testCase.ranked_results)
+                    if testCase.ranked_results(test).test_name == "kolmogorov_smirnov"
+                        result = testCase.ranked_results(test);
+                    end
+                end
+                probability = "p_value";
+                if isequal(test_type, "within_network_pair")
+                    probability = "single_sample_p_value";
+                end
+                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.KS_pval_figs, "RelTol", 0.05)
+            end
+        end
+
+        function welchsTTestCase(testCase)
+            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+                test_type_legacy_result = testCase.legacy_results.(test_type);
+                for test = 1:numel(testCase.ranked_results)
+                    if testCase.ranked_results(test).test_name == "welchs_t"
+                        result = testCase.ranked_results(test);
+                    end
+                end
+                probability = "p_value";
+                if isequal(test_type, "within_network_pair")
+                    probability = "single_sample_p_value";
+                end
+                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.WelchsT_pval_figs, "RelTol", 0.05)
+            end
+        end
+
+        function wilcoxonTestCase(testCase)
+            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+                test_type_legacy_result = testCase.legacy_results.(test_type);
+                for test = 1:numel(testCase.ranked_results)
+                    if testCase.ranked_results(test).test_name == "wilcoxon"
+                        result = testCase.ranked_results(test);
+                    end
+                end
+                probability = "p_value";
+                if isequal(test_type, "within_network_pair")
+                    probability = "single_sample_p_value";
+                end
+                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.Wilcoxon_pval_figs, "RelTol", 0.05)
+            end
         end
     end
 end

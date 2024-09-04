@@ -63,7 +63,9 @@ classdef ResultRank < handle
                         probability, denominator, ranking)
             
             for index = 1:numel(no_permutation_results.(probability).v)
-                if isequal(test_type, "full_connectome")
+                if isequal(test_type, "full_connectome") || any(...
+                    strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
+                )
                     combined_probabilities = [...
                         permutation_results.(strcat((probability), "_permutations")).v(:);...
                         no_permutation_results.(probability).v(index)...
@@ -136,17 +138,15 @@ classdef ResultRank < handle
             probability = "p_value";
             denominator = obj.permutations * obj.number_of_network_pairs;
             % Only use these for within network pair and not Chi-Squared and Hypergeometric. 
-            if isequal(test_type, "within_network_pair")
+            if isequal(test_type, "within_network_pair") && ~any(...
+                strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
+            )
                 denominator = obj.permutations;
-                if ~any(...
-                    strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
-                )
-                    ranking_statistic = strcat("single_sample_", ranking_statistic);
-                    if isequal(obj.permuted_network_results.test_name, "wilcoxon")
-                        ranking_statistic = "single_sample_ranksum_statistic";
-                    end
-                    probability = strcat("single_sample_", probability);
+                ranking_statistic = strcat("single_sample_", ranking_statistic);
+                if isequal(obj.permuted_network_results.test_name, "wilcoxon")
+                    ranking_statistic = "single_sample_ranksum_statistic";
                 end
+                probability = strcat("single_sample_", probability);
             end
         end
 
