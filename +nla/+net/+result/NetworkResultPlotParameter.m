@@ -166,8 +166,10 @@ classdef NetworkResultPlotParameter < handle
 
         function statistic = getStatsFromMethodAndName(obj, test_method, plot_statistic)
             % combining the method and stat name to get the data. With a fail safe for forgetting 'single_sample'
-            if test_method == "within_network_pair" && ~startsWith(plot_statistic, "single_sample")
-                plot_statistic = strcat("single_sample_", plot_statistic);
+            if isequal(test_method, "within_network_pair")...
+                && ~startsWith(plot_statistic, "single_sample")...
+                && ~any(ismember(obj.noncorrelation_input_tests, obj.network_test_results.test_name))
+                    plot_statistic = strcat("single_sample_", plot_statistic);
             end
             statistic = obj.network_test_results.(test_method).(plot_statistic);
         end
