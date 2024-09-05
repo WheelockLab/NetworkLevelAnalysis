@@ -405,6 +405,11 @@ classdef BrainPlot < handle
             obj.figure_plot.Name = figure_title;
         end
 
+        function openModal(obj, source, ~)
+            d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [source.Position(1), source.Position(2), source.Position(3) * 10, source.Position(4) * 10]);
+            upper_limit_box = uicontrol("Style", "edit", "Units", "pixels");
+        end
+
         %% 
         % GETTERS for dependent properties
         function value = get.is_noncorrelation_input(obj)
