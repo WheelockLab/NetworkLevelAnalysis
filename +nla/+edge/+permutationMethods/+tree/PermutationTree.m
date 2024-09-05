@@ -16,10 +16,10 @@ classdef PermutationTree < handle
             obj.original_input_data = input_data;
             for index = 1:numel(input_data(:, 1))
                 size_input_data = size(input_data);
-                if size(size_input_data(:, 2) == 1) % if data input is original single column
-                    obj.data_with_indexes = [obj.data_with_indexes; input_data(index), index, index];
+                if size_input_data(:, 2) == 1 % if data input is original single column
+                    obj.data_with_indexes(end+1, :) = [input_data(index), index, index];
                 else % if data is another tree
-                    obj.data_with_indexes = [obj.data_with_indexes; input_data(index, 1), input_data(index, 2), index];
+                    obj.data_with_indexes(end+1, :) = [input_data(index, 1), input_data(index, 2), index];
                 end
             end
             obj = obj.createTree();
