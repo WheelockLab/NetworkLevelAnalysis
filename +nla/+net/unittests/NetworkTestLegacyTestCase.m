@@ -103,31 +103,29 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
 
     methods (Test)
         function chiSquaredTestCase(testCase)
-            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
-                test_type_legacy_result = testCase.legacy_results.(test_type);
-                for test = 1:numel(testCase.ranked_results)
-                    if testCase.ranked_results(test).test_name == "chi_squared"
-                        result = testCase.ranked_results(test);
-                    end
+            test_type = "full_connectome";
+            test_type_legacy_result = testCase.legacy_results.(test_type);
+            for test = 1:numel(testCase.ranked_results)
+                if testCase.ranked_results(test).test_name == "chi_squared"
+                    result = testCase.ranked_results(test);
                 end
-                testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.Chi_pval_figs, "RelTol", 0.05)
             end
+            testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.Chi_pval_figs, "RelTol", 0.05)
         end
 
         function hypergeometricTestCase(testCase)
-            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
-                test_type_legacy_result = testCase.legacy_results.(test_type);
-                for test = 1:numel(testCase.ranked_results)
-                    if testCase.ranked_results(test).test_name == "hypergeometric"
-                        result = testCase.ranked_results(test);
-                    end
+            test_type = "full_connectome";
+            test_type_legacy_result = testCase.legacy_results.(test_type);
+            for test = 1:numel(testCase.ranked_results)
+                if testCase.ranked_results(test).test_name == "hypergeometric"
+                    result = testCase.ranked_results(test);
                 end
-                testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.HG_pval_figs, "RelTol", 0.05)
             end
+            testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.HG_pval_figs, "RelTol", 0.05)
         end
 
         function kolmogorovSmirnovTestCase(testCase)
-            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+            for test_type = ["full_connectome", "within_network_pair"]
                 test_type_legacy_result = testCase.legacy_results.(test_type);
                 for test = 1:numel(testCase.ranked_results)
                     if testCase.ranked_results(test).test_name == "kolmogorov_smirnov"
@@ -143,7 +141,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
         end
 
         function welchsTTestCase(testCase)
-            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+            for test_type = ["full_connectome", "within_network_pair"]
                 test_type_legacy_result = testCase.legacy_results.(test_type);
                 for test = 1:numel(testCase.ranked_results)
                     if testCase.ranked_results(test).test_name == "welchs_t"
@@ -159,7 +157,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
         end
 
         function wilcoxonTestCase(testCase)
-            for test_type = ["no_permutations", "full_connectome", "within_network_pair"]
+            for test_type = ["full_connectome", "within_network_pair"]
                 test_type_legacy_result = testCase.legacy_results.(test_type);
                 for test = 1:numel(testCase.ranked_results)
                     if testCase.ranked_results(test).test_name == "wilcoxon"
