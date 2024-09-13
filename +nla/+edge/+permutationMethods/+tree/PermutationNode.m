@@ -1,12 +1,23 @@
 classdef PermutationNode < handle
+    %PERMUTATIONNODE Node which defines one grouping of each permutatino tree
+    %
+    % node = permutationNode(level, input_data, permutation_groups)
+    % node = One grouping of data for each permutation group. Each group contains the data (functional connectivity)
+    %   along with the index (column) the data is located and the original column
+    % level = The level of the tree. 0 is the root, 1 the first column of permutation groups, 2 the next...
+    % input_data = The input data. Currently, this is the functional connectivity
+    % permutation_groups = the columns from the csv file that characterizes the permutation groupings
+    %   Each column of the data is 1 permutation grouping. 
+    %   Each row is one subject/data entry
+    %   Values should be positive integers. Groups must be independent in each column
 
 
     properties
-        children = []
+        children = [] % Nodes that descend from the current node. The column to the right of the current level in permutation groups
         level = 0 % 0 is root, initial_data
-        parent = false % if false, this is the root of the tree
-        data_with_indexes = {}
-        permutation_groups = []
+        parent = false % if false, this is the root of the tree. If not, this is the node that came before
+        data_with_indexes = {} % The data. 3 cell object. {data (some big array), current index, original index}
+        permutation_groups = [] % The groups that descend off of this one
     end
 
     properties (SetAccess = immutable)
@@ -21,7 +32,7 @@ classdef PermutationNode < handle
 
             if isequal(level, 0)
                 obj.permutation_groups = permutation_groups;
-                obj.original_data = {input_data, [1:size(input_data, 2)'], [1:size(input_data, 2)']};
+                obj.original_data = {input_data, [1:size(input_data, 2)], [1:size(input_data, 2)]};
                 obj.data_with_indexes = obj.original_data;
             else
                 size_permutation_groups = size(permutation_groups);
@@ -29,9 +40,10 @@ classdef PermutationNode < handle
                     obj.permutation_groups = permutation_groups(:, 2:end);
                 end
                 functional_connectivity = input_data{1};
-                current_index = input_data{2};
+                index_length = size(input_data{2}, 2);
+                current_index = [1:index_length];
                 original_index = input_data{3};
-                obj.original_data = {functional_connectivity, current_index', original_index'};
+                obj.original_data = {functional_connectivity, current_index, original_index};
                 obj.data_with_indexes = obj.original_data;
             end
             if ~isempty(obj.permutation_groups)
