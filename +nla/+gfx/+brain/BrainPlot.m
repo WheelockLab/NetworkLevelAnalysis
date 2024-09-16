@@ -298,27 +298,27 @@ classdef BrainPlot < handle
 
             edges = [];
             if color_mode == nla.gfx.BrainColorMode.NONE
-                [ROI_final_positions, ROI_colors] = obj.getROIPositions(view_position, color_mode, color_matrix);
+                [ROI_final_positions, ~] = obj.getROIPositions(view_position, color_mode, color_matrix);
                 obj.drawCortex(obj.network_atlas.anat, plot_axis, view_position);
                 edges = [edges, obj.drawEdges(ROI_final_positions, plot_axis)];
             else
                 obj.mesh_alpha = 1;
-                [ROI_final_positions, ROI_colors] = obj.getROIPositions(view_position, nla.gfx.BrainColorMode.COLOR_ROIS)
+                [ROI_final_positions, ROI_colors] = obj.getROIPositions(view_position, nla.gfx.BrainColorMode.COLOR_ROIS);
                 if ~isequal(color_mode, nla.gfx.BrainColorMode.NONE) && obj.surface_parcels && ~islogical(obj.network_atlas.parcels) && isequal(size(obj.network_atlas.parcels.ctx_l,1), size(obj.network_atlas.anat.hemi_l.nodes, 1)) && isequal(size(obj.network_atlas.parcels.ctx_r, 1), size(obj.network_atlas.anat.hemi_r.nodes, 1))
                     ROI_color_map = [0.5 0.5 0.5; ROI_colors];
                     obj.drawCortex(obj.network_atlas.anat, plot_axis, view_position, ROI_color_map(obj.network_atlas.parcels.ctx_l + 1, :), ROI_color_map(obj.network_atlas.parcels.ctx_r + 1, :));
                 else
-                drawCortex(ax, net_atlas.anat, ctx, mesh_alpha, view_pos);
+                drawCortex(ax, net_atlas.anat, ctx, obj.mesh_alpha, view_pos);
                     if color_mode ~= BrainColorMode.NONE
                         for i = 1:net_atlas.numROIs()
                             % render a sphere at each ROI location
-                            nla.gfx.drawSphere(ax, ROI_final_pos(i, :), ROI_color(i, :), ROI_radius);
+                            nla.gfx.drawSphere(ax, ROI_final_positions(i, :), ROI_colors(i, :), obj.ROI_radius);
                         end
                     end
                 end
             end
            
-            if ~isfield(obj.edge_test_options, "show_ROI_centroids") || (isfield(obj.edge_test_options, "show_ROI_centroids") && isequal(obj.edge_test_options.show_ROI_centroids, true));
+            if (~isfield(obj.edge_test_options, "show_ROI_centroids")) || (isfield(obj.edge_test_options, "show_ROI_centroids") && isequal(obj.edge_test_options.show_ROI_centroids, true))
                 obj.drawROISpheres(ROI_final_positions, plot_axis, connectivity_map);
             end
 
@@ -386,9 +386,9 @@ classdef BrainPlot < handle
                 color_bar.ButtonDownFcn = @openModal;
                 
                 number_of_ticks = 10;
-                ticks = [0:number_of_ticks];
+                ticks = 0:number_of_ticks;
                 color_bar.Ticks = double(ticks) ./ number_of_ticks;
-                tick_labels = {};
+                tick_labels = cell(number_of_ticks + 1, 1);
                 for tick = ticks
                     tick_labels{tick + 1} = sprintf("%.2g", obj.lower_limit + (tick * ((double(obj.upper_limit - obj.lower_limit) / number_of_ticks))));
                 end
@@ -407,8 +407,20 @@ classdef BrainPlot < handle
 
         function openModal(obj, source, ~)
             d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [source.Position(1), source.Position(2), source.Position(3) * 10, source.Position(4) * 10]);
-            upper_limit_box = uicontrol("Style", "edit", "Units", "pixels");
+            
+            upper_limit_box_position = [90, d.Position(4) - 30, 100, 30];
+            upper_limit_box = uicontrol("Style", "edit", "Units", "pixels", "String", obj.upper_limit, "Position", upper_limit_box_position);
+            lower_limit_box_position = [90, d.Position(4) - 30, 100, 30];
+            lower_limit_box = uicontrol("Style", "edit", "Units", "pixels", "String", obj.lower_limit, "Position", lower_limit_box_position);
+            apply_button_position = [10, 10, 100, 30];
+            uicontrol("String", "Apply", "Callback", {@obj.applyScale, upper_limit_box, lower_limit_box}, "Units", "pixels", "Position", apply_button_position); % Apply Button
+            close_button_position = [apply_button_position(1) + apply_button_position(3) + 10, apply_button_position(2), apply_button_position(3), apply_button_position(4)]; 
+            uicontrol("String", "Close", "Callback", @(~, ~)close(d), "Units", "pixels", "Position", close_button_position);
         end
+
+        % function applyScale(obj, upper_value, lower_value)
+
+        % end
 
         %% 
         % GETTERS for dependent properties
