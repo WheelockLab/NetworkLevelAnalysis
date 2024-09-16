@@ -392,6 +392,9 @@ classdef Behavior < nla.inputField.InputField
             if islogical(obj.permutation_group_idx)
                 obj.permutation_group_idx = [];
             end
+            if islogical(obj.permutation_groups)
+                obj.permutation_groups = [];
+            end
             if obj.cols_selected
                 obj.permutation_group_idx = union(obj.permutation_group_idx, obj.cols_selected);
                 obj.permutation_groups = table2array(obj.table.Data(:, obj.permutation_group_idx));
@@ -406,6 +409,9 @@ classdef Behavior < nla.inputField.InputField
         function removePermutationGroup(obj, ~)
             if islogical(obj.permutation_group_idx)
                 obj.permutation_group_idx = [];
+            end
+            if islogical(obj.permutation_groups)
+                obj.permutation_groups = [];
             end
             if obj.cols_selected
                 obj.permutation_group_idx = setdiff(obj.permutation_group_idx, obj.cols_selected);
