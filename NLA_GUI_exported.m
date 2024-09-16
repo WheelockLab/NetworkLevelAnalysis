@@ -167,12 +167,6 @@ classdef NLA_GUI < matlab.apps.AppBase
                 app.input_fields{i}.read(app.input_struct);
                 y = y - h;
             end
-            
-            if isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
-                app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
-            else
-                app.input_struct.permute_method = nla.edge.permutationMethods.MultiLevel(app.input_struct);
-            end
         end
 
         % Value changed function: NetTestSelector
@@ -240,7 +234,12 @@ classdef NLA_GUI < matlab.apps.AppBase
 
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
-            import nla.*
+            if ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
+                app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
+            else
+                app.input_struct.permute_method = nla.edge.permutationMethods.MultiLevel();
+                app.input_struct.permute_method = app.input_struct.permute_method.createPermutationTree(app.input_struct);
+            end
             runWithInputs(app, 0);
         end
 
