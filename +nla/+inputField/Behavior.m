@@ -467,6 +467,7 @@ classdef Behavior < nla.inputField.InputField
                 if ~islogical(obj.permutation_group_idx)
                     permutation_groups_style = uistyle("BackgroundColor", "#8CABFB");
                     addStyle(obj.table, permutation_groups_style, "column", obj.permutation_group_idx);
+                    obj.satisfied = true;
                 end
 
                 % Enable buttons
