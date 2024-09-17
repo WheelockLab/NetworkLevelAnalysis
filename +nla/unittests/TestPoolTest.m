@@ -1,6 +1,7 @@
 classdef TestPoolTest < matlab.unittest.TestCase
 
     properties
+<<<<<<< HEAD
         root_path
         network_atlas
         edge_test_options
@@ -16,10 +17,14 @@ classdef TestPoolTest < matlab.unittest.TestCase
         number_of_networks = 15
         number_of_network_pairs = 120
         permutations = 20
+=======
+        variables
+>>>>>>> Fix up the whole testpool testing. I have no clue how it was even working before. Really, need to get my head checked
     end
 
     methods (TestClassSetup)
         function loadTestData(testCase)
+<<<<<<< HEAD
             import nla.TriMatrix
 
             testCase.root_path = nla.findRootPath();
@@ -63,12 +68,34 @@ classdef TestPoolTest < matlab.unittest.TestCase
             testCase.network_results_permuted = testCase.network_results_permuted.permuted_network_results;
             testCase.ranked_network_results = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "networkResultsRanked")), "ranked_network_results");
             testCase.ranked_network_results = testCase.ranked_network_results.ranked_network_results;
+=======
+            testCase.variables = {};
+
+            load(fullfile('+nla', 'unittests', 'inputStruct.mat'), 'input_struct');
+            testCase.variables.input_struct = input_struct;
+            load(fullfile('+nla', 'unittests', 'edgeResultsPermuted.mat'), 'saved_permuted_edge_test_results');
+            testCase.variables.edge_results_perm = saved_permuted_edge_test_results;
+            load(fullfile('+nla', 'unittests', 'networkInputStruct.mat'), 'net_input_struct');
+            testCase.variables.net_input_struct = net_input_struct;
+            load(fullfile('+nla', 'unittests', 'networkResultsNonPermuted.mat'), 'nonpermuted_network_level_results');
+            testCase.variables.net_results_nonperm = nonpermuted_network_level_results;
+            load(fullfile('+nla', 'unittests', 'networkResultsPermuted.mat'), 'permuted_network_level_results');
+            testCase.variables.net_results_perm = permuted_network_level_results;
+            load(fullfile('+nla', 'unittests', 'networkAtlas.mat'), 'network_atlas');
+            testCase.variables.network_atlas = network_atlas;
+            load(fullfile("+nla", "unittests", "rankedNetworkResults.mat"), "ranked_network_results");
+            testCase.variables.ranked_network_results = ranked_network_results;
+>>>>>>> Fix up the whole testpool testing. I have no clue how it was even working before. Really, need to get my head checked
         end
     end
 
     methods (TestClassTeardown)
         function clearTestData(testCase)
+<<<<<<< HEAD
             clear
+=======
+            clear testCase.variables
+>>>>>>> Fix up the whole testpool testing. I have no clue how it was even working before. Really, need to get my head checked
         end
     end
 
@@ -76,14 +103,21 @@ classdef TestPoolTest < matlab.unittest.TestCase
         function permutationEdgeTest(testCase)
             import nla.TestPool
             
+<<<<<<< HEAD
             nonpermuted_edge_results = testCase.tests.runEdgeTest(testCase.edge_test_options);
             permuted_edge_results = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 1);
             testCase.verifyEqual(permuted_edge_results, testCase.edge_results_permuted);
+=======
+            test_pool = TestPool();
+            permuted_edge_results = test_pool.runEdgeTestPerm(testCase.variables.input_struct, 20, 1);
+            testCase.verifyEqual(permuted_edge_results, testCase.variables.edge_results_perm);
+>>>>>>> Fix up the whole testpool testing. I have no clue how it was even working before. Really, need to get my head checked
         end
 
         function permutationNetworkTests(testCase)
             import nla.TestPool
 
+<<<<<<< HEAD
             nonpermuted_edge_results = testCase.tests.runEdgeTest(testCase.edge_test_options);
             nonpermuted_network_results = testCase.tests.runNetTests(testCase.network_test_options, nonpermuted_edge_results, testCase.network_atlas, false);
             network_level_results = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.network_atlas, testCase.edge_results_permuted);
@@ -92,10 +126,21 @@ classdef TestPoolTest < matlab.unittest.TestCase
                 for result_index2 = 1:numel(testCase.network_results_nonpermuted)
                     if network_level_results{result_index1}.test_name == testCase.network_results_permuted{result_index2}.test_name
                         network_level_results{result_index1}.no_permutations = testCase.network_results_permuted{result_index2}.no_permutations;
+=======
+            test_pool = TestPool();
+            test_pool.net_tests = nla.genTests('net.test');
+            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.network_atlas, testCase.variables.edge_results_perm);
+            % We could go with the assumption that the two are in the same order, but I'd rather be safe
+            for result_index1 = 1:numel(network_level_results)
+                for result_index2 = 1:numel(testCase.variables.net_results_nonperm)
+                    if network_level_results{result_index1}.test_name == testCase.variables.net_results_nonperm{result_index2}.test_name
+                        network_level_results{result_index1}.no_permutations = testCase.variables.net_results_nonperm{result_index2}.no_permutations;
+>>>>>>> Fix up the whole testpool testing. I have no clue how it was even working before. Really, need to get my head checked
                         break
                     end
                 end
             end
+<<<<<<< HEAD
             ranked_network_results = testCase.tests.rankResults(testCase.network_test_options, network_level_results, testCase.network_atlas.numNetPairs());
             % Here's the loop and the actual verification
             for result_index1 = 1:numel(network_level_results)
@@ -103,6 +148,15 @@ classdef TestPoolTest < matlab.unittest.TestCase
                     if network_level_results{result_index1}.test_name == testCase.network_results_permuted{result_index2}.test_name
                         % Verify that the whole result object is the same. 
                         testCase.verifyEqual(ranked_network_results{result_index1}, testCase.ranked_network_results{result_index2});
+=======
+            ranked_network_results = test_pool.rankResults(testCase.variables.net_input_struct, network_level_results, testCase.variables.network_atlas.numNetPairs());
+            % Here's the loop and the actual verification
+            for result_index1 = 1:numel(network_level_results)
+                for result_index2 = 1:numel(testCase.variables.net_results_perm)
+                    if network_level_results{result_index1}.test_name == testCase.variables.net_results_perm{result_index2}.test_name
+                        % Verify that the whole result object is the same. 
+                        testCase.verifyEqual(ranked_network_results{result_index1}, testCase.variables.ranked_network_results{result_index2});
+>>>>>>> Fix up the whole testpool testing. I have no clue how it was even working before. Really, need to get my head checked
                         break
                     end
                 end
