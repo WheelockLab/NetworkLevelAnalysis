@@ -68,23 +68,21 @@ classdef ResultRank < handle
                         permutation_results.(strcat((probability), "_permutations")).v(:);...
                         no_permutation_results.(probability).v(index)...
                     ];
+                    if ~isequal(obj.permuted_network_results.test_name, "hypergeometric")
+                        combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(:); no_permutation_results.(ranking_statistic).v(index)];
+                    end
                 else
                     combined_probabilities = [...
                         permutation_results.(strcat((probability), "_permutations")).v(index, :),...
                         no_permutation_results.(probability).v(index)...
                     ];
+                    if ~isequal(obj.permuted_network_results.test_name, "hypergeometric")
+                        combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :); no_permutation_results.(ranking_statistic).v(index)];
+                    end
                 end
-                [~, sorted_combined_probabilites] = sort(combined_probabilities);
-                ranking.(test_type).(probability).v(index) = find(...
-                    squeeze(sorted_combined_probabilites) == 1 + denominator...
-                    ) / (1 + denominator);
-                    
-                if ~isequal(obj.permuted_network_results.test_name, "hypergeometric")
-                    combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(:); no_permutation_results.(ranking_statistic).v(index)];
-                    [~, sorted_combined_statistics] = sort(combined_statistics);
-                    ranking.(test_type).(strcat("statistic_", (probability))).v(index) = find(...
-                        squeeze(sorted_combined_statistics) == 1 + denominator...
-                        ) / (1 + denominator);
+                
+                ranking.(test_type).(probability).v(index) = sum(abs(squeeze(combined_probabilities)) >= abs(no_permutation_results.(probability).v(index)) / (1 + denominator));
+                ranking.(test_type).(strcat("statistic_", (probability))).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index)) / (1 + denominator));
                 end
             end
         end
