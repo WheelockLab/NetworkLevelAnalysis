@@ -77,13 +77,12 @@ classdef ResultRank < handle
                         no_permutation_results.(probability).v(index)...
                     ];
                     if ~isequal(obj.permuted_network_results.test_name, "hypergeometric")
-                        combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :); no_permutation_results.(ranking_statistic).v(index)];
+                        combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :), no_permutation_results.(ranking_statistic).v(index)];
                     end
                 end
-                
+
                 ranking.(test_type).(probability).v(index) = sum(abs(squeeze(combined_probabilities)) >= abs(no_permutation_results.(probability).v(index)) / (1 + denominator));
                 ranking.(test_type).(strcat("statistic_", (probability))).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index)) / (1 + denominator));
-                end
             end
         end
 
