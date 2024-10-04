@@ -1,7 +1,21 @@
 classdef TestPoolTest < matlab.unittest.TestCase
 
     properties
-        variables
+        root_path
+        network_atlas
+        edge_test_options
+        network_test_options
+        edge_results_permuted
+        network_results_nonpermuted
+        network_results_permuted
+        ranked_network_results
+        tests
+    end
+
+    properties (Constant)
+        number_of_networks = 15
+        number_of_network_pairs = 120
+        permutations = 20
     end
 
     methods (TestClassSetup)
@@ -21,7 +35,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
 
     methods (TestClassTeardown)
         function clearTestData(testCase)
-            clear testCase.variables
+            clear
         end
     end
 
@@ -29,9 +43,9 @@ classdef TestPoolTest < matlab.unittest.TestCase
         function permutationEdgeTest(testCase)
             import nla.TestPool
             
-            test_pool = TestPool();
-            permuted_edge_results = test_pool.runEdgeTestPerm(testCase.variables.input_struct, 20, 1);
-            testCase.verifyEqual(permuted_edge_results, testCase.variables.edge_results_perm);
+            nonpermuted_edge_results = testCase.tests.runEdgeTest(testCase.edge_test_options);
+            permuted_edge_results = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 1);
+            testCase.verifyEqual(permuted_edge_results, testCase.edge_results_permuted);
         end
     end
 end
