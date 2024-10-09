@@ -39,7 +39,8 @@ classdef Label < nla.inputField.InputField
         function read(obj, ~)
         end
 
-        function [input_struct, false] = store(obj, input_struct)
+        function [input_struct, error] = store(obj, input_struct)
+            error = false;
         end
     end
 end
