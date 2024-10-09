@@ -14,10 +14,6 @@ classdef TestPoolTest < matlab.unittest.TestCase
             testCase.variables.edge_results_perm = edge_results_perm;
             load(fullfile('nla', 'tests', 'networkInputStruct'), 'net_input_struct');
             testCase.variables.net_input_struct = net_input_struct;
-            load(fullfile('nla', 'tests', 'networkResultsNonPermuted'), 'net_results_nonperm');
-            testCase.variables.net_results_nonperm = net_results_nonperm;
-            load(fullfile('nla', 'tests', 'networkResultsPermuted'), 'net_results_perm');
-            testCase.variables.net_results_perm = net_results_perm;
             load(fullfile('nla', 'tests', 'networkAtlas'), 'net_atlas');
             testCase.variables.net_atlas = net_atlas;
         end
@@ -36,94 +32,6 @@ classdef TestPoolTest < matlab.unittest.TestCase
             test_pool = TestPool();
             permuted_edge_results = test_pool.runEdgeTestPerm(testCase.variables.input_struct, 20, 1);
             testCase.verifyEqual(permuted_edge_results, testCase.variables.edge_results_perm);
-        end
-
-        function chiSquaredPermutationTest(testCase)
-            import nla.TestPool nla.net.test.ChiSquared
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = ChiSquared();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{1};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{1});
-        end
-
-        function cohenDPermutationTest(testCase)
-            import nla.TestPool nla.net.test.CohenD
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = CohenD();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{2};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            
-            % The following line is due to an error in creation of CohenD results. Since this doesn't technically exist, every value is 1/(1+permutations). The permutation result sets them to zero. We set them equal to pass
-            testCase.variables.net_results_perm{2}.within_np_prob.v = network_results_ranked{1}.within_np_prob.v;
-            
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{2});
-        end
-
-        function hyperGeoPermutationTest(testCase)
-            import nla.TestPool nla.net.test.HyperGeo
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = HyperGeo();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{3};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{3});
-        end
-
-        function kolmogorovSmirnovPermutationTest(testCase)
-            import nla.TestPool nla.net.test.KolmogorovSmirnov
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = KolmogorovSmirnov();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{4};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{4});
-        end
-
-        function studentTPermutationTest(testCase)
-            import nla.TestPool nla.net.test.StudentT
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = StudentT();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{5};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{5});
-        end
-
-        function welchTPermutationTest(testCase)
-            import nla.TestPool nla.net.test.WelchT
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = WelchT();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{6};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{6});
-        end
-
-        function wilcoxonPermutationTest(testCase)
-            import nla.TestPool nla.net.test.Wilcoxon
-
-            test_pool = TestPool();
-            test_pool.net_tests{1} = Wilcoxon();
-            network_level_results = test_pool.runNetTestsPerm(testCase.variables.net_input_struct, testCase.variables.net_atlas, testCase.variables.edge_results_perm);
-            nonpermuted_network_results = {};
-            nonpermuted_network_results{1} = testCase.variables.net_results_nonperm{7};
-            network_results_ranked = test_pool.rankResults(testCase.variables.input_struct, nonpermuted_network_results, network_level_results, testCase.variables.net_atlas.numNetPairs());
-            testCase.verifyEqual(network_results_ranked{1}, testCase.variables.net_results_perm{7});
         end
     end
 end

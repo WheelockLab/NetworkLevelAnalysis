@@ -92,7 +92,7 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.permuted_network_results{1}.no_permutations = testCase.network_test_result{1}.no_permutations;
 
             testCase.ranking = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'resultRank_results.mat')));
-            testCase.ranking = testCase.ranking.ranking;
+            testCase.ranking = testCase.ranking.rank_object;
         end
     end
 

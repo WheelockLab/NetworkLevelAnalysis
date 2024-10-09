@@ -248,6 +248,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             obj.(test_method).statistic_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
             if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
                 obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                obj.(test_method).statistic_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             end
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
