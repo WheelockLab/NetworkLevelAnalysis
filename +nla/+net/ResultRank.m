@@ -75,7 +75,7 @@ classdef ResultRank < handle
                     combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :), no_permutation_results.(ranking_statistic).v(index)];
                 end
 
-                ranking.(test_type).(probability).v(index) = sum(abs(squeeze(combined_probabilities)) >= abs(no_permutation_results.(probability).v(index))) / (1 + denominator);
+                ranking.(test_type).(probability).v(index) = 1 - (sum(abs(squeeze(combined_probabilities)) >= abs(no_permutation_results.(probability).v(index))) / (1 + denominator));
                 ranking.(test_type).(strcat("statistic_", (probability))).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))) / (1 + denominator);
             end
         end
