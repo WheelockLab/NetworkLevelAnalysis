@@ -89,7 +89,12 @@ classdef ResultRank < handle
                     squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
                 );
             end
-            ranking.(test_type).winkler_p_value.v = ranking.(test_type).winkler_p_value.v ./ obj.permutations;
+            
+            if startsWith(ranking_statistic, "single_sample")
+                ranking.(test_type).winkler_single_sample_p_value.v = ranking.(test_type).winkler_p_value.v ./ obj.permutations;
+            else
+                ranking.(test_type).winkler_p_value.v = ranking.(test_type).winkler_p_value.v ./ obj.permutations;
+            end
         end
 
         function ranking = westfallYoungMethodRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
@@ -115,10 +120,15 @@ classdef ResultRank < handle
             end
             max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
 
-            ranking.(test_type).westfall_young_p_value.v = mean(...
-                sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
-            ranking.(test_type).westfall_young_p_value.v(sorted_statistic_indexes) =...
-                ranking.(test_type).westfall_young_p_value.v;
+            ranking.(test_type).westfall_young_p_value.v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
+            
+            if startsWith(ranking_statistic, "single_sample")
+                ranking.(test_type).westfall_single_sample_young_p_value.v(sorted_statistic_indexes) =...
+                    ranking.(test_type).westfall_young_p_value.v;
+            else
+                ranking.(test_type).westfall_young_p_value.v(sorted_statistic_indexes) =...
+                    ranking.(test_type).westfall_young_p_value.v;
+            end
         end 
 
         function [ranking_statistic, probability, denominator] = getTestParameters(obj, test_type)
@@ -130,7 +140,7 @@ classdef ResultRank < handle
             if isequal(test_type, "within_network_pair")
                 denominator = obj.permutations;
                 if ~any(...
-                    strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
+                    ismember(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
                 )
                     ranking_statistic = strcat("single_sample_", ranking_statistic);
                     if isequal(obj.permuted_network_results.test_name, "wilcoxon")
@@ -144,7 +154,7 @@ classdef ResultRank < handle
         %% Getters for dependent properties
         % This takes the above statistic and gets the property to use its size to find the number of permutations
         function value = get.permutations(obj)
-            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2); 
+            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2);
         end
 
         function value = get.number_of_networks(obj)

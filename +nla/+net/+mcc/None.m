@@ -8,7 +8,11 @@ classdef None < nla.net.mcc.Base
             p_max = input_struct.prob_max;
         end
         function correction_label = createLabel(obj, net_atlas, input_struct, prob)
-            correction_label = sprintf('%g/%d tests', input_struct.prob_max * input_struct.behavior_count,...
+            format_specs = "%g/%d tests";
+            if isequal(input_struct.behavior_count, 1)
+                format_specs = "%g/%d test";
+            end
+            correction_label = sprintf(format_specs, input_struct.prob_max * input_struct.behavior_count,...
                 input_struct.behavior_count);
         end
     end

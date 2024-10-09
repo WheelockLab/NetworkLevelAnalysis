@@ -2,32 +2,20 @@ classdef NLAResult < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                       matlab.ui.Figure
-        FileMenu                       matlab.ui.container.Menu
-        SaveButton                     matlab.ui.container.Menu
-        ResultTree                     matlab.ui.container.Tree
-        FlipNestingButton              matlab.ui.control.Button
-        EdgeLevelLabel                 matlab.ui.control.Label
-        ViewEdgeLevelButton            matlab.ui.control.Button
-        NetLevelLabel                  matlab.ui.control.Label
-        RunButton                      matlab.ui.control.Button
-        DisplaySelectedButton          matlab.ui.control.Button
-        NetlevelplottingDropDownLabel  matlab.ui.control.Label
-        NetlevelplottingDropDown       matlab.ui.control.DropDown
-        DisplayConvergenceButton       matlab.ui.control.Button
-        ConvergencecolormapDropDownLabel  matlab.ui.control.Label
-        ColormapDropDown               matlab.ui.control.DropDown
-        DisplayChordNet                matlab.ui.control.Button
-        DisplayChordEdge               matlab.ui.control.Button
-        SaveSummaryTable               matlab.ui.control.Button
-        EdgelevelchordplottingLabel    matlab.ui.control.Label
-        EdgeLevelTypeDropDown          matlab.ui.control.DropDown
-        AdjustableNetParamsPanel       matlab.ui.container.Panel
-        MultiplecomparisonscorrectionLabel  matlab.ui.control.Label
-        FDRCorrection                  matlab.ui.control.DropDown
-        showROIcentroidsinbrainplotsCheckBox  matlab.ui.control.CheckBox
-        CohensDthresholdchordplotsCheckBox  matlab.ui.control.CheckBox
-        BranchLabel                    matlab.ui.control.Label
+        UIFigure                   matlab.ui.Figure
+        FileMenu                   matlab.ui.container.Menu
+        SaveButton                 matlab.ui.container.Menu
+        ResultTree                 matlab.ui.container.Tree
+        FlipNestingButton          matlab.ui.control.Button
+        EdgeLevelLabel             matlab.ui.control.Label
+        ViewEdgeLevelButton        matlab.ui.control.Button
+        NetLevelLabel              matlab.ui.control.Label
+        RunButton                  matlab.ui.control.Button
+        SaveSummaryTable           matlab.ui.control.Button
+        AdjustableNetParamsPanel   matlab.ui.container.Panel
+        BranchLabel                matlab.ui.control.Label
+        OpenTriMatrixPlotButton    matlab.ui.control.Button
+        OpenDiagnosticPlotsButton  matlab.ui.control.Button
     end
 
     
@@ -311,7 +299,7 @@ classdef NLAResult < matlab.apps.AppBase
         
         function enableNetButtons(app, val)
             % buttons that need net-level data to be used
-            net_buttons = {app.ResultTree, app.FlipNestingButton, app.DisplaySelectedButton, app.DisplayConvergenceButton, app.DisplayChordNet, app.DisplayChordEdge, app.SaveSummaryTable, app.ColormapDropDown};
+            net_buttons = {app.ResultTree, app.FlipNestingButton, app.SaveSummaryTable};
             for i = 1:numel(net_buttons)
                 net_buttons{i}.Enable = val;
             end
@@ -325,13 +313,6 @@ classdef NLAResult < matlab.apps.AppBase
                 app.AdjustableNetParamsPanel.Enable = 'on';
             else
                 app.AdjustableNetParamsPanel.Enable = 'off';
-            end
-            
-            % dropdowns that need net-level data to be used
-            net_dropdowns = {app.FDRCorrection, app.EdgeLevelTypeDropDown, app.NetlevelplottingDropDown};
-            for i = 1:numel(net_dropdowns)
-                net_dropdowns{i}.Enable = val;
-                net_dropdowns{i}.ValueChangedFcn(app, true);
             end
         end
         
@@ -355,7 +336,7 @@ classdef NLAResult < matlab.apps.AppBase
                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
                     
                     prog.Value = i / size(selected_nodes, 1);
-                    app.moveCurrFigToParentLocation();
+%                     app.moveCurrFigToParentLocation();
                 end
             end
             
@@ -489,17 +470,30 @@ classdef NLAResult < matlab.apps.AppBase
             
             close(prog);
             
-            app.moveCurrFigToParentLocation();
+%             app.moveCurrFigToParentLocation();
             
         end
 
-        % Button pushed function: DisplaySelectedButton
-        function DisplaySelectedButtonPushed(app, event)
+        % Button pushed function: OpenTriMatrixPlotButton
+        function OpenTriMatrixPlotButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             displayManyPlots(app, struct('plot_type', PlotType.FIGURE), 'figures');
         end
 
-        % Value changed function: NetlevelplottingDropDown
+        % Button pushed function: OpenDiagnosticPlotsButton
+        function OpenDiagnosticPlotsButtonPushed(app, event)
+            selected_nodes = app.ResultTree.SelectedNodes;
+            for i = 1:size(selected_nodes, 1)
+                if ~isempty(selected_nodes(i).NodeData)
+                    result = selected_nodes(i).NodeData{1};
+                    node_flags = selected_nodes(i).NodeData{2};
+                                        
+                    result.runDiagnosticPlots(app.input_struct, app.net_input_struct, app.edge_result, app.input_struct.net_atlas, node_flags);
+                end
+            end
+        end
+
+        % Callback function
         function PValModeDropDownValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
             value = app.NetlevelplottingDropDown.Value;
@@ -517,7 +511,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
 
-        % Button pushed function: DisplayConvergenceButton
+        % Callback function
         function DisplayConvergenceButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             
@@ -562,17 +556,17 @@ classdef NLAResult < matlab.apps.AppBase
             
             close(prog);
             
-            app.moveCurrFigToParentLocation();
+%             app.moveCurrFigToParentLocation();
             %These mlapp files are really just the worst
         end
 
-        % Button pushed function: DisplayChordNet
+        % Callback function
         function DisplayChordNetButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             displayManyPlots(app, struct('plot_type', PlotType.CHORD), 'chord plots');
         end
 
-        % Button pushed function: DisplayChordEdge
+        % Callback function
         function DisplayChordEdgeButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             displayManyPlots(app, struct('plot_type', PlotType.CHORD_EDGE), 'chord plots');
@@ -592,7 +586,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
 
-        % Value changed function: EdgeLevelTypeDropDown
+        % Callback function
         function EdgeLevelTypeDropDownValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
             value = app.EdgeLevelTypeDropDown.Value;
@@ -609,7 +603,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
 
-        % Value changed function: FDRCorrection
+        % Callback function
         function FDRCorrectionValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
             value = app.FDRCorrection.Value;
@@ -622,14 +616,13 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
 
-        % Value changed function: 
-        % showROIcentroidsinbrainplotsCheckBox
+        % Callback function
         function showROIcentroidsinbrainplotsCheckBoxValueChanged(app, event)
             include_centroids = app.showROIcentroidsinbrainplotsCheckBox.Value;
             app.net_input_struct.show_ROI_centroids = include_centroids;
         end
 
-        % Value changed function: CohensDthresholdchordplotsCheckBox
+        % Callback function
         function CohensDthresholdchordplotsCheckBoxValueChanged(app, event)
             d_thresh = app.CohensDthresholdchordplotsCheckBox.Value;
             app.net_input_struct.d_thresh_chord_plot = d_thresh;
@@ -691,106 +684,16 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Position = [18 523 49 40];
             app.RunButton.Text = 'Run';
 
-            % Create DisplaySelectedButton
-            app.DisplaySelectedButton = uibutton(app.UIFigure, 'push');
-            app.DisplaySelectedButton.ButtonPushedFcn = createCallbackFcn(app, @DisplaySelectedButtonPushed, true);
-            app.DisplaySelectedButton.Position = [434 62 81 22];
-            app.DisplaySelectedButton.Text = 'View figures';
-
-            % Create NetlevelplottingDropDownLabel
-            app.NetlevelplottingDropDownLabel = uilabel(app.UIFigure);
-            app.NetlevelplottingDropDownLabel.HorizontalAlignment = 'right';
-            app.NetlevelplottingDropDownLabel.Position = [434 114 98 22];
-            app.NetlevelplottingDropDownLabel.Text = 'Net-level plotting:';
-
-            % Create NetlevelplottingDropDown
-            app.NetlevelplottingDropDown = uidropdown(app.UIFigure);
-            app.NetlevelplottingDropDown.Items = {'p-value linear', 'p-value log', 'p-value -log10', 'stat ranked'};
-            app.NetlevelplottingDropDown.ValueChangedFcn = createCallbackFcn(app, @PValModeDropDownValueChanged, true);
-            app.NetlevelplottingDropDown.Position = [533 114 118 22];
-            app.NetlevelplottingDropDown.Value = 'p-value linear';
-
-            % Create DisplayConvergenceButton
-            app.DisplayConvergenceButton = uibutton(app.UIFigure, 'push');
-            app.DisplayConvergenceButton.ButtonPushedFcn = createCallbackFcn(app, @DisplayConvergenceButtonPushed, true);
-            app.DisplayConvergenceButton.Position = [434 36 202 22];
-            app.DisplayConvergenceButton.Text = 'View convergence map of selected';
-
-            % Create ConvergencecolormapDropDownLabel
-            app.ConvergencecolormapDropDownLabel = uilabel(app.UIFigure);
-            app.ConvergencecolormapDropDownLabel.HorizontalAlignment = 'right';
-            app.ConvergencecolormapDropDownLabel.Position = [640 36 133 22];
-            app.ConvergencecolormapDropDownLabel.Text = 'Convergence colormap:';
-
-            % Create ColormapDropDown
-            app.ColormapDropDown = uidropdown(app.UIFigure);
-            app.ColormapDropDown.Items = {'bone', 'winter', 'autumn', 'copper'};
-            app.ColormapDropDown.ItemsData = [1 2 3 4];
-            app.ColormapDropDown.Position = [779 36 73 22];
-            app.ColormapDropDown.Value = 1;
-
-            % Create DisplayChordNet
-            app.DisplayChordNet = uibutton(app.UIFigure, 'push');
-            app.DisplayChordNet.ButtonPushedFcn = createCallbackFcn(app, @DisplayChordNetButtonPushed, true);
-            app.DisplayChordNet.Position = [519 62 103 22];
-            app.DisplayChordNet.Text = 'View chord plots';
-
-            % Create DisplayChordEdge
-            app.DisplayChordEdge = uibutton(app.UIFigure, 'push');
-            app.DisplayChordEdge.ButtonPushedFcn = createCallbackFcn(app, @DisplayChordEdgeButtonPushed, true);
-            app.DisplayChordEdge.Position = [626 62 162 22];
-            app.DisplayChordEdge.Text = 'View edge-level chord plots';
-
             % Create SaveSummaryTable
             app.SaveSummaryTable = uibutton(app.UIFigure, 'push');
             app.SaveSummaryTable.ButtonPushedFcn = createCallbackFcn(app, @SaveSummaryTableButtonPushed, true);
             app.SaveSummaryTable.Position = [434 10 125 22];
             app.SaveSummaryTable.Text = 'Save summary table';
 
-            % Create EdgelevelchordplottingLabel
-            app.EdgelevelchordplottingLabel = uilabel(app.UIFigure);
-            app.EdgelevelchordplottingLabel.HorizontalAlignment = 'right';
-            app.EdgelevelchordplottingLabel.Position = [434 89 141 22];
-            app.EdgelevelchordplottingLabel.Text = 'Edge-level chord plotting:';
-
-            % Create EdgeLevelTypeDropDown
-            app.EdgeLevelTypeDropDown = uidropdown(app.UIFigure);
-            app.EdgeLevelTypeDropDown.Items = {'prob', 'coeff', 'coeff (split)', 'coeff (basic)', 'coeff (basic, split)'};
-            app.EdgeLevelTypeDropDown.ValueChangedFcn = createCallbackFcn(app, @EdgeLevelTypeDropDownValueChanged, true);
-            app.EdgeLevelTypeDropDown.Position = [581 89 69 22];
-            app.EdgeLevelTypeDropDown.Value = 'prob';
-
             % Create AdjustableNetParamsPanel
             app.AdjustableNetParamsPanel = uipanel(app.UIFigure);
             app.AdjustableNetParamsPanel.Title = 'Adjustable network-level parameters';
             app.AdjustableNetParamsPanel.Position = [434 170 416 427];
-
-            % Create MultiplecomparisonscorrectionLabel
-            app.MultiplecomparisonscorrectionLabel = uilabel(app.UIFigure);
-            app.MultiplecomparisonscorrectionLabel.HorizontalAlignment = 'right';
-            app.MultiplecomparisonscorrectionLabel.Position = [434 140 178 22];
-            app.MultiplecomparisonscorrectionLabel.Text = 'Multiple comparisons correction:';
-
-            % Create FDRCorrection
-            app.FDRCorrection = uidropdown(app.UIFigure);
-            app.FDRCorrection.Items = {'Bonferroni', 'Benjamini-Hochberg', 'Benjamini-Yekutieli'};
-            app.FDRCorrection.ValueChangedFcn = createCallbackFcn(app, @FDRCorrectionValueChanged, true);
-            app.FDRCorrection.Position = [618 140 148 22];
-            app.FDRCorrection.Value = 'Bonferroni';
-
-            % Create showROIcentroidsinbrainplotsCheckBox
-            app.showROIcentroidsinbrainplotsCheckBox = uicheckbox(app.UIFigure);
-            app.showROIcentroidsinbrainplotsCheckBox.ValueChangedFcn = createCallbackFcn(app, @showROIcentroidsinbrainplotsCheckBoxValueChanged, true);
-            app.showROIcentroidsinbrainplotsCheckBox.Text = 'show ROI centroids in brain plots';
-            app.showROIcentroidsinbrainplotsCheckBox.Position = [657 89 199 22];
-            app.showROIcentroidsinbrainplotsCheckBox.Value = true;
-
-            % Create CohensDthresholdchordplotsCheckBox
-            app.CohensDthresholdchordplotsCheckBox = uicheckbox(app.UIFigure);
-            app.CohensDthresholdchordplotsCheckBox.ValueChangedFcn = createCallbackFcn(app, @CohensDthresholdchordplotsCheckBoxValueChanged, true);
-            app.CohensDthresholdchordplotsCheckBox.Text = 'Cohen''s D threshold chord plots';
-            app.CohensDthresholdchordplotsCheckBox.Position = [657 114 193 22];
-            app.CohensDthresholdchordplotsCheckBox.Value = true;
 
             % Create BranchLabel
             app.BranchLabel = uilabel(app.UIFigure);
@@ -799,6 +702,18 @@ classdef NLAResult < matlab.apps.AppBase
             app.BranchLabel.FontColor = [0.8 0.8 0.8];
             app.BranchLabel.Position = [434 627 418 29];
             app.BranchLabel.Text = {'gui | unknown_branch:0000000'; 'result produced by | unknown_branch:0000000'};
+
+            % Create OpenTriMatrixPlotButton
+            app.OpenTriMatrixPlotButton = uibutton(app.UIFigure, 'push');
+            app.OpenTriMatrixPlotButton.ButtonPushedFcn = createCallbackFcn(app, @OpenTriMatrixPlotButtonPushed, true);
+            app.OpenTriMatrixPlotButton.Position = [435 127 146 22];
+            app.OpenTriMatrixPlotButton.Text = 'Open TriMatrix Plot';
+
+            % Create OpenDiagnosticPlotsButton
+            app.OpenDiagnosticPlotsButton = uibutton(app.UIFigure, 'push');
+            app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
+            app.OpenDiagnosticPlotsButton.Position = [435 98 147 22];
+            app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
