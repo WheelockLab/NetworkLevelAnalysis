@@ -213,6 +213,8 @@ classdef MatrixPlot < handle
             elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
                 ~ismember(scale, ["Linear", "Log"])
                 obj.matrix.v = -log10(obj.matrix.v);
+                lower_limit = 0;
+                upper_limit = 2;
             end
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
