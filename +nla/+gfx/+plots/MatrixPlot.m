@@ -572,6 +572,13 @@ classdef MatrixPlot < handle
             ];
         end
 
+        function removeLegend(obj)
+            legend_object = findobj('type', 'legend');
+            if ~isempty(legend_object)
+                delete(legend_object);
+            end
+        end
+
         function createColorbar(obj, varargin)
             % Creates the colorbar
             % Annoyance: obj.color_map is a property, colormap is a command. Same with color_bar and colorbar

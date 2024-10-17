@@ -327,6 +327,7 @@ classdef NetworkTestPlot < handle
 
             if any(strcmp("parameters", changes)) || any(strcmp("ranking", changes))
                 if isobject(obj.matrix_plot)
+                    obj.matrix_plot.removeLegend();
                     delete(obj.matrix_plot.image_display);
                     delete(obj.matrix_plot.color_bar);
                 end
