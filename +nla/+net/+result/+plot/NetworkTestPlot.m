@@ -147,6 +147,10 @@ classdef NetworkTestPlot < handle
                 obj.test_method, "statistic_p_value", sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
 
+            if obj.current_settings.upper_limit ~= 0.3 && obj.current_settings.lower_limit ~= -0.3
+                probability_parameters.p_value_plot_max = obj.current_settings.upper_limit;
+            end
+            
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
             [width, height, obj.matrix_plot] = plotter.plotProbability(obj.plot_figure, probability_parameters,...
                 nla.inputField.LABEL_GAP, obj.y_position + obj.panel_height);
@@ -337,7 +341,9 @@ classdef NetworkTestPlot < handle
                 progress_bar.Message = "Changing scale of existing TriMatrix...";
                 obj.matrix_plot.applyScale(false, false, obj.current_settings.upper_limit,...
                     obj.current_settings.lower_limit, obj.current_settings.plot_scale,...
-                    obj.current_settings.colormap_choice);   
+                    obj.current_settings.colormap_choice);
+                obj.settings{7}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{end});
+                obj.settings{8}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{1});
             end  
             close(progress_bar);
         end
