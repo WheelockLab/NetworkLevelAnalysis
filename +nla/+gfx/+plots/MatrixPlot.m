@@ -210,6 +210,7 @@ classdef MatrixPlot < handle
             if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
                 ismember(scale, ["Linear", "Log"])
                 obj.matrix.v = 10.^(-obj.matrix.v);
+                
             elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
                 ~ismember(scale, ["Linear", "Log"])
                 obj.matrix.v = -log10(obj.matrix.v);
@@ -233,6 +234,13 @@ classdef MatrixPlot < handle
             obj.color_map = new_color_map;
             obj.embiggenMatrix(lower_limit, upper_limit);
             obj.createColorbar(lower_limit, upper_limit);
+        end
+
+        function removeLegend(obj)
+            legend_object = findobj('type', 'legend');
+            if ~isempty(legend_object)
+                delete(legend_object);
+            end
         end
 
         % getters for dependent properties

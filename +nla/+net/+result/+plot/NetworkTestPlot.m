@@ -82,7 +82,7 @@ classdef NetworkTestPlot < handle
         end
 
         function getPlotTitle(obj)
-            
+            % Building the plot title by going through options
             switch obj.test_method
                 case "no_permutations"
                     obj.title = "Non-permuted Method\nNon-permuted Significance";
@@ -144,9 +144,13 @@ classdef NetworkTestPlot < handle
             end
 
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
-                obj.test_method, "p_value", sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
+                obj.test_method, "statistic_p_value", sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
 
+            if obj.current_settings.upper_limit ~= 0.3 && obj.current_settings.lower_limit ~= -0.3
+                probability_parameters.p_value_plot_max = obj.current_settings.upper_limit;
+            end
+            
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
             [width, height, obj.matrix_plot] = plotter.plotProbability(obj.plot_figure, probability_parameters,...
                 nla.inputField.LABEL_GAP, obj.y_position + obj.panel_height);
@@ -191,6 +195,7 @@ classdef NetworkTestPlot < handle
         end
 
         function resizeFigure(obj, plot_width, plot_height)
+            % This resizes automatically so that all the elements fit nicely inside. This is not for manually resizing the window
             import nla.inputField.LABEL_GAP
 
             current_width = obj.plot_figure.Position(3);
@@ -207,7 +212,7 @@ classdef NetworkTestPlot < handle
         end
 
         function cohens_d_filter = createSignificanceFilter(obj)
-
+            % This is for using Cohen's D
             cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
             if isequal(obj.current_settings.cohens_d, true) && ~isequal(obj.test_method, "no_permutations")
                 if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
@@ -306,7 +311,7 @@ classdef NetworkTestPlot < handle
 
     methods (Access = protected)
         function applyChanges(obj, ~, ~, values)
-            
+            % Choosing what is being updated. If we don't have to update the Trimatrix, we'll skip that
             progress_bar = uiprogressdlg(obj.plot_figure, "Title", "Please Wait", "Message", "Applying Changes...",...
                 "Indeterminate", true);
 
@@ -326,6 +331,7 @@ classdef NetworkTestPlot < handle
 
             if any(strcmp("parameters", changes)) || any(strcmp("ranking", changes))
                 if isobject(obj.matrix_plot)
+                    obj.matrix_plot.removeLegend();
                     delete(obj.matrix_plot.image_display);
                     delete(obj.matrix_plot.color_bar);
                 end
@@ -335,7 +341,9 @@ classdef NetworkTestPlot < handle
                 progress_bar.Message = "Changing scale of existing TriMatrix...";
                 obj.matrix_plot.applyScale(false, false, obj.current_settings.upper_limit,...
                     obj.current_settings.lower_limit, obj.current_settings.plot_scale,...
-                    obj.current_settings.colormap_choice);   
+                    obj.current_settings.colormap_choice);
+                obj.settings{7}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{end});
+                obj.settings{8}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{1});
             end  
             close(progress_bar);
         end

@@ -177,6 +177,7 @@ classdef NetworkResultPlotParameter < handle
             
             statistic = obj.network_test_results.(test_method).(plot_statistic);
             if nargin > 2 && ~isequal(ranking_method, "Eggebrecht")
+                plot_statistic = "p_value";
                 if isequal(ranking_method, "Winkler")
                     ranking_method = "winkler";
                 elseif isequal(ranking_method, "Westfall-Young")
