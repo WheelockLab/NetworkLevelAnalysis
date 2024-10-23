@@ -24,7 +24,7 @@ classdef DiagnosticPlot < handle
             end
         end
 
-        function displayPlots(obj, test_method)
+        function displayPlots(obj, ranking_algorithm)
 
             p_value = nla.net.result.NetworkTestResult().getPValueNames(test_method, obj.networkTestResult.test_name);
             
