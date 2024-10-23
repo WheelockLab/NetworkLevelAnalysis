@@ -482,6 +482,10 @@ classdef NLAResult < matlab.apps.AppBase
 
         % Button pushed function: OpenDiagnosticPlotsButton
         function OpenDiagnosticPlotsButtonPushed(app, event)
+            prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating Diagnostic Plots'), 'Message', sprintf('Generating Diagnostic Plots'));
+            prog.Value = 0.02;
+            drawnow;
+                
             selected_nodes = app.ResultTree.SelectedNodes;
             for i = 1:size(selected_nodes, 1)
                 if ~isempty(selected_nodes(i).NodeData)
@@ -489,8 +493,10 @@ classdef NLAResult < matlab.apps.AppBase
                     node_flags = selected_nodes(i).NodeData{2};
                                         
                     result.runDiagnosticPlots(app.input_struct, app.net_input_struct, app.edge_result, app.input_struct.net_atlas, node_flags);
+                    prog.Value = i / size(selected_nodes, 1);
                 end
             end
+            close(prog)
         end
 
         % Callback function
