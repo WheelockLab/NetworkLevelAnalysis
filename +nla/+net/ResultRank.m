@@ -25,12 +25,12 @@ classdef ResultRank < handle
         end
         
         function ranking_result = rank(obj)
-            import nla.TriMatrix nla.TriMatrixDiag
+            import nla.TriMatrix nla.TriMatrixDiag nla.NetworkLevelMethod
 
             ranking_result = obj.permuted_network_results.copy();
             
             for test_type = obj.permuted_network_results.test_methods
-                if ~isequal(test_type, "no_permutations") && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
+                if ~isequal(test_type, NetworkLevelMethod.NO_PERMUTATIONS) && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
 
                     [ranking_statistic, probability, denominator] = obj.getTestParameters(test_type);
                     permutation_results = obj.permuted_network_results.permutation_results;

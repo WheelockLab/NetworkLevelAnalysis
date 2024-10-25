@@ -63,8 +63,8 @@ classdef NetworkTestPlot < handle
         
             parse(test_plot_parser, network_test_result, edge_test_result, network_atlas, test_method, edge_test_options,...
                 network_test_options, varargin{:});
-            properties = {"network_test_result", "edge_test_result", "network_atlas", "test_method", "edge_test_options",...
-                "network_test_options", "x_position", "y_position"};
+            properties = ["network_test_result", "edge_test_result", "network_atlas", "test_method", "edge_test_options",...
+                "network_test_options", "x_position", "y_position"];
             for property = properties
                 obj.(property{1}) = test_plot_parser.Results.(property{1});
             end
@@ -76,27 +76,29 @@ classdef NetworkTestPlot < handle
             if obj.edge_test_options == nla.gfx.ProbPlotMethod.STATISTIC
                 p_value = strcat("statistic_", p_value);
             end
-            if ~obj.network_test_result.is_noncorrelation_input && obj.test_method == "within_network_pair"
+            if ~obj.network_test_result.is_noncorrelation_input && obj.test_method == nla.NetworkLevelMethod.WITHIN_NETWORK_PAIR
                 p_value = strcat("single_sample_", p_value);
             end
         end
 
         function getPlotTitle(obj)
+            import nla.NetworkLevelMethod
+
             % Building the plot title by going through options
             switch obj.test_method
-                case "no_permutations"
+                case NetworkLevelMethod.NO_PERMUTATIONS
                     obj.title = "Non-permuted Method\nNon-permuted Significance";
-                case "full_connectome"
+                case NetworkLevelMethod.FULL_CONNECTOME
                     obj.title = "Full Connectome Method\nNetwork vs. Connectome Significance";
-                case "within_network_pair"
+                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
                     obj.title = "Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair";
             end
             if isequal(obj.current_settings.cohens_d, true)
                 obj.title = sprintf("%s (D < %g)", obj.title, obj.network_test_options.d_max);
             end
-            if isequal(obj.current_settings.ranking, "Winkler")
+            if isequal(obj.current_settings.ranking, nla.RankingMethod.WINKLER)
                 obj.title = strcat(obj.title, "\nRanking by Winkler Method");
-            elseif isequal(obj.current_settings.ranking, "Westfall-Young")
+            elseif isequal(obj.current_settings.ranking, nla.RankingMethod.WESTFALL_YOUNG)
                 obj.title = strcat(obj.title, "\nRanking by Westfall-Young Method");
             else
                 obj.title = strcat(obj.title, "\nRanking by Eggebrecht Method");
@@ -174,18 +176,7 @@ classdef NetworkTestPlot < handle
 
             for setting = obj.settings
                 if setting{1}.name == "edge_type"
-                    switch setting{1}.field.Value
-                        case "p-value"
-                            method = EdgeChordPlotMethod.PROB;
-                        case "Coefficient"
-                            method = EdgeChordPlotMethod.COEFF;
-                        case "Coefficient (Split)"
-                            method = EdgeChordPlotMethod.COEFF_SPLIT;
-                        case "Coefficient (Basic)"
-                            method = EdgeChordPlotMethod.COEFF_BASE;
-                        otherwise
-                            method = EdgeChordPlotMethod.COEFF_BASE_SPLIT;
-                    end
+                    method = setting{1}.field.Value;
                     probability_parameters.edge_chord_plot_method = method;
                     break
                 end
@@ -212,14 +203,16 @@ classdef NetworkTestPlot < handle
         end
 
         function cohens_d_filter = createSignificanceFilter(obj)
+            import nla.NetworkLevelMethod
+
             % This is for using Cohen's D
             cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if isequal(obj.current_settings.cohens_d, true) && ~isequal(obj.test_method, "no_permutations")
-                if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
+            if isequal(obj.current_settings.cohens_d, true) && ~isequal(obj.test_method, NetworkLevelMethod.NO_PERMUTATIONS)
+                if isequal(obj.test_method, NetworkLevelMethod.FULL_CONNECTOME) && ~isequal(obj.network_test_result.full_connectome, false)
                     cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
                 end
                 if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
-                    && ~isequal(obj.test_method, "full_connectome")
+                    && ~isequal(obj.test_method, NetworkLevelMethod.FULL_CONNECTOME)
                     cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
                 end
             else
@@ -229,17 +222,24 @@ classdef NetworkTestPlot < handle
 
         function [width, height] = drawOptions(obj)
             import nla.inputField.LABEL_GAP nla.inputField.LABEL_H nla.inputField.PullDown nla.inputField.CheckBox
-            import nla.inputField.Button nla.inputField.Number
+            import nla.inputField.Button nla.inputField.Number nla.NetworkLevelMethod nla.RankingMethod
+            import nla.gfx.EdgeChordPlotMethod nla.gfx.ProbPlotMethod
 
             % All the options (buttons, pulldowns, checkboxes)
-            scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"]);
-            ranking_method = PullDown("ranking", "Ranking", ["Eggebrecht", "Winkler", "Westfall-Young"]);
+            scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"],...
+                [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG, ProbPlotMethod.NEGATIVE_LOG_10]);
+            ranking_method = PullDown("ranking", "Ranking", ["Eggebrecht", "Winkler", "Westfall-Young"],...
+                [RankingMethod.EGGEBRECHT, RankingMethod.WINKLER, RankingMethod.WESTFALL_YOUNG]);
             cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", true);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
                 ["None", "Bonferroni", "Benjamini-Hochberg", "Benjamini-Yekutieli"]);
             network_chord_plot = Button("network_chord", "View Chord Plots", {@obj.drawChord, nla.PlotType.CHORD});
-            edge_chord_type = PullDown("edge_type", "Edge-level Chord Type", ["p-value", "Coefficient", "Coefficient (Split)", "Coefficient (Basic)", "Coefficient (Baseic, Split)"]);
+            edge_chord_type = PullDown(...
+                "edge_type", "Edge-level Chord Type",...
+                ["p-value", "Coefficient", "Coefficient (Split)", "Coefficient (Basic)", "Coefficient (Baseic, Split)"],...
+                [EdgeChordPlotMethod.PROB, EdgeChordPlotMethod.COEFF, EdgeChordPlotMethod.COEFF_SPLIT, EdgeChordPlotMethod.COEFF_BASE, EdgeChordPlotMethod.COEFF_BASE_SPLIT]...
+            );
             edge_chord_plot = Button("edge_chord", "View Edge Chord Plots", {@obj.drawChord, nla.PlotType.CHORD_EDGE});
             convergence_plot = Button("convergence", "View Convergence Map", @obj.openConvergencePlot);
             convergence_color = PullDown("convergence_color", "Convergence Plot Color",...
@@ -349,24 +349,25 @@ classdef NetworkTestPlot < handle
         end
 
         function openConvergencePlot(obj, ~, ~)
+            import nla.NetworkLevelMethod
             
             flags = struct();
             flags.show_full_conn = false;
             flags.show_within_net_pair = false;
             flags.show_nonpermuted = false;
             switch obj.test_method
-                case "no_permutations"
+                case NetworkLevelMethod.NO_PERMUTATIONS
                     flags.show_nonpermuted = true;
-                case "full_connectome"
+                case NetworkLevelMethod.FULL_CONNECTOME
                     flags.show_full_conn = true;
-                case "within_network_pair"
+                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
                     flags.show_within_net_pair = true;
             end
             [test_number, significance_count_matrix, names] = obj.network_test_result.getSigMat(obj.network_test_options,...
                 obj.network_atlas, flags);
             
                 colors = str2func(lower(obj.current_settings.convergence_color));
-            if isequal(obj.current_settings.convergence_color, "Bone");
+            if isequal(obj.current_settings.convergence_color, "Bone")
                 color_map = flip(colors());
             else
                 color_map = [[1, 1, 1]; flip(colors())];

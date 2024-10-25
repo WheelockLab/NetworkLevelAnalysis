@@ -4,6 +4,7 @@ classdef PullDown < nla.inputField.InputField
         display_name
         name
         options
+        items_data
         plot_figure = false
         label = false
         field = false
@@ -15,14 +16,23 @@ classdef PullDown < nla.inputField.InputField
     end
 
     methods
-        function obj = PullDown(name, display_name, options, value)
+        function obj = PullDown(name, display_name, options, items_data, value)
             obj.name = name;
             obj.display_name = display_name;
             obj.options = options;
             if nargin >= 4
+                obj.items_data = items_data;
+            else
+                obj.items_data = [];
+            end
+            if nargin >= 5
                 obj.value = value;
             else
-                obj.value = obj.options(1);
+                if isempty(obj.items_data)
+                    obj.value = obj.options(1);
+                else
+                    obj.value = obj.items_data(1);
+                end
             end
         end
 
@@ -44,7 +54,7 @@ classdef PullDown < nla.inputField.InputField
             obj.label.Position = [x_offset, y_offset - height, label_width + label_gap, height];
             % pulldown
             if ~isgraphics(obj.field)
-                obj.field = uidropdown(parent, "Items", obj.options, "Value", obj.value);
+                obj.field = uidropdown(parent, "Items", obj.options, "ItemsData", obj.items_data, "Value", obj.value);
             end
             max_string_length = 0;
             max_string = "";
