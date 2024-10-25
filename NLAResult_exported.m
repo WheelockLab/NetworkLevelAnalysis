@@ -511,7 +511,7 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.LOG;
             elseif strcmp(value, 'p-value -log')
                 % Plot p-values on negative logarithmic scale
-                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEGATIVE_LOG_10;
+                app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.NEG_LOG_10;
             else
                 app.net_input_struct.prob_plot_method = gfx.ProbPlotMethod.STATISTIC;
             end
