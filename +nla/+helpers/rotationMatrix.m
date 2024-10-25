@@ -1,20 +1,20 @@
 function mat = rotationMatrix(dir, theta)
     % Generate a rotation matrix for the direction given
     % an angle (in radians).
-    import nla.Dir
+    import nla.Direction
 
     mat = zeros(3);
 
     switch dir
-        case Dir.X
+        case Direction.X
             mat = [1 0 0;...
                     0 cos(theta) -sin(theta);...
                     0 sin(theta) cos(theta)];
-        case Dir.Y
+        case Direction.Y
             mat = [cos(theta) 0 sin(theta);...
                     0 1 0;...
                     -sin(theta) 0 cos(theta)];
-        case Dir.Z
+        case Direction.Z
             mat = [cos(theta) -sin(theta) 0;...
                     sin(theta) cos(theta) 0;...
                     0 0 1];

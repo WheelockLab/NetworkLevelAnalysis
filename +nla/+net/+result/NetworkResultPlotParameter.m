@@ -42,7 +42,7 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % Adding on to the plot title if it's a -log10 plot
-            if obj.updated_test_options.prob_plot_method == nla.gfx.ProbPlotMethod.NEG_LOG_10
+            if obj.updated_test_options.prob_plot_method == nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10
                 plot_title = sprintf("%s (-log_1_0(P))", plot_title);
             end
 
@@ -79,7 +79,7 @@ classdef NetworkResultPlotParameter < handle
                     color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
                         statistic_input, p_value_max);
                 % Here we take a -log10 and change the maximum value to show on the plot
-                case nla.gfx.ProbPlotMethod.NEG_LOG_10
+                case nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10
                     color_map = parula(obj.default_discrete_colors);
 
                     statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -167,7 +167,18 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function statistic = getStatsFromMethodAndName(obj, test_method, plot_statistic, ranking_method)
+        function statistic = getStatsFromMethodAndName(obj, method, plot_statistic, ranking_method)
+            import nla.RankingMethod nla.NetworkLevelMethod
+            
+            switch method
+                case NetworkLevelMethod.NO_PERMUTATIONS
+                    test_method = "no_permutations";
+                case NetworkLevelMethod.FULL_CONNECTOME
+                    test_method = "full_connectome";
+                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
+                    test_method = "within_network_pair";
+            end
+            
             % combining the method and stat name to get the data. With a fail safe for forgetting 'single_sample'
             if isequal(test_method, "within_network_pair")...
                 && ~startsWith(plot_statistic, "single_sample")...
@@ -176,12 +187,14 @@ classdef NetworkResultPlotParameter < handle
             end
             
             statistic = obj.network_test_results.(test_method).(plot_statistic);
-            if nargin > 2 && ~isequal(ranking_method, "Eggebrecht")
+            if nargin > 2 && ~isequal(ranking_method, RankingMethod.EGGEBRECHT)
                 plot_statistic = "p_value";
-                if isequal(ranking_method, "Winkler")
+                if isequal(ranking_method, RankingMethod.WINKLER)
                     ranking_method = "winkler";
-                elseif isequal(ranking_method, "Westfall-Young")
+                elseif isequal(ranking_method, RankingMethod.WESTFALL_YOUNG)
                     ranking_method = "westfall_young";
+                else
+                    ranking_method = "statistic";
                 end
                 statistic = obj.network_test_results.(test_method).(strcat((ranking_method), "_", (plot_statistic)));
             end

@@ -207,12 +207,12 @@ classdef MatrixPlot < handle
 
             obj.matrix = obj.original_matrix;
 
-            if ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
-                ismember(scale, ["Linear", "Log"])
+            if ismember(obj.plot_scale, [ProbPlotMethod.NEGATIVE_LOG_10, ProbPlotMethod.NEGATIVE_LOG_STATISTIC]) &&...
+                ismember(scale, [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG])
                 obj.matrix.v = 10.^(-obj.matrix.v);
                 
-            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEG_LOG_10, ProbPlotMethod.NEG_LOG_STATISTIC]) &&...
-                ~ismember(scale, ["Linear", "Log"])
+            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEGATIVE_LOG_10, ProbPlotMethod.NEGATIVE_LOG_STATISTIC]) &&...
+                ~ismember(scale, [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG])
                 obj.matrix.v = -log10(obj.matrix.v);
                 lower_limit = 0;
                 upper_limit = 2;
@@ -220,16 +220,16 @@ classdef MatrixPlot < handle
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
 
-            if scale == "Linear"
+            if scale == ProbPlotMethod.DEFAULT
                 new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, upper_limit, color_map);
-                obj.plot_scale = ProbPlotMethod.DEFAULT;
-            elseif scale == "Log"
+                obj.plot_scale = scale;
+            elseif scale == ProbPlotMethod.LOG
                 new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, upper_limit, color_map);
-                obj.plot_scale = ProbPlotMethod.LOG;
+                obj.plot_scale = scale;
             else
                 color_map_name = str2func(lower(color_map));
                 new_color_map = color_map_name(discrete_colors);
-                obj.plot_scale = ProbPlotMethod.NEG_LOG_10;
+                obj.plot_scale = ProbPlotMethod.NEGATIVE_LOG_10;
             end
             obj.color_map = new_color_map;
             obj.embiggenMatrix(lower_limit, upper_limit);

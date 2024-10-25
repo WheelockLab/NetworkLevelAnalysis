@@ -89,7 +89,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
                 testCase.network_test_options);
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, 'full_connectome', 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
+                testCase.edge_test_result, nla.NetworkLevelMethod.FULL_CONNECTOME, 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
                 false);
             
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
@@ -115,7 +115,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
                 testCase.network_test_options);
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, 'full_connectome', 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
+                testCase.edge_test_result, nla.NetworkLevelMethod.FULL_CONNECTOME, 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
                 false);
 
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
@@ -141,13 +141,13 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             import nla.net.result.NetworkResultPlotParameter
             
             permutation_result = testCase.permutation_results.permutation_network_test_results{1};
-            testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.NEG_LOG_10;
+            testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10;
 
             plot_parameters = NetworkResultPlotParameter(permutation_result, testCase.network_atlas,...
                 testCase.network_test_options);
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, 'full_connectome', 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
+                testCase.edge_test_result, nla.NetworkLevelMethod.FULL_CONNECTOME, 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
                 false);
 
             expected_p_value_max = 2;

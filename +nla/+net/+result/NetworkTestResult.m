@@ -74,13 +74,14 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
+            import nla.NetworkLevelMethod
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                test_method = "no_permutations";
+                test_method = NetworkLevelMethod.NO_PERMUTATIONS;
             elseif isfield(flags, "show_full_conn") && flags.show_full_conn
-                test_method = "full_connectome";
+                test_method = NetworkLevelMethod.FULL_CONNECTOME;
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                test_method = "within_network_pair";
+                test_method = NetworkLevelMethod.WITHIN_NETWORK_PAIR;
             end
 
             network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas,...
@@ -133,15 +134,17 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function runDiagnosticPlots(obj, edge_test_options, updated_test_options, edge_test_result, network_atlas, flags)
+            import nla.NetworkLevelMethod
+
             diagnostics_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options,...
                 edge_test_result, network_atlas, obj);
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                test_method = "no_permutations";
+                test_method = NetworkLevelMethod.NO_PERMUTATIONS;
             elseif isfield(flags, "show_full_conn") && flags.show_full_conn
-                test_method = "full_connectome";
+                test_method = NetworkLevelMethod.FULL_CONNECTOME;
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                test_method = "within_network_pair";
+                test_method = NetworkLevelMethod.WITHIN_NETWORK_PAIR;
             end
 
             diagnostics_plot.displayPlots(test_method);
