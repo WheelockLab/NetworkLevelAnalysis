@@ -17,7 +17,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
     properties (Constant)
         number_of_networks = 15
         number_of_network_pairs = 120
-        permutations = 9
+        permutations = 500
     end
 
     methods (TestClassSetup)
@@ -65,8 +65,8 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
             testCase.edge_test_options.precalc_perm_coeff.v = permutation_coefficient_file.SIM_perm_coeff;
 
             % For unit tests, we're only going to use 10 permutations so they don't take forever
-            testCase.edge_test_options.precalc_perm_p.v = testCase.edge_test_options.precalc_perm_p.v(:, 1:9);
-            testCase.edge_test_options.precalc_perm_coeff.v = testCase.edge_test_options.precalc_perm_coeff.v(:, 1:9);
+            testCase.edge_test_options.precalc_perm_p.v = testCase.edge_test_options.precalc_perm_p.v;
+            testCase.edge_test_options.precalc_perm_coeff.v = testCase.edge_test_options.precalc_perm_coeff.v;
 
             testCase.edge_test_options.net_atlas = testCase.network_atlas;
             testCase.edge_test_options.prob_max = 0.05;
@@ -81,8 +81,6 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
             testCase.network_test_options.within_network_pair = true;
             testCase.network_test_options.no_permutations = true;
 
-            % The ResultPool uses nla.helpers.git.commitString, which won't work for our test runner. So
-            % we're skipping that
             testCase.edge_test_result = testCase.tests.runEdgeTest(testCase.edge_test_options);
             testCase.network_test_results = testCase.tests.runNetTests(testCase.network_test_options,...
                 testCase.edge_test_result, testCase.network_atlas, false);
@@ -96,7 +94,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
                 testCase.ranked_results = [testCase.ranked_results, result_ranker.rank()];
             end
 
-            testCase.legacy_results = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'LegacyNetworkResults.mat')));
+            testCase.legacy_results = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'legacy_SIM_highSNR_500perms.mat')));
             testCase.legacy_results = testCase.legacy_results.legacy_results;
         end
     end
@@ -110,7 +108,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
                     result = testCase.ranked_results(test);
                 end
             end
-            testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.Chi_pval_figs, "RelTol", 0.05)
+            testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.chi2, "RelTol", 0.05)
         end
 
         function hypergeometricTestCase(testCase)
@@ -121,7 +119,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
                     result = testCase.ranked_results(test);
                 end
             end
-            testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.HG_pval_figs, "RelTol", 0.05)
+            testCase.verifyEqual(result.(test_type).p_value.v, test_type_legacy_result.HG, "RelTol", 0.05)
         end
 
         function kolmogorovSmirnovTestCase(testCase)
@@ -136,7 +134,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
                 if isequal(test_type, "within_network_pair")
                     probability = "single_sample_p_value";
                 end
-                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.KS_pval_figs, "RelTol", 0.05)
+                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.ks, "RelTol", 0.05)
             end
         end
 
@@ -152,7 +150,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
                 if isequal(test_type, "within_network_pair")
                     probability = "single_sample_p_value";
                 end
-                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.WelchsT_pval_figs, "RelTol", 0.05)
+                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.welchsT, "RelTol", 0.05)
             end
         end
 
@@ -168,7 +166,7 @@ classdef NetworkTestLegacyTestCase < matlab.unittest.TestCase
                 if isequal(test_type, "within_network_pair")
                     probability = "single_sample_p_value";
                 end
-                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.Wilcoxon_pval_figs, "RelTol", 0.05)
+                testCase.verifyEqual(result.(test_type).(probability).v, test_type_legacy_result.wilcoxon, "RelTol", 0.05)
             end
         end
     end
