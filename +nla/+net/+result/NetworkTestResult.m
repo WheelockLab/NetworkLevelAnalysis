@@ -247,15 +247,25 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             import nla.TriMatrix nla.TriMatrixDiag
 
-            obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value rank
-            obj.(test_method).statistic_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
-            obj.(test_method).winkler_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by winkler's method
-            obj.(test_method).westfall_young_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by westfall-young
-            if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
+            if any(strcmp(obj.test_name, obj.noncorrelation_input_tests)) || (...
+                ~isequal(obj.test_name, obj.noncorrelation_input_tests) && (...
+                isequal(test_method, "no_permutations") || isequal(test_method, "full_connectome")...
+            ))
+                obj.(test_method).legacy_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            end 
+            if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests)) && ~isequal(test_method, "full_connectome")
+                obj.(test_method).legacy_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
                 obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).statistic_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).winkler_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).westfall_young_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            end
+
+            if ~isequal(test_method, "no_permutations")
+                obj.(test_method).winkler_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); 
+                obj.(test_method).westfall_young_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); 
+                if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
+                    obj.(test_method).winkler_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    obj.(test_method).westfall_young_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                end
             end
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);

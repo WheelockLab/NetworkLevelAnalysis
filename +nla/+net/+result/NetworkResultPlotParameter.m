@@ -190,13 +190,13 @@ classdef NetworkResultPlotParameter < handle
             if nargin > 2 && ~isequal(ranking_method, RankingMethod.EGGEBRECHT)
                 plot_statistic = "p_value";
                 if isequal(ranking_method, RankingMethod.WINKLER)
-                    ranking_method = "winkler";
+                    ranking_method = "winkler_";
                 elseif isequal(ranking_method, RankingMethod.WESTFALL_YOUNG)
-                    ranking_method = "westfall_young";
+                    ranking_method = "westfall_young_";
                 else
-                    ranking_method = "statistic";
+                    ranking_method = "";
                 end
-                statistic = obj.network_test_results.(test_method).(strcat((ranking_method), "_", (plot_statistic)));
+                statistic = obj.network_test_results.(test_method).(strcat((ranking_method), (plot_statistic)));
             end
         end
     end

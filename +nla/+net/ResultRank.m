@@ -30,7 +30,7 @@ classdef ResultRank < handle
             ranking_result = obj.permuted_network_results.copy();
             
             for test_type = obj.permuted_network_results.test_methods
-                if ~isequal(test_type, NetworkLevelMethod.NO_PERMUTATIONS) && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
+                if ~isequal(test_type, "no_permutations") && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
 
                     [ranking_statistic, probability, denominator] = obj.getTestParameters(test_type);
                     permutation_results = obj.permuted_network_results.permutation_results;
@@ -69,8 +69,8 @@ classdef ResultRank < handle
                     combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :), no_permutation_results.(ranking_statistic).v(index)];
                 end
 
-                ranking.(test_type).(probability).v(index) = 1 - (sum(abs(squeeze(combined_probabilities)) >= abs(no_permutation_results.(probability).v(index))) / (1 + denominator));
-                ranking.(test_type).(strcat("statistic_", (probability))).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))) / (1 + denominator);
+                ranking.(test_type).(strcat("legacy_", probability)).v(index) = sum(abs(squeeze(combined_probabilities)) <= abs(no_permutation_results.(probability).v(index))) / (1 + denominator);
+                ranking.(test_type).(probability).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))) / (1 + denominator);
             end
         end
 
