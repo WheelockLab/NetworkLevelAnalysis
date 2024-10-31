@@ -43,6 +43,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     end
 
     properties (Constant)
+        % TODO: replace wtih enums
         test_methods = ["no_permutations", "full_connectome", "within_network_pair"]
         noncorrelation_input_tests = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
     end
@@ -162,17 +163,17 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 title = "Non-Permuted";
-                p_values = obj.no_permutations.p_value;
+                p_values = obj.no_permutations.uncorrected_two_sample_p_value;
                 fdr_method = network_test_options.fdr_correction; 
             end
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 title = "Full Connectome";
-                p_values = obj.full_connectome.p_value;
+                p_values = obj.full_connectome.uncorrected_two_sample_p_value;
                 fdr_method = nla.net.mcc.None;
             end
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 title = "Within Network Pair";
-                p_values = obj.within_network_pair.single_sample_p_value;
+                p_values = obj.within_network_pair.uncorrected_single_sample_p_value;
                 fdr_method = network_test_options.fdr_correction;
             end
             [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
@@ -189,9 +190,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         % getters for dependent properties
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
-            if isfield(obj.permutation_results, "p_value_permutations") &&...
-                ~isequal(obj.permutation_results.p_value_permutations, false)
-                value = size(obj.permutation_results.p_value_permutations.v, 2);
+            if isfield(obj.permutation_results, "two_sample_p_value_permutations") &&...
+                ~isequal(obj.permutation_results.two_sample_p_value_permutations, false)
+                value = size(obj.permutation_results.two_sample_p_value_permutations.v, 2);
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
                 value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
@@ -227,8 +228,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %CREATETESTSPECIFICRESULTSSTORAGE Create the substructures for the specific statistical tests
 
             import nla.TriMatrix nla.TriMatrixDiag
-
-            obj.permutation_results.p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            
+            obj.permutation_results.two_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
             if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
                 obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
                     TriMatrixDiag.KEEP_DIAGONAL);
@@ -244,27 +245,20 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
         function createPValueTriMatrices(obj, number_of_networks, test_method)
             %CREATEPVALUETRIMATRICES Creates the p-value substructure for the test method
-
             import nla.TriMatrix nla.TriMatrixDiag
 
-            if any(strcmp(obj.test_name, obj.noncorrelation_input_tests)) || (...
-                ~isequal(obj.test_name, obj.noncorrelation_input_tests) && (...
-                isequal(test_method, "no_permutations") || isequal(test_method, "full_connectome")...
-            ))
-                obj.(test_method).legacy_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            end 
-            if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests)) && ~isequal(test_method, "full_connectome")
-                obj.(test_method).legacy_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            end
+            base_p_value = NetworkTestResult().getPValueNames(test_method, obj.test_name);
+            uncorrected_names = ["uncorrected_", "legacy_"];
+            corrected_names = ["winkler_", "westfall_young_"];
 
+            for name = uncorrected_names
+                probability_field = strcat(name, base_p_value);
+                obj.(test_method).(probability_field) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            end
             if ~isequal(test_method, "no_permutations")
-                obj.(test_method).winkler_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); 
-                obj.(test_method).westfall_young_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); 
-                if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
-                    obj.(test_method).winkler_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                    obj.(test_method).westfall_young_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                for name = corrected_names
+                    probability_field = strcat(name, base_p_value);
+                    obj.(test_method).(probability_field) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
                 end
             end
             %Cohen's D results
@@ -301,6 +295,27 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
                 Number('d_max', "Cohen's D threshold >", 0, 0.5, 1),...
             };
+        end
+
+        function p_value_field = getPValueNames(test_method, test_name)
+            % convenience name
+            noncorrelation_input_test = isequal(test_name, "chi_squared") ||...
+                isequal(test_name, "hypergeometric")
+
+            % All full-connectome tests are two sample
+            if isequal(test_method, "full_connectome")
+                p_value_field = "two_sample_p_value";
+                return
+            end
+            
+            % These are split because Matlab does goofy things with logical order-of-operations
+            % Chi-squared and hypergeomtric are always two-sample
+            if isequal(noncorrelation_input_test, true)
+                p_value_field = "two_sample_p_value"; 
+            % Other tests that aren't full-connectome are single sample
+            elseif ~isequal(test_method, "full_connectome")
+                p_value_field = "single_sample_p_value";
+            end
         end
     end
 end
