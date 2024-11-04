@@ -78,11 +78,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             import nla.NetworkLevelMethod
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                test_method = NetworkLevelMethod.NO_PERMUTATIONS;
+                test_method = "no_permutations";
             elseif isfield(flags, "show_full_conn") && flags.show_full_conn
-                test_method = NetworkLevelMethod.FULL_CONNECTOME;
+                test_method = "full_connectome";
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                test_method = NetworkLevelMethod.WITHIN_NETWORK_PAIR;
+                test_method = "within_network_pair";
             end
 
             network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas,...
@@ -321,7 +321,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             probability = "two_sample_p_value";
             if isequal(non_correlation_test, false)
-                if isequal(test_method, NetworkLevelMethod.NO_PERMUTATIONS) || isequal(test_method, NetworkLevelMethod.WITHIN_NETWORK_PAIR)
+                if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
                     probability = "single_sample_p_value";
                 end
             end

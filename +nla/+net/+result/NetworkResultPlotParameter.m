@@ -171,11 +171,11 @@ classdef NetworkResultPlotParameter < handle
             import nla.RankingMethod nla.NetworkLevelMethod nla.net.result.NetworkTestResult
             
             switch method
-                case NetworkLevelMethod.NO_PERMUTATIONS
+                case "no_permutations" 
                     test_method = "no_permutations";
-                case NetworkLevelMethod.FULL_CONNECTOME
+                case "full_connectome" 
                     test_method = "full_connectome";
-                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
+                case "within_network_pair"
                     test_method = "within_network_pair";
             end
 
