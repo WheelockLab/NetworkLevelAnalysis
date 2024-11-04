@@ -70,17 +70,6 @@ classdef NetworkTestPlot < handle
             end
         end
 
-        function p_value = choosePlottingMethod(obj)
-            
-            p_value = "p_value";
-            if obj.edge_test_options == nla.gfx.ProbPlotMethod.STATISTIC
-                p_value = strcat("statistic_", p_value);
-            end
-            if ~obj.network_test_result.is_noncorrelation_input && obj.test_method == nla.NetworkLevelMethod.WITHIN_NETWORK_PAIR
-                p_value = strcat("single_sample_", p_value);
-            end
-        end
-
         function getPlotTitle(obj)
             import nla.NetworkLevelMethod
 
