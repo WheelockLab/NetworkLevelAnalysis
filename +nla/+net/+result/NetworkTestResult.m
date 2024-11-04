@@ -315,12 +315,13 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function probability = getPValueNames(test_method, test_name)
+            import nla.NetworkLevelMethod
             noncorrelation_input_tests = ["chi_squared", "hypergeometric"];
             non_correlation_test = any(strcmp(test_name, noncorrelation_input_tests));
 
             probability = "two_sample_p_value";
             if isequal(non_correlation_test, false)
-                if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
+                if isequal(test_method, NetworkLevelMethod.NO_PERMUTATIONS) || isequal(test_method, NetworkLevelMethod.WITHIN_NETWORK_PAIR)
                     probability = "single_sample_p_value";
                 end
             end
