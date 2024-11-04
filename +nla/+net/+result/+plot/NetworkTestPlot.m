@@ -129,7 +129,8 @@ classdef NetworkTestPlot < handle
         end
 
         function [width, height] = drawTriMatrixPlot(obj)
-                     
+            import nla.net.result.NetworkTestResult         
+
             if ~isequal(obj.matrix_plot, false)
                obj.matrix_plot.plot_title.String = {};
                obj.parameters.updated_test_options.prob_max = obj.current_settings.p_threshold;
@@ -145,8 +146,10 @@ classdef NetworkTestPlot < handle
                     mcc = obj.current_settings.mcc;
             end
 
+            probability = NetworkTestResult().getPValueNames(obj.test_method, obj.network_test_result.test_name);
+
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
-                obj.test_method, "statistic_p_value", sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
+                obj.test_method, probability, sprintf(obj.title), mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
 
             if obj.current_settings.upper_limit ~= 0.3 && obj.current_settings.lower_limit ~= -0.3
@@ -168,8 +171,11 @@ classdef NetworkTestPlot < handle
 
             obj.getPlotTitle();
 
+            probability = NetworkTestResult().getPValueNames(obj.test_method, obj.network_test_result.test_name);
+            p_value = strcat("uncorrected_", probability);
+
             probability_parameters = obj.parameters.plotProbabilityParameters(obj.edge_test_options, obj.edge_test_result,...
-                obj.test_method, "p_value", sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
+                obj.test_method, p_value, sprintf(obj.title), obj.current_settings.mcc, obj.createSignificanceFilter(),...
                 obj.current_settings.ranking);
             
             chord_plotter = nla.net.result.chord.ChordPlotter(obj.network_atlas, obj.edge_test_result);

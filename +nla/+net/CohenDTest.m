@@ -29,7 +29,9 @@ classdef CohenDTest < handle
                     d = abs((mean(network_rho) - mean(edge_test_results.coeff.v)) / sqrt(((std(network_rho).^2)) +...
                         (std(edge_test_results.coeff.v).^2)));
                     
-                    result_object.no_permutations.d.set(row, column, single_sample_d);
+                    if isprop(result_object, "no_permutations") && ~isequal(result_object.no_permutations, false)
+                        result_object.no_permutations.d.set(row, column, single_sample_d);
+                    end
                     if isprop(result_object, "full_connectome") && ~isequal(result_object.full_connectome, false)
                         result_object.full_connectome.d.set(row, column, d);
                     end

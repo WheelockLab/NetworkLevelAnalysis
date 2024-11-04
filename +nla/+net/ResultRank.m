@@ -25,73 +25,73 @@ classdef ResultRank < handle
         end
         
         function ranking_result = rank(obj)
-            import nla.TriMatrix nla.TriMatrixDiag nla.NetworkLevelMethod
+            import nla.TriMatrix nla.TriMatrixDiag nla.net.result.NetworkTestResult
 
             ranking_result = obj.permuted_network_results.copy();
             
-            for test_type = obj.permuted_network_results.test_methods
-                if ~isequal(test_type, NetworkLevelMethod.NO_PERMUTATIONS) && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
+            for test_method = obj.permuted_network_results.test_methods
+                if ~isequal(test_method, "no_permutations") && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
 
-                    [ranking_statistic, probability, denominator] = obj.getTestParameters(test_type);
+                    [ranking_statistic, denominator] = obj.getTestParameters(test_method);
+                    probability = NetworkTestResult().getPValueNames(test_method, obj.permuted_network_results.test_name);
                     permutation_results = obj.permuted_network_results.permutation_results;
                     no_permutation_results = obj.nonpermuted_network_results;
 
                     % Eggebrecht ranking
-                    ranking_result = obj.eggebrechtRank(test_type, permutation_results, no_permutation_results, ranking_statistic,...
+                    ranking_result = obj.eggebrechtRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking_result);
 
                     % Winkler Method ranking
-                    ranking_result = obj.winklerMethodRank(test_type, permutation_results, no_permutation_results, ranking_statistic,...
+                    ranking_result = obj.winklerMethodRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking_result);
 
                     % Westfall Young ranking
-                    ranking_result = obj.westfallYoungMethodRank(test_type, permutation_results, no_permutation_results, ranking_statistic,...
+                    ranking_result = obj.westfallYoungMethodRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking_result);
                 end
             end
         end
         
-        function ranking = eggebrechtRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
+        function ranking = eggebrechtRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking)
-            
-            for index = 1:numel(no_permutation_results.(probability).v)
-                if isequal(test_type, "full_connectome")
+                        
+            for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
+                if isequal(test_method, "full_connectome")
                     combined_probabilities = [...
                         permutation_results.(strcat((probability), "_permutations")).v(:);...
-                        no_permutation_results.(probability).v(index)...
+                        no_permutation_results.(strcat("uncorrected_", probability)).v(index)...
                     ];
                     combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(:); no_permutation_results.(ranking_statistic).v(index)];
                 else
                     combined_probabilities = [...
                         permutation_results.(strcat((probability), "_permutations")).v(index, :),...
-                        no_permutation_results.(probability).v(index)...
+                        no_permutation_results.(strcat("uncorrected_", probability)).v(index)...
                     ];
                     combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :), no_permutation_results.(ranking_statistic).v(index)];
                 end
 
-                ranking.(test_type).(probability).v(index) = 1 - (sum(abs(squeeze(combined_probabilities)) >= abs(no_permutation_results.(probability).v(index))) / (1 + denominator));
-                ranking.(test_type).(strcat("statistic_", (probability))).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))) / (1 + denominator);
+                legacy_probability = strcat("legacy_", probability);
+                uncorrected_probability = strcat("uncorrected_", probability);
+                ranking.(test_method).(legacy_probability).v(index) = sum(abs(squeeze(combined_probabilities)) <= abs(no_permutation_results.(strcat("uncorrected_", probability)).v(index))) / (1 + denominator);
+                ranking.(test_method).(uncorrected_probability).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))) / (1 + denominator);
             end
         end
 
-        function ranking = winklerMethodRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
+        function ranking = winklerMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking)
 
+            winkler_probability = strcat("winkler_", probability);
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
-            for index = 1:numel(no_permutation_results.(probability).v)
-                ranking.(test_type).winkler_p_value.v(index) = sum(...
+            for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
+                ranking.(test_method).(winkler_probability).v(index) = sum(...
                     squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
                 );
             end
             
-            if startsWith(ranking_statistic, "single_sample")
-                ranking.(test_type).winkler_single_sample_p_value.v = ranking.(test_type).winkler_p_value.v ./ obj.permutations;
-            else
-                ranking.(test_type).winkler_p_value.v = ranking.(test_type).winkler_p_value.v ./ obj.permutations;
-            end
+            ranking.(test_method).(winkler_probability).v = ranking.(test_method).(winkler_probability).v ./ obj.permutations;
         end
 
-        function ranking = westfallYoungMethodRank(obj, test_type, permutation_results, no_permutation_results, ranking_statistic,...
+        function ranking = westfallYoungMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking)
 
             % sort statistics in ascending order
@@ -101,6 +101,8 @@ classdef ResultRank < handle
             permutations_sorted_by_non_permuted = abs(...
                 permutation_results.(strcat((ranking_statistic), "_permutations")).v(sorted_statistic_indexes, :)...
             );
+
+            westfall_young_probability = strcat("westfall_young_", probability);
 
             % Get max value of each permutation starting from max value of non-permuted statistics
             % Remove each row of permutations associated with non-permuted statistic
@@ -114,24 +116,17 @@ classdef ResultRank < handle
             end
             max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
 
-            ranking.(test_type).westfall_young_p_value.v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
+            ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
             
-            if startsWith(ranking_statistic, "single_sample")
-                ranking.(test_type).westfall_young_single_sample_p_value.v(sorted_statistic_indexes) =...
-                    ranking.(test_type).westfall_young_p_value.v;
-            else
-                ranking.(test_type).westfall_young_p_value.v(sorted_statistic_indexes) =...
-                    ranking.(test_type).westfall_young_p_value.v;
-            end
+            ranking.(test_method).(westfall_young_probability).v(sorted_statistic_indexes) = ranking.(test_method).(westfall_young_probability).v;
         end 
 
-        function [ranking_statistic, probability, denominator] = getTestParameters(obj, test_type)
+        function [ranking_statistic, denominator] = getTestParameters(obj, test_method)
 
             ranking_statistic = obj.permuted_network_results.ranking_statistic;
-            probability = "p_value";
             denominator = obj.permutations * obj.number_of_network_pairs;
             % Only use these for within network pair and not Chi-Squared and Hypergeometric. 
-            if isequal(test_type, "within_network_pair")
+            if isequal(test_method, "within_network_pair")
                 denominator = obj.permutations;
                 if ~any(...
                     ismember(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests)...
@@ -140,7 +135,6 @@ classdef ResultRank < handle
                     if isequal(obj.permuted_network_results.test_name, "wilcoxon")
                         ranking_statistic = "single_sample_ranksum_statistic";
                     end
-                    probability = strcat("single_sample_", probability);
                 end
             end
         end
@@ -148,7 +142,7 @@ classdef ResultRank < handle
         %% Getters for dependent properties
         % This takes the above statistic and gets the property to use its size to find the number of permutations
         function value = get.permutations(obj)
-            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2);
+            value = size(obj.permuted_network_results.permutation_results.two_sample_p_value_permutations.v, 2);
         end
 
         function value = get.number_of_networks(obj)

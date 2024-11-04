@@ -43,6 +43,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     end
 
     properties (Constant)
+        % TODO: replace wtih enums
         test_methods = ["no_permutations", "full_connectome", "within_network_pair"]
         noncorrelation_input_tests = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
     end
@@ -162,17 +163,17 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 title = "Non-Permuted";
-                p_values = obj.no_permutations.p_value;
+                p_values = obj.no_permutations.uncorrected_two_sample_p_value;
                 fdr_method = network_test_options.fdr_correction; 
             end
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 title = "Full Connectome";
-                p_values = obj.full_connectome.p_value;
+                p_values = obj.full_connectome.uncorrected_two_sample_p_value;
                 fdr_method = nla.net.mcc.None;
             end
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 title = "Within Network Pair";
-                p_values = obj.within_network_pair.single_sample_p_value;
+                p_values = obj.within_network_pair.uncorrected_single_sample_p_value;
                 fdr_method = network_test_options.fdr_correction;
             end
             [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
@@ -189,9 +190,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         % getters for dependent properties
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
-            if isfield(obj.permutation_results, "p_value_permutations") &&...
-                ~isequal(obj.permutation_results.p_value_permutations, false)
-                value = size(obj.permutation_results.p_value_permutations.v, 2);
+            if isfield(obj.permutation_results, "two_sample_p_value_permutations") &&...
+                ~isequal(obj.permutation_results.two_sample_p_value_permutations, false)
+                value = size(obj.permutation_results.two_sample_p_value_permutations.v, 2);
             elseif isfield(obj.permutation_results, "single_sample_p_value_permutations") &&...
                 ~isequal(obj.permutation_results.single_sample_p_value_permutations, false)
                 value = size(obj.permutation_results.single_sample_p_value_permutations.v, 2);
@@ -225,14 +226,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
         function createTestSpecificResultsStorage(obj, number_of_networks, test_specific_statistics)
             %CREATETESTSPECIFICRESULTSSTORAGE Create the substructures for the specific statistical tests
-
             import nla.TriMatrix nla.TriMatrixDiag
-
-            obj.permutation_results.p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
-                obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
-                    TriMatrixDiag.KEEP_DIAGONAL);
-            end
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
@@ -244,19 +238,46 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
         function createPValueTriMatrices(obj, number_of_networks, test_method)
             %CREATEPVALUETRIMATRICES Creates the p-value substructure for the test method
-
             import nla.TriMatrix nla.TriMatrixDiag
 
-            obj.(test_method).p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value rank
-            obj.(test_method).statistic_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by statistic rank
-            obj.(test_method).winkler_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by winkler's method
-            obj.(test_method).westfall_young_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL); % p-value by westfall-young
-            if ~isequal(test_method, "full_connectome") && ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
-                obj.(test_method).single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).statistic_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).winkler_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                obj.(test_method).westfall_young_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            non_correlation_test = any(strcmp(obj.test_name, obj.noncorrelation_input_tests));
+            uncorrected_names = ["uncorrected_", "legacy_"];
+            corrected_names = ["winkler_", "westfall_young_"];
+
+            switch test_method
+                case "no_permutations"
+                    for uncorrected_name = uncorrected_names
+                        p_value = "two_sample_p_value"
+                        obj.(test_method).(strcat(uncorrected_name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                        if isequal(non_correlation_test, false)                
+                            p_value = "single_sample_p_value";
+                            obj.(test_method).(strcat(uncorrected_name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                        end
+                    end
+                case "full_connectome"
+                    p_value = "two_sample_p_value";
+                    for name = [corrected_names uncorrected_names]
+                        obj.(test_method).(strcat(name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    end
+                case "within_network_pair"
+                    % This is so hacky, but Matlab doesn't play well with logical order-of-operations
+                    if isequal(non_correlation_test, true)
+                        p_value = "two_sample_p_value";
+                    else
+                        p_value = "single_sample_p_value";
+                    end
+                    for name = [corrected_names uncorrected_names]
+                        obj.(test_method).(strcat(name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    end
             end
+
+            % We need the permutation fields for all results. We need the two-sample ones for everything         
+            obj.permutation_results.two_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            if isequal(non_correlation_test, false)
+                obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
+                    TriMatrixDiag.KEEP_DIAGONAL);
+            end
+
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
@@ -291,6 +312,18 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1),...
                 Number('d_max', "Cohen's D threshold >", 0, 0.5, 1),...
             };
+        end
+
+        function probability = getPValueNames(test_method, test_name)
+            noncorrelation_input_tests = ["chi_squared", "hypergeometric"];
+            non_correlation_test = any(strcmp(test_name, noncorrelation_input_tests));
+
+            probability = "two_sample_p_value";
+            if isequal(non_correlation_test, false)
+                if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
+                    probability = "single_sample_p_value";
+                end
+            end
         end
     end
 end

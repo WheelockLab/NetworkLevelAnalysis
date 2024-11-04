@@ -7,6 +7,10 @@ classdef TestPool < nla.DeepCopyable
         data_queue = false
     end
 
+    properties (Constant)
+        correlation_input_tests = ["kolmogorov_smirnov", "students_t", "welchs_t", "wilcoxon"]
+    end
+
     methods (Access = private)
 
         function [number_processes, blocks] = initializeParallelPool(obj, number_permutations)
@@ -66,10 +70,6 @@ classdef TestPool < nla.DeepCopyable
             % Warning: Hacky code. Because of the way non-permuted network tests and permuted are called from the front, they are stored
             % in different objects. (Notice the input argument for non-permuted network results). Eventually, it should probably be done
             % that we do them all here. That may be another ticket. For now, we're copying over.
-            for test_index = 1:numNetTests(obj)
-                permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
-                    permuted_network_test_results{test_index});
-            end
             for test_index = 1:numNetTests(obj)    
                 for test_index2 = 1:numNetTests(obj)
                     if nonpermuted_network_test_results{test_index2}.test_name == permuted_network_test_results{test_index}.test_name
@@ -77,6 +77,10 @@ classdef TestPool < nla.DeepCopyable
                         break
                     end
                 end
+            end
+            for test_index = 1:numNetTests(obj)
+                permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
+                    permuted_network_test_results{test_index});
             end
 
             ranked_results = obj.rankResults(network_test_options, permuted_network_test_results, network_atlas.numNetPairs());
@@ -277,6 +281,10 @@ classdef TestPool < nla.DeepCopyable
                 ranker = ResultRank(permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
+                if any(strcmp(ranked_results{test}.test_name, obj.correlation_input_tests))
+                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "legacy_two_sample_p_value");
+                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "uncorrected_two_sample_p_value");
+                end
             end
         end
     end

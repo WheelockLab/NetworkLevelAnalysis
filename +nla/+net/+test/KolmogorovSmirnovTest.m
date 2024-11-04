@@ -23,16 +23,15 @@ classdef KolmogorovSmirnovTest < handle
 
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
-            p_value = "p_value";
             ks_statistic = "ks_statistic";
-            single_sample_p_value = "single_sample_p_value";
+            single_sample_p_value = "uncorrected_single_sample_p_value";
             single_sample_ks_statistic = "single_sample_ks_statistic";
             if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
-                p_value = strcat(p_value, "_permutations");
+                p_value = "two_sample_p_value_permutations";
                 ks_statistic = strcat(ks_statistic, "_permutations");
-                single_sample_p_value = strcat(single_sample_p_value, "_permutations");
+                single_sample_p_value = "single_sample_p_value_permutations";
                 single_sample_ks_statistic = strcat(single_sample_ks_statistic, "_permutations");
             end
 
@@ -44,11 +43,11 @@ classdef KolmogorovSmirnovTest < handle
                 for network2 = 1:network
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
-
-                    [~, p, ks] = kstest2(network_rho, edge_test_results.coeff.v);
-                    result.(permutation_results).(p_value).set(network, network2, p);
-                    result.(permutation_results).(ks_statistic).set(network, network2, ks);
-
+                    if ~isequal(permutation_results, "no_permutations")
+                        [~, p, ks] = kstest2(network_rho, edge_test_results.coeff.v);
+                        result.(permutation_results).(p_value).set(network, network2, p);
+                        result.(permutation_results).(ks_statistic).set(network, network2, ks);
+                    end
                     [~, single_sample_p, single_sample_ks] = kstest(network_rho);
                     result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
                     result.(permutation_results).(single_sample_ks_statistic).set(network, network2, single_sample_ks);

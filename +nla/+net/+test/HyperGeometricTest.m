@@ -24,12 +24,12 @@ classdef HyperGeometricTest < handle
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
             greater_than_expected = "greater_than_expected";
-            p_value = "p_value";
+            p_value = "uncorrected_two_sample_p_value";
             if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
                 greater_than_expected = strcat(greater_than_expected, "_permutations");
-                p_value = strcat(p_value, "_permutations");
+                p_value = "two_sample_p_value_permutations";
             end
 
             % Container to hold results
@@ -57,9 +57,9 @@ classdef HyperGeometricTest < handle
             % This just results in a p-value of 1. Which means no difference between chance and null
             % hypothesis.
             if permutations
-                result.permutation_results.p_value_permutations.v(~result.permutation_results.greater_than_expected_permutations.v) = 1;
+                result.permutation_results.two_sample_p_value_permutations.v(~result.permutation_results.greater_than_expected_permutations.v) = 1;
             else
-                result.no_permutations.p_value.v(~result.no_permutations.greater_than_expected.v) = 1;
+                result.no_permutations.uncorrected_two_sample_p_value.v(~result.no_permutations.greater_than_expected.v) = 1;
             end
         end
     end
