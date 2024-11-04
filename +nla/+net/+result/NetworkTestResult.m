@@ -484,7 +484,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             probability = "two_sample_p_value";
             if isequal(non_correlation_test, false)
-                if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
+                if isequal(test_method, NetworkLevelMethod.NO_PERMUTATIONS) || isequal(test_method, NetworkLevelMethod.WITHIN_NETWORK_PAIR)
                     probability = "single_sample_p_value";
                 end
             end
