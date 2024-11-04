@@ -47,10 +47,9 @@ classdef StudentTTest < handle
                     [~, p, ~, stats] = ttest2(network_rho, edge_test_results.coeff.v);
 
                     [~, single_sample_p, ~, single_sample_stats] = ttest(network_rho);
-                    if ~isequal(permutation_results, "no_permutations")
-                        result.(permutation_results).(p_value).set(network, network2, p);
-                        result.(permutation_results).(t_statistic).set(network, network2, stats.tstat);
-                    end
+                    result.(permutation_results).(p_value).set(network, network2, p);
+                    result.(permutation_results).(t_statistic).set(network, network2, stats.tstat);
+
                     result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
                     result.(permutation_results).(single_sample_t_statistic).set(network, network2, single_sample_stats.tstat);
                 end

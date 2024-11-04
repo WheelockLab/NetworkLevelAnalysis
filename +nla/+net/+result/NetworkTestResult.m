@@ -247,7 +247,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             switch test_method
                 case "no_permutations"
                     for uncorrected_name = uncorrected_names
-                        p_value = "two_sample_p_value"
+                        p_value = "two_sample_p_value";
                         obj.(test_method).(strcat(uncorrected_name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
                         if isequal(non_correlation_test, false)                
                             p_value = "single_sample_p_value";
