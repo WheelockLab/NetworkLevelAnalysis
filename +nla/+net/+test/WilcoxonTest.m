@@ -26,6 +26,7 @@ classdef WilcoxonTest < handle
             ranksum_statistic = "ranksum_statistic";
             p_value = "uncorrected_two_sample_p_value";
             z_statistic = "z_statistic";
+            p_value = "uncorrected_two_sample_p_value";
             single_sample_p_value = "uncorrected_single_sample_p_value";
             single_sample_ranksum_statistic = "single_sample_ranksum_statistic";
             if isequal(permutations, true)
@@ -47,12 +48,11 @@ classdef WilcoxonTest < handle
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
 
-                    if ~isequal(permutation_results, "no_permutations")
-                        [p, ~, stats] = ranksum(network_rho, edge_test_results.coeff.v);
-                        result.(permutation_results).(p_value).set(network, network2, p);
-                        result.(permutation_results).(ranksum_statistic).set(network, network2, stats.ranksum);
-                        result.(permutation_results).(z_statistic).set(network, network2, stats.zval);
-                    end
+                    [p, ~, stats] = ranksum(network_rho, edge_test_results.coeff.v);
+                    result.(permutation_results).(p_value).set(network, network2, p);
+                    result.(permutation_results).(ranksum_statistic).set(network, network2, stats.ranksum);
+                    result.(permutation_results).(z_statistic).set(network, network2, stats.zval);
+
                     [single_sample_p, ~, single_sample_stats] = signrank(network_rho);
                     result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
                     result.(permutation_results).(single_sample_ranksum_statistic).set(network, network2, single_sample_stats.signedrank);

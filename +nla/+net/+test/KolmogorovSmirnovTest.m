@@ -44,11 +44,10 @@ classdef KolmogorovSmirnovTest < handle
                 for network2 = 1:network
                     network_rho = edge_test_results.coeff.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
-                    if ~isequal(permutation_results, "no_permutations")
-                        [~, p, ks] = kstest2(network_rho, edge_test_results.coeff.v);
-                        result.(permutation_results).(p_value).set(network, network2, p);
-                        result.(permutation_results).(ks_statistic).set(network, network2, ks);
-                    end
+                    [~, p, ks] = kstest2(network_rho, edge_test_results.coeff.v);
+                    result.(permutation_results).(p_value).set(network, network2, p);
+                    result.(permutation_results).(ks_statistic).set(network, network2, ks);
+                    
                     [~, single_sample_p, single_sample_ks] = kstest(network_rho);
                     result.(permutation_results).(single_sample_p_value).set(network, network2, single_sample_p);
                     result.(permutation_results).(single_sample_ks_statistic).set(network, network2, single_sample_ks);
