@@ -24,6 +24,7 @@ classdef WilcoxonTest < handle
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
             ranksum_statistic = "ranksum_statistic";
+            p_value = "uncorrected_two_sample_p_value";
             z_statistic = "z_statistic";
             single_sample_p_value = "uncorrected_single_sample_p_value";
             single_sample_ranksum_statistic = "single_sample_ranksum_statistic";
