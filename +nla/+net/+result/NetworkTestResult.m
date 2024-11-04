@@ -226,14 +226,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
         function createTestSpecificResultsStorage(obj, number_of_networks, test_specific_statistics)
             %CREATETESTSPECIFICRESULTSSTORAGE Create the substructures for the specific statistical tests
-
             import nla.TriMatrix nla.TriMatrixDiag
-            
-            obj.permutation_results.two_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-            if ~any(strcmp(obj.test_name, obj.noncorrelation_input_tests))
-                obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
-                    TriMatrixDiag.KEEP_DIAGONAL);
-            end
 
             for statistic_index = 1:numel(test_specific_statistics)
                 test_statistic = test_specific_statistics(statistic_index);
@@ -247,20 +240,44 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %CREATEPVALUETRIMATRICES Creates the p-value substructure for the test method
             import nla.TriMatrix nla.TriMatrixDiag
 
-            base_p_value = NetworkTestResult().getPValueNames(test_method, obj.test_name);
+            non_correlation_test = any(strcmp(obj.test_name, obj.noncorrelation_input_tests));
             uncorrected_names = ["uncorrected_", "legacy_"];
             corrected_names = ["winkler_", "westfall_young_"];
 
-            for name = uncorrected_names
-                probability_field = strcat(name, base_p_value);
-                obj.(test_method).(probability_field) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            switch test_method
+                case "no_permutations"
+                    for uncorrected_name = uncorrected_names
+                        p_value = "two_sample_p_value"
+                        obj.(test_method).(strcat(uncorrected_name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                        if isequal(non_correlation_test, false)                
+                            p_value = "single_sample_p_value";
+                            obj.(test_method).(strcat(uncorrected_name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                        end
+                    end
+                case "full_connectome"
+                    p_value = "two_sample_p_value";
+                    for name = [corrected_names uncorrected_names]
+                        obj.(test_method).(strcat(name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    end
+                case "within_network_pair"
+                    % This is so hacky, but Matlab doesn't play well with logical order-of-operations
+                    if isequal(non_correlation_test, true)
+                        p_value = "two_sample_p_value";
+                    else
+                        p_value = "single_sample_p_value";
+                    end
+                    for name = [corrected_names uncorrected_names]
+                        obj.(test_method).(strcat(name, p_value)) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    end
             end
-            if ~isequal(test_method, "no_permutations")
-                for name = corrected_names
-                    probability_field = strcat(name, base_p_value);
-                    obj.(test_method).(probability_field) = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                end
+
+            % We need the permutation fields for all results. We need the two-sample ones for everything         
+            obj.permutation_results.two_sample_p_value_permutations = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+            if isequal(non_correlation_test, false)
+                obj.permutation_results.single_sample_p_value_permutations = TriMatrix(number_of_networks,...
+                    TriMatrixDiag.KEEP_DIAGONAL);
             end
+
             %Cohen's D results
             obj.(test_method).d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
         end
@@ -297,24 +314,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             };
         end
 
-        function p_value_field = getPValueNames(test_method, test_name)
-            % convenience name
-            noncorrelation_input_test = isequal(test_name, "chi_squared") ||...
-                isequal(test_name, "hypergeometric")
+        function probability = getPValueNames(test_method, test_name)
+            noncorrelation_input_tests = ["chi_squared", "hypergeometric"];
+            non_correlation_test = any(strcmp(test_name, noncorrelation_input_tests));
 
-            % All full-connectome tests are two sample
-            if isequal(test_method, "full_connectome")
-                p_value_field = "two_sample_p_value";
-                return
-            end
-            
-            % These are split because Matlab does goofy things with logical order-of-operations
-            % Chi-squared and hypergeomtric are always two-sample
-            if isequal(noncorrelation_input_test, true)
-                p_value_field = "two_sample_p_value"; 
-            % Other tests that aren't full-connectome are single sample
-            elseif ~isequal(test_method, "full_connectome")
-                p_value_field = "single_sample_p_value";
+            probability = "two_sample_p_value";
+            if isequal(non_correlation_test, false)
+                if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
+                    probability = "single_sample_p_value";
+                end
             end
         end
     end

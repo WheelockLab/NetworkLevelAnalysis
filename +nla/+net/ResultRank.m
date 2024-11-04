@@ -25,7 +25,7 @@ classdef ResultRank < handle
         end
         
         function ranking_result = rank(obj)
-            import nla.TriMatrix nla.TriMatrixDiag nla.NetworkLevelMethod
+            import nla.TriMatrix nla.TriMatrixDiag nla.net.result.NetworkTestResult
 
             ranking_result = obj.permuted_network_results.copy();
             
@@ -54,25 +54,25 @@ classdef ResultRank < handle
         
         function ranking = eggebrechtRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking)
-            
-            for index = 1:numel(no_permutation_results.(probability).v)
+                        
+            for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
                 if isequal(test_method, "full_connectome")
                     combined_probabilities = [...
                         permutation_results.(strcat((probability), "_permutations")).v(:);...
-                        no_permutation_results.(probability).v(index)...
+                        no_permutation_results.(strcat("uncorrected_", probability)).v(index)...
                     ];
                     combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(:); no_permutation_results.(ranking_statistic).v(index)];
                 else
                     combined_probabilities = [...
                         permutation_results.(strcat((probability), "_permutations")).v(index, :),...
-                        no_permutation_results.(probability).v(index)...
+                        no_permutation_results.(strcat("uncorrected_", probability)).v(index)...
                     ];
                     combined_statistics = [permutation_results.(strcat((ranking_statistic), "_permutations")).v(index, :), no_permutation_results.(ranking_statistic).v(index)];
                 end
 
                 legacy_probability = strcat("legacy_", probability);
                 uncorrected_probability = strcat("uncorrected_", probability);
-                ranking.(test_method).(legacy_probability).v(index) = sum(abs(squeeze(combined_probabilities)) <= abs(no_permutation_results.(probability).v(index))) / (1 + denominator);
+                ranking.(test_method).(legacy_probability).v(index) = sum(abs(squeeze(combined_probabilities)) <= abs(no_permutation_results.(strcat("uncorrected_", probability)).v(index))) / (1 + denominator);
                 ranking.(test_method).(uncorrected_probability).v(index) = sum(abs(squeeze(combined_statistics)) >= abs(no_permutation_results.(ranking_statistic).v(index))) / (1 + denominator);
             end
         end
@@ -80,15 +80,15 @@ classdef ResultRank < handle
         function ranking = winklerMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, denominator, ranking)
 
+            winkler_probability = strcat("winkler_", probability);
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
-            for index = 1:numel(no_permutation_results.(probability).v)
-                ranking.(test_method).winkler_p_value.v(index) = sum(...
+            for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
+                ranking.(test_method).(winkler_probability).v(index) = sum(...
                     squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
                 );
             end
             
-            winkler_probability = strcat("winkler_", probability);
-            ranking.(test_method).(winkler_probability).v = ranking.(test_method).winkler_p_value.v ./ obj.permutations;
+            ranking.(test_method).(winkler_probability).v = ranking.(test_method).(winkler_probability).v ./ obj.permutations;
         end
 
         function ranking = westfallYoungMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
@@ -102,6 +102,8 @@ classdef ResultRank < handle
                 permutation_results.(strcat((ranking_statistic), "_permutations")).v(sorted_statistic_indexes, :)...
             );
 
+            westfall_young_probability = strcat("westfall_young_", probability);
+
             % Get max value of each permutation starting from max value of non-permuted statistics
             % Remove each row of permutations associated with non-permuted statistic
             % Get max of remaining. The last row of permutations should be with the smallest non-permuted statistic
@@ -114,10 +116,9 @@ classdef ResultRank < handle
             end
             max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
 
-            ranking.(test_method).westfall_young_p_value.v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
+            ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
             
-            westfall_young_probability = strcat("westfall_young_", probability);
-            ranking.(test_method).(westfall_young_probability).v(sorted_statistic_indexes) = ranking.(test_method).westfall_young_p_value.v;
+            ranking.(test_method).(westfall_young_probability).v(sorted_statistic_indexes) = ranking.(test_method).(westfall_young_probability).v;
         end 
 
         function [ranking_statistic, denominator] = getTestParameters(obj, test_method)
@@ -141,7 +142,7 @@ classdef ResultRank < handle
         %% Getters for dependent properties
         % This takes the above statistic and gets the property to use its size to find the number of permutations
         function value = get.permutations(obj)
-            value = size(obj.permuted_network_results.permutation_results.p_value_permutations.v, 2);
+            value = size(obj.permuted_network_results.permutation_results.two_sample_p_value_permutations.v, 2);
         end
 
         function value = get.number_of_networks(obj)

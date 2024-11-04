@@ -59,9 +59,9 @@ classdef ChiSquaredTest < handle
             % Matlab function for chi-squared cdf to get p-value. "Upper" calculates the upper tail instead of
             % using 1 - lower tail
             if permutations
-                result.permutation_results.p_value_permutations.v = chi2cdf(result.permutation_results.chi2_statistic_permutations.v, 1, "upper");
+                result.permutation_results.two_sample_p_value_permutations.v = chi2cdf(result.permutation_results.chi2_statistic_permutations.v, 1, "upper");
             else
-                result.no_permutations.p_value.v = chi2cdf(result.no_permutations.chi2_statistic.v, 1, "upper");
+                result.no_permutations.uncorrected_two_sample_p_value.v = chi2cdf(result.no_permutations.chi2_statistic.v, 1, "upper");
             end
         end
     end

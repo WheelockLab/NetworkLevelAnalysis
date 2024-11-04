@@ -7,6 +7,10 @@ classdef TestPool < nla.DeepCopyable
         data_queue = false
     end
 
+    properties (Constant)
+        correlation_input_tests = ["kolmogorov_smirnov", "students_t", "welchs_t", "wilcoxon"]
+    end
+
     methods (Access = private)
 
         function [number_processes, blocks] = initializeParallelPool(obj, number_permutations)
@@ -277,6 +281,10 @@ classdef TestPool < nla.DeepCopyable
                 ranker = ResultRank(permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
+                if any(strcmp(ranked_results{test}.test_name, obj.correlation_input_tests))
+                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "legacy_two_sample_p_value");
+                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "uncorrected_two_sample_p_value");
+                end
             end
         end
     end

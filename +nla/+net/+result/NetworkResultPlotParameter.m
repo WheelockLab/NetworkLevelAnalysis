@@ -168,7 +168,7 @@ classdef NetworkResultPlotParameter < handle
         end
 
         function statistic = getStatsFromMethodAndName(obj, method, plot_statistic, ranking_method)
-            import nla.RankingMethod nla.NetworkLevelMethod
+            import nla.RankingMethod nla.NetworkLevelMethod nla.net.result.NetworkTestResult
             
             switch method
                 case NetworkLevelMethod.NO_PERMUTATIONS
@@ -178,26 +178,19 @@ classdef NetworkResultPlotParameter < handle
                 case NetworkLevelMethod.WITHIN_NETWORK_PAIR
                     test_method = "within_network_pair";
             end
-            
-            % combining the method and stat name to get the data. With a fail safe for forgetting 'single_sample'
-            if isequal(test_method, "within_network_pair")...
-                && ~startsWith(plot_statistic, "single_sample")...
-                && ~any(ismember(obj.noncorrelation_input_tests, obj.network_test_results.test_name))
-                    plot_statistic = strcat("single_sample_", plot_statistic);
+
+            switch ranking_method
+                case RankingMethod.WINKLER
+                    ranking = "winkler_";
+                case RankingMethod.WESTFALL_YOUNG
+                    ranking = "westfall_young_";
+                otherwise
+                    ranking = "uncorrected_";
             end
             
-            statistic = obj.network_test_results.(test_method).(plot_statistic);
-            if nargin > 2 && ~isequal(ranking_method, RankingMethod.EGGEBRECHT)
-                plot_statistic = "p_value";
-                if isequal(ranking_method, RankingMethod.WINKLER)
-                    ranking_method = "winkler_";
-                elseif isequal(ranking_method, RankingMethod.WESTFALL_YOUNG)
-                    ranking_method = "westfall_young_";
-                else
-                    ranking_method = "";
-                end
-                statistic = obj.network_test_results.(test_method).(strcat((ranking_method), (plot_statistic)));
-            end
+            probability = NetworkTestResult().getPValueNames(method, obj.network_test_results.test_name);
+
+            statistic = obj.network_test_results.(test_method).(strcat(ranking, probability));
         end
     end
 
