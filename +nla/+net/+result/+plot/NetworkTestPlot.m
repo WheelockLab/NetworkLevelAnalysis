@@ -72,7 +72,8 @@ classdef NetworkTestPlot < handle
 
         function getPlotTitle(obj)
             import nla.NetworkLevelMethod
-
+            
+            obj.title = "";
             % Building the plot title by going through options
             switch obj.test_method
                 case NetworkLevelMethod.NO_PERMUTATIONS
@@ -149,10 +150,17 @@ classdef NetworkTestPlot < handle
             [width, height, obj.matrix_plot] = plotter.plotProbability(obj.plot_figure, probability_parameters,...
                 nla.inputField.LABEL_GAP, obj.y_position + obj.panel_height);
             
-            obj.settings{7}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{end});
-            obj.settings{8}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{1});
-            obj.current_settings.upper_limit = str2double(obj.matrix_plot.color_bar.TickLabels{end});
-            obj.current_settings.lower_limit = str2double(obj.matrix_plot.color_bar.TickLabels{1});
+            if probability_parameters.p_value_plot_max > 0
+                obj.settings{7}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{end});
+                obj.settings{8}.field.Value = str2double(obj.matrix_plot.color_bar.TickLabels{1});
+                obj.current_settings.upper_limit = str2double(obj.matrix_plot.color_bar.TickLabels{end});
+                obj.current_settings.lower_limit = str2double(obj.matrix_plot.color_bar.TickLabels{1});
+            else
+                obj.settings{7}.field.Value = 0;
+                obj.settings{8}.field.Value = 0;
+                obj.current_settings.upper_limit = 0;
+                obj.current_settings.lower_limit = 0;
+            end
         end
 
         function drawChord(obj, ~, ~, plot_type)

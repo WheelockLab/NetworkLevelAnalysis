@@ -290,6 +290,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             sig = nla.TriMatrix(network_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
             sig.v = (p_value.v < p_value_max);
             name = sprintf("%s %s P < %.2g (%s)", title_prefix, obj.test_display_name, p_value_max, p_breakdown_labels);
+            if p_value_max == 0
+                name = sprintf("%s %s P = 0 (%s)", title_prefix, obj.test_display_name, p_breakdown_labels);
+            end
         end
 
         function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(...

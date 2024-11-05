@@ -59,6 +59,10 @@ classdef NetworkResultPlotParameter < handle
 
             name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
                 p_value_max, p_value_breakdown_label);
+            if p_value_max == 0
+                name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
+                    p_value_max, p_value_breakdown_label);
+            end
 
             % Filtering if there's a filter provided 
             significance_plot = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
