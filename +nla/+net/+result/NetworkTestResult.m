@@ -169,7 +169,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             if isfield(flags, "show_full_conn") && flags.show_full_conn
                 title = "Full Connectome";
                 p_values = obj.full_connectome.uncorrected_two_sample_p_value;
-                fdr_method = nla.net.mcc.None;
+                fdr_method = network_test_options.fdr_correction;
             end
             if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 title = "Within Network Pair";
