@@ -33,6 +33,7 @@ classdef MatrixPlot < handle
         plot_title = false
         plot_scale % The scale and values being plotted (Linear, log, -log10, p-value, statistic p-value)
         current_settings % the settings for the plot (upper, lower, scale)
+        display_legend
     end
 
     properties (Dependent)
@@ -236,10 +237,32 @@ classdef MatrixPlot < handle
             obj.createColorbar(lower_limit, upper_limit);
         end
 
+        function createLegend(obj)
+            % Creates the Legend
+            entries = [];
+            for network = 1:obj.number_networks
+                entry = bar(obj.axes, NaN);
+                entry.FaceColor = obj.networks(network).color;
+                entry.DisplayName = obj.networks(network).name;
+                entries = [entries entry];
+            end
+
+            obj.display_legend = legend(obj.axes, entries); % Legend object
+
+            dimensions = obj.image_dimensions;
+            obj.display_legend.Units = 'pixels';
+            display_legend_width = obj.display_legend.Position(3);
+            display_legend_height = obj.display_legend.Position(4);
+            obj.display_legend.Position = [...
+                obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
+                obj.y_position + dimensions("plot_height") - display_legend_height - dimensions("offset_y"),...
+                display_legend_width, display_legend_height...
+            ];
+        end
+        
         function removeLegend(obj)
-            legend_object = findobj('type', 'legend');
-            if ~isempty(legend_object)
-                delete(legend_object);
+            if ~isempty(obj.display_legend)
+                delete(obj.display_legend);
             end
         end
 
@@ -555,29 +578,6 @@ classdef MatrixPlot < handle
                 obj.axes.XLim = [0 axes_position(3)];
                 obj.axes.YLim = [0 axes_position(4)];
             end
-        end
-
-        function createLegend(obj)
-            % Creates the Legend
-            entries = [];
-            for network = 1:obj.number_networks
-                entry = bar(obj.axes, NaN);
-                entry.FaceColor = obj.networks(network).color;
-                entry.DisplayName = obj.networks(network).name;
-                entries = [entries entry];
-            end
-
-            display_legend = legend(obj.axes, entries); % Legend object
-
-            dimensions = obj.image_dimensions;
-            display_legend.Units = 'pixels';
-            display_legend_width = display_legend.Position(3);
-            display_legend_height = display_legend.Position(4);
-            display_legend.Position = [...
-                obj.x_position + dimensions("plot_width") - display_legend_width - dimensions("offset_x") - obj.legend_offset,...
-                obj.y_position + dimensions("plot_height") - display_legend_height - dimensions("offset_y"),...
-                display_legend_width, display_legend_height...
-            ];
         end
 
         function createColorbar(obj, varargin)
