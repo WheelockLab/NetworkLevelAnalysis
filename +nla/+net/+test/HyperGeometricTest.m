@@ -3,8 +3,8 @@ classdef HyperGeometricTest < handle
     properties (Constant)
         name = "hypergeometric"
         display_name = "Hypergeometric"
-        statistics = ["p_value", "greater_than_expected"]
-        ranking_statistic = "p_value"
+        statistics = ["two_sample_p_value", "greater_than_expected"]
+        ranking_statistic = "two_sample_p_value"
     end
 
     methods
@@ -24,7 +24,7 @@ classdef HyperGeometricTest < handle
             % Store results in the 'no_permutations' structure if this is the no-permutation test
             permutation_results = "no_permutations";
             greater_than_expected = "greater_than_expected";
-            p_value = "uncorrected_two_sample_p_value";
+            p_value = "two_sample_p_value";
             if isequal(permutations, true)
                 % Otherwise, add it on to the back of the 'permutation_results' structure
                 permutation_results = "permutation_results";
@@ -59,6 +59,7 @@ classdef HyperGeometricTest < handle
             if permutations
                 result.permutation_results.two_sample_p_value_permutations.v(~result.permutation_results.greater_than_expected_permutations.v) = 1;
             else
+                result.no_permutations.uncorrected_two_sample_p_value = result.no_permutations.two_sample_p_value;
                 result.no_permutations.uncorrected_two_sample_p_value.v(~result.no_permutations.greater_than_expected.v) = 1;
             end
         end
