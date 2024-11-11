@@ -52,6 +52,9 @@ classdef TestPoolTest < matlab.unittest.TestCase
             testCase.network_test_options.behavior_count = 1;
             testCase.network_test_options.d_max = 0.5;
             testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.DEFAULT;
+            testCase.network_test_options.full_connectome = true;
+            testCase.network_test_options.no_permutations = true;
+            testCase.network_test_options.within_network_pair = true;
         end
     end
 
@@ -92,6 +95,60 @@ classdef TestPoolTest < matlab.unittest.TestCase
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "spearman_estimator_result.mat")));
             testCase.verifyEqual(expected_result.edge_result, edge_result);
+        end
+        
+        function chiSquaredTest(testCase)
+            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
+            testCase.tests.net_tests = {nla.net.test.ChiSquaredTest()};
+            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
+
+            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "chi_squared_result.mat")));
+            testCase.verifyEqual(expected_result.network_result, network_result{1});
+        end
+
+        function hyperGeometricTest(testCase)
+            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
+            testCase.tests.net_tests = {nla.net.test.HyperGeometricTest()};
+            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
+            
+            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "hypergeometric_result.mat")));
+            testCase.verifyEqual(expected_result.network_result, network_result{1});
+        end
+
+        function kolmogorovSmirnovTest(testCase)
+            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
+            testCase.tests.net_tests = {nla.net.test.KolmogorovSmirnovTest()};
+            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
+            
+            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "kolmogorov_smirnov_result.mat")));
+            testCase.verifyEqual(expected_result.network_result, network_result{1});
+        end
+
+        function studentTTest(testCase)
+            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
+            testCase.tests.net_tests = {nla.net.test.StudentTTest()};
+            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
+            
+            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "student_t_result.mat")));
+            testCase.verifyEqual(expected_result.network_result, network_result{1});
+        end
+
+        function welchTTest(testCase)
+            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
+            testCase.tests.net_tests = {nla.net.test.WelchTTest()};
+            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
+            
+            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "welch_t_result.mat")));
+            testCase.verifyEqual(expected_result.network_result, network_result{1});
+        end
+
+        function wilcoxonTest(testCase)
+            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
+            testCase.tests.net_tests = {nla.net.test.WilcoxonTest()};
+            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
+            
+            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "wilocoxon_result.mat")));
+            testCase.verifyEqual(expected_result.network_result, network_result{1});
         end
     end
 end
