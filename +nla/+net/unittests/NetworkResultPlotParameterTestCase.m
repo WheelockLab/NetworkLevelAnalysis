@@ -82,19 +82,21 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
 
     methods (Test)
         function plotProbabilityParametersDefaultPlottingTest(testCase)
-            import nla.net.result.NetworkResultPlotParameter nla.TriMatrix nla.TriMatrixDiag
+            import nla.net.result.NetworkResultPlotParameter nla.TriMatrix nla.TriMatrixDiag nla.net.result.NetworkTestResult
 
             permutation_result = testCase.permutation_results.permutation_network_test_results{1};
             plot_parameters = NetworkResultPlotParameter(permutation_result, testCase.network_atlas,...
                 testCase.network_test_options);
 
+            probability = NetworkTestResult().getPValueNames("full_connectome", permutation_result.test_name);
+
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, nla.NetworkLevelMethod.FULL_CONNECTOME, 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
-                false);
+                testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
+                false, nla.RankingMethod.EGGEBRECHT);
             
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            expected_plot.v = permutation_result.full_connectome.p_value.v .*...
+            expected_plot.v = permutation_result.full_connectome.(strcat("uncorrected_", probability)).v .*...
                 (plot_parameters.default_discrete_colors / (plot_parameters.default_discrete_colors + 1));
             expected_significance_type = nla.gfx.SigType.DECREASING;
             expected_color_map = [flip(parula(plot_parameters.default_discrete_colors)); [1 1 1]];
@@ -106,7 +108,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
         end
 
         function plotProbabilityParametersLogPlottingTest(testCase)
-            import nla.net.result.NetworkResultPlotParameter
+            import nla.net.result.NetworkResultPlotParameter nla.net.result.NetworkTestResult
             
             permutation_result = testCase.permutation_results.permutation_network_test_results{1};
             testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.LOG;
@@ -114,17 +116,19 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             plot_parameters = NetworkResultPlotParameter(permutation_result, testCase.network_atlas,...
                 testCase.network_test_options);
 
+            probability = NetworkTestResult().getPValueNames("full_connectome", permutation_result.test_name);
+
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, nla.NetworkLevelMethod.FULL_CONNECTOME, 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
-                false);
+                testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
+                false, nla.RankingMethod.EGGEBRECHT);
 
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            expected_plot.v = permutation_result.full_connectome.p_value.v .*...
+            expected_plot.v = permutation_result.full_connectome.(strcat("uncorrected_", probability)).v .*...
                 (plot_parameters.default_discrete_colors / (plot_parameters.default_discrete_colors + 1));
             expected_significance_type = nla.gfx.SigType.DECREASING;
 
-            expected_log_minimum = log10(min(nonzeros(permutation_result.full_connectome.p_value.v)));
+            expected_log_minimum = log10(min(nonzeros(permutation_result.full_connectome.(strcat("uncorrected_", probability)).v)));
             expected_log_minimum = max([-40, expected_log_minimum]);
             color_map_base = parula(plot_parameters.default_discrete_colors);
             expected_color_map = flip(color_map_base(ceil(logspace(expected_log_minimum, 0, plot_parameters.default_discrete_colors) .*...
@@ -138,7 +142,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
         end
 
         function plotProbabilityParametersNegLogTest(testCase)
-            import nla.net.result.NetworkResultPlotParameter
+            import nla.net.result.NetworkResultPlotParameter nla.net.result.NetworkTestResult
             
             permutation_result = testCase.permutation_results.permutation_network_test_results{1};
             testCase.network_test_options.prob_plot_method = nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10;
@@ -146,13 +150,15 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             plot_parameters = NetworkResultPlotParameter(permutation_result, testCase.network_atlas,...
                 testCase.network_test_options);
 
+            probability = NetworkTestResult().getPValueNames("full_connectome", permutation_result.test_name);
+
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, nla.NetworkLevelMethod.FULL_CONNECTOME, 'p_value', 'Title', nla.net.mcc.Bonferroni(),...
-                false);
+                testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
+                false, nla.RankingMethod.EGGEBRECHT);
 
             expected_p_value_max = 2;
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            expected_plot.v = -log10(permutation_result.full_connectome.p_value.v);
+            expected_plot.v = -log10(permutation_result.full_connectome.(strcat("uncorrected_", probability)).v);
             expected_significance_type = nla.gfx.SigType.INCREASING;
             expected_color_map = parula(plot_parameters.default_discrete_colors);
 
