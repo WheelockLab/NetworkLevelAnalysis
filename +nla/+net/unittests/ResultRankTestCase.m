@@ -8,7 +8,9 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
         network_test_result
         permutation_results
         tests
-        ranking
+        rank_results
+        ResultRank
+        rank
         permuted_edge_results
         permuted_network_results
     end
@@ -16,7 +18,7 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
     properties (Constant)
         number_of_networks = 15
         number_of_network_pairs = 120
-        permutations = 9
+        permutations = 25
     end
 
     methods (TestClassSetup)
@@ -60,8 +62,8 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.edge_test_options.precalc_perm_coeff.v = permutation_coefficient_file.SIM_perm_coeff;
 
             % For unit tests, we're only going to use 10 permutations so they don't take forever
-            testCase.edge_test_options.precalc_perm_p.v = testCase.edge_test_options.precalc_perm_p.v(:, 1:9);
-            testCase.edge_test_options.precalc_perm_coeff.v = testCase.edge_test_options.precalc_perm_coeff.v(:, 1:9);
+            testCase.edge_test_options.precalc_perm_p.v = testCase.edge_test_options.precalc_perm_p.v(:, 1:25);
+            testCase.edge_test_options.precalc_perm_coeff.v = testCase.edge_test_options.precalc_perm_coeff.v(:, 1:25);
 
             testCase.edge_test_options.net_atlas = testCase.network_atlas;
             testCase.edge_test_options.prob_max = 0.05;
@@ -91,25 +93,65 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
                 testCase.permuted_network_results{1});
             testCase.permuted_network_results{1}.no_permutations = testCase.network_test_result{1}.no_permutations;
 
-            testCase.ranking = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'resultRank_results.mat')));
-            testCase.ranking = testCase.ranking.rank_object;
+            rank_results = load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'resultRank_results.mat')));
+            testCase.rank_results = rank_results.rank_results;
+            testCase.ResultRank = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
+            testCase.rank = testCase.ResultRank.rank();
         end
     end
 
 
     methods (Test)
-        function fullConnectomeRankTest(testCase)
-            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
-            rank_object = result_ranker.rank();
+        function fullConnectomeEggebrechtRankingTest(testCase)
+            legacy_results = testCase.rank.full_connectome.legacy_two_sample_p_value.v;
+            expected_legacy = testCase.rank_results.full_connectome.legacy_two_sample_p_value.v;
 
-            testCase.verifyEqual(rank_object.full_connectome.p_value.v, testCase.ranking.full_connectome.p_value.v);
+            testCase.verifyEqual(legacy_results, expected_legacy);
+
+            uncorrected_results = testCase.rank.full_connectome.uncorrected_two_sample_p_value.v;
+            expected_uncorrected = testCase.rank_results.full_connectome.uncorrected_two_sample_p_value.v;
+
+            testCase.verifyEqual(uncorrected_results, expected_uncorrected);
         end
 
-        function withinNetworkPairTest(testCase)
-            result_ranker = nla.net.ResultRank(testCase.permuted_network_results{1}, testCase.number_of_network_pairs);
-            rank_object = result_ranker.rank();
-            
-            testCase.verifyEqual(rank_object.within_network_pair.single_sample_p_value.v, testCase.ranking.within_network_pair.single_sample_p_value.v);
+        function fullConnectomeWinklerRankingTest(testCase)
+            winkler_results = testCase.rank.full_connectome.winkler_two_sample_p_value.v;
+            expected_winkler = testCase.rank_results.full_connectome.winkler_two_sample_p_value.v;
+
+            testCase.verifyEqual(winkler_results, expected_winkler);
+        end
+
+        function fullConnectomeWestfallYoungRankingTest(testCase)
+            westfall_young_results = testCase.rank.full_connectome.westfall_young_two_sample_p_value.v;
+            expected_westfall_young = testCase.rank_results.full_connectome.westfall_young_two_sample_p_value.v;
+
+            testCase.verifyEqual(westfall_young_results, expected_westfall_young);
+        end
+
+        function withinNetworkPairEggebrechtRankingTest(testCase)
+            legacy_results = testCase.rank.within_network_pair.legacy_single_sample_p_value.v;
+            expected_legacy = testCase.rank_results.within_network_pair.legacy_single_sample_p_value.v;
+
+            testCase.verifyEqual(legacy_results, expected_legacy);
+
+            uncorrected_results = testCase.rank.within_network_pair.uncorrected_single_sample_p_value.v;
+            expected_uncorrected = testCase.rank_results.within_network_pair.uncorrected_single_sample_p_value.v;
+
+            testCase.verifyEqual(uncorrected_results, expected_uncorrected);           
+        end
+
+        function withinNetworkPairWinklerRankingTest(testCase)
+            winkler_results = testCase.rank.within_network_pair.winkler_single_sample_p_value.v;
+            expected_winkler = testCase.rank_results.within_network_pair.winkler_single_sample_p_value.v;
+
+            testCase.verifyEqual(winkler_results, expected_winkler);
+        end
+
+        function withinNetworkPairWestfallYoungRankingTest(testCase)
+            westfall_young_results = testCase.rank.within_network_pair.westfall_young_single_sample_p_value.v;
+            expected_westfall_young = testCase.rank_results.within_network_pair.westfall_young_single_sample_p_value.v;
+
+            testCase.verifyEqual(westfall_young_results, expected_westfall_young);
         end
     end
 end
