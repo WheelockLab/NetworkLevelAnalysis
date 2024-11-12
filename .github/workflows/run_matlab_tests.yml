@@ -27,3 +27,4 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: addpath(genpath(pwd)); results = runTests(); assertSuccess(results)
+          use-parallel: true
