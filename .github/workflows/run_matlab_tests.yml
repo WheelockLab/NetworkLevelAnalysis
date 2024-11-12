@@ -11,7 +11,7 @@ jobs:
       - name: Setup MATLAB
         uses: matlab-actions/setup-matlab@v2
         with:
-          release: R2020b
+          release: R2021a
           cache: true
           products: >
             MATLAB
