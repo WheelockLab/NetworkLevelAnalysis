@@ -78,7 +78,7 @@ classdef NetworkTestsTestCase < matlab.unittest.TestCase
             hypergeometric_test = HyperGeometricTest();
             load(strcat(testCase.root_path, fullfile('+nla', '+net', 'unittests', 'HyperGeometricTestResult.mat')), 'hyper_geo_result');
             test_result = hypergeometric_test.run(testCase.network_test_options, testCase.edge_test_result, testCase.network_atlas, false);
-            testCase.verifyEqual(test_result.no_permutations.p_value.v, hyper_geo_result);
+            testCase.verifyEqual(test_result.no_permutations.uncorrected_two_sample_p_value.v, hyper_geo_result);
         end
 
         function kolmogorovSmirnovTestTest(testCase)
