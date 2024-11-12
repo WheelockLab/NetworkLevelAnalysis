@@ -13,7 +13,7 @@ jobs:
         with:
           release: R2020b
           cache: true
-          products:
+          products: >
             MATLAB
             Bioinformatics_Toolbox
             Parallel_Computing_Toolbox
