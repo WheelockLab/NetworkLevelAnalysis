@@ -23,8 +23,14 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: ver
-      - name: Run script
-        uses: matlab-actions/run-command@v2
+      # - name: Run script
+      #   uses: matlab-actions/run-command@v2
+      #   with:
+      #     command: addpath(genpath(pwd)); results = runTests(); assertSuccess(results)
+      #     use-parallel: true
+      - name: Run Tests
+        uses: matlab-actions/run-tests@v2
         with:
-          command: addpath(genpath(pwd)); results = runTests(); assertSuccess(results)
+          test-results-junit: test-results/results.xml
+          code-coverage-cobertura: code-coverage/coverage.xml
           use-parallel: true
