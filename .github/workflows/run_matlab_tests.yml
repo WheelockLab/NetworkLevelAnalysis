@@ -34,3 +34,4 @@ jobs:
           test-results-junit: test-results/results.xml
           code-coverage-cobertura: code-coverage/coverage.xml
           use-parallel: true
+          select-by-folder: +nla/unittests; +nla/+edge/unittests; +nla/+gfx/unittest; +nla/+net/unittests
