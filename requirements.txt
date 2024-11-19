@@ -86,6 +86,7 @@ jupyterlab-widgets==3.0.9
 keyring==18.0.1
 kiwisolver==1.0.1
 language-selector==0.1
+latexcodec==3.0.0
 launchpadlib==1.10.13
 lazr.restfulclient==0.14.2
 lazr.uri==1.0.3
@@ -135,6 +136,8 @@ psutil==5.5.1
 ptyprocess==0.7.0
 pulsemixer==1.5.0
 pure-eval==0.2.2
+pybtex==0.24.0
+pybtex-docutils==1.0.3
 pycairo==1.16.2
 pycparser==2.21
 pycrypto==2.6.1
@@ -181,6 +184,7 @@ soupsieve==2.5
 sphinx==7.1.2
 sphinx-rtd-theme==3.0.2
 sphinxcontrib-applehelp==1.0.4
+sphinxcontrib-bibtex==2.6.3
 sphinxcontrib-devhelp==1.0.2
 sphinxcontrib-htmlhelp==2.0.1
 sphinxcontrib-jquery==4.1

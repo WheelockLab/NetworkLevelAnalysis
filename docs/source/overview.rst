@@ -4,7 +4,7 @@ Network Level Analysis Overview
 The connectome and network structure
 -------------------------------------------
 
-    The term connectome essentially describes any network description of whole brain connectivity, from the
+The term connectome essentially describes any network description of whole brain connectivity, from the
 microscale of single neurons and synapses up to the macroscale of entire brain regions and pathways.5
 Connectomics is an ever-advancing field, and large-scale scientific endeavors such as the NIH�s Human
 Connectome Project have made significant progress in mapping, analyzing, and understanding the
@@ -13,7 +13,7 @@ network of non-adjacent, yet functionally and structurally connected brain regio
 can be utilized to assess whole-brain associations between behavior and spatially distinct neural
 networks.
 
-    MRI has traditionally been viewed as the gold standard for mapping the connectome and has been used
+MRI has traditionally been viewed as the gold standard for mapping the connectome and has been used
 to demonstrate consistencies between the spatial topology of task-based activation studies and the brain
 networks derived from task-free functional connectivity.7,8 Contemporary cluster correction approaches
 do not utilize the spatial topology of brain networks when estimating cluster size significance.9�11
@@ -25,7 +25,7 @@ neuroscience results
 Why use this toolbox?
 ----------------------------------------
 
-    The NLA toolbox is designed to address the multiple comparisons problem that occurs within
+The NLA toolbox is designed to address the multiple comparisons problem that occurs within
 connectome research, wherein studies use hundreds of regions of interest (ROI) to create connectomes
 with thousands of potential connections, yet they lack the tools to establish statistical significance when
 analyzing associations between connectome and behavior. For example, previous research failed to find
@@ -48,7 +48,7 @@ production of publication quality images all in one package.
 Introduction to NLA and enrichment
 ---------------------------------------------
 
-    Network Level Analysis uses enrichment to evaluate whether pairs of networks demonstrate significant
+Network Level Analysis uses enrichment to evaluate whether pairs of networks demonstrate significant
 clustering of strong brain-behavior correlations. Enrichment applies common statistical tests to measure
 the clustering of associations within a given network pair and reduces the number of comparisons to
 those performed at the network level.4 Network level statistics such as the Chi-Square test,
@@ -60,7 +60,7 @@ differences during fetal brain development, and autism in adults.
 Edge-level Statistic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    First, correlations are calculated between behavioral scores and Fisher z-transformed functional
+First, correlations are calculated between behavioral scores and Fisher z-transformed functional
 connectivity correlation measures for each pair of ROI. For behavioral scores that are normally
 distributed, Pearson r correlations are used to calculate the associations. Non-parametric Spearman rank
 correlations are used to assess the relationship between functional connectivity and behavioral scores
@@ -72,7 +72,7 @@ only those values that remain after being nominally thresholded. An uncorrected 
 Network Level Statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    After the edge-level statistic matrix has been calculated, it is given as input to a variety of network-level
+After the edge-level statistic matrix has been calculated, it is given as input to a variety of network-level
 tests. First, it is input directly to the tests, and the resulting statistic is called the "non-permuted network
 level statistic" (for every given network-level test). Then, permuted edge-level statistics are calculated via
 the same method as described previously, but with the behavioral scores permuted across subjects. The
@@ -83,7 +83,7 @@ for each test, which, rather than comparing a given network to the connectome ov
 permutations (as in the permuted network-level test), performs a single-sample test on the network
 alone, which is then ranked against permutations of said network similarly to the permuted network-level
 test.
-    A number of statistic tests are utilized at the network level. The 1-degree-of-freedom :math:\chi^{2} test is used to
+A number of statistic tests are utilized at the network level. The 1-degree-of-freedom :math:\chi^{2} test is used to
 compare the observed number of strong (thresholded and binarized) brain-behavior correlations within
 one pair of functional networks to the number of strong brain-behavior correlations that would be
 expected if strong correlations were uniformly distributed across all possible network pairs. A large
@@ -93,7 +93,7 @@ correlations within a pair of networks, given (1) the total number of strong cor
 entire connectome and (2) the total number of possible hits for that network pair (i.e., the total number or
 ROI-pairs within a given network pair). Other tests such as Kolmogorov-Smirnov, Wilcoxon rank-sum,
 Welch's t can be used, as well as Cohen's d to measure effect sizes.
-    As described, significance for all statistical tests is determined using permutation testing. Behavioral
+As described, significance for all statistical tests is determined using permutation testing. Behavioral
 labels are randomly permuted and correlated with the connectome data (typically 10k times) to create
 null brain-behavior correlation matrices. Tests are calculated on these permuted brain-behavior
 correlation matrices generating a null distribution of network level statistics. The measured (real) test
@@ -102,7 +102,7 @@ statistics are compared to this null distribution to establish network-level sig
 NLA Alternatives / Comparison to other analysis methods
 ----------------------------------------------------------------------
 
-    The NLA toolbox's use of a novel enrichment approach makes it a transformative tool in connectome-
+The NLA toolbox's use of a novel enrichment approach makes it a transformative tool in connectome-
 wide association studies, given that all current enrichment analysis methods are built for use with
 genome data and NLA is the first enrichment tool designed to analyze the connectome. Many alternative
 methods for connectome analysis rely on spatial extent cluster correction in order to control voxel-wise
@@ -119,7 +119,7 @@ regions based on pre-defined network modules prior to estimating network-level s
 Network Based Statistic (NBS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Given this deviation from the popular extent cluster correction thresholding method, the most
+Given this deviation from the popular extent cluster correction thresholding method, the most
 conceptually similar existing connectome analysis approach to NLA is the Network Based Statistic (NBS)
 toolbox. NBS was the first tool control the edgewise FPR by leveraging graph-based estimates of
 modularity. Still, several crucial differences exist between NLA and NBS: (a) the results from NBS focus on

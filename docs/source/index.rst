@@ -10,12 +10,12 @@ Welcome to NetworkLevelAnalysis's documentation!
    :maxdepth: 2
    :caption: Table of Contents:
 
-   Preface
-   Network Level Analysis Overview
-   Network Level Analysis Methodology
-   Setup
-   Getting Started
-   Biblography
+   preface
+   overview
+   methodology
+   setup
+   getting_started
+   biblography
 
 
 Indices and tables
