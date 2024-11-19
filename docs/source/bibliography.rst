@@ -1,0 +1,3 @@
+.. rubric:: References
+
+.. bibliography::
