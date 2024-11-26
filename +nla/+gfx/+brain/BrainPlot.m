@@ -18,10 +18,12 @@ classdef BrainPlot < handle
         surface_parcels
         mesh_type
         mesh_alpha
+        all_edges = []
     end
 
     properties (Constant)
         noncorrelation_input_tests = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
+        default_settings = struct("upper_limit", 0.5, "lower_limit", -0.5)
     end
 
     properties (Dependent)
@@ -70,17 +72,16 @@ classdef BrainPlot < handle
 
             obj.setROIandConnectivity();
             
-            all_edges = [];
             if obj.surface_parcels && ~islogical(obj.network_atlas.parcels)
                 edges1 = obj.singlePlot(subplot("Position", [0.45, 0.505, 0.53, 0.45]), ViewPos.LAT, BrainColorMode.COLOR_ROIS, obj.color_map);
                 edges2 = obj.singlePlot(subplot("Position", [0.45, 0.055, 0.53, 0.45]), ViewPos.MED, BrainColorMode.COLOR_ROIS, obj.color_map);
-                all_edges = [edges1 edges2];
+                obj.all_edges = [edges1 edges2];
             else
                 edges1 = obj.singlePlot(subplot("Position", [0.45, 0.505, 0.26, 0.45]), ViewPos.BACK, BrainColorMode.NONE, obj.color_map);
                 edges2 = obj.singlePlot(subplot("Position", [0.73, 0.505, 0.26, 0.45]), ViewPos.FRONT, BrainColorMode.NONE, obj.color_map);
                 edges3 = obj.singlePlot(subplot("Position", [0.45, 0.055, 0.26, 0.45]), ViewPos.LEFT, BrainColorMode.NONE, obj.color_map);
                 edges4 = obj.singlePlot(subplot("Position", [0.73, 0.055, 0.26, 0.45]), ViewPos.RIGHT, BrainColorMode.NONE, obj.color_map);
-                all_edges = [edges1 edges2 edges3 edges4];
+                obj.all_edges = [edges1 edges2 edges3 edges4];
             end
 
             if obj.color_functional_connectivity
@@ -168,16 +169,24 @@ classdef BrainPlot < handle
             end
         end
 
-        function colors = mapColorsToLimits(obj, value, function_connectivity_average)
+        function colors = mapColorsToLimits(obj, value, function_connectivity_average, varargin)
             import nla.gfx.valToColor
+
+            if isempty(varargin)
+                scale_min = -0.5;
+                scale_max = 0.5;
+            else
+                scale_min = str2double(varargin{1});
+                scale_max = str2double(varargin{2});
+            end
 
             color_rows = size(obj.color_map);
             color_map_positive = obj.color_map(1:(color_rows/2), :);
             color_map_negative = obj.color_map(((color_rows/2) + 1):end, :);
 
             if obj.color_functional_connectivity
-                colors_positive = valToColor(function_connectivity_average, -0.5, 0.5, color_map_positive);
-                colors_negative = valToColor(function_connectivity_average, -0.5, 0.5, color_map_negative);
+                colors_positive = valToColor(function_connectivity_average, scale_min, scale_max, color_map_positive);
+                colors_negative = valToColor(function_connectivity_average, scale_min, scale_max, color_map_negative);
                 colors(value > 0, :) = colors_positive(value > 0, :);
                 colors(value <= 0, :) = colors_negative(value <= 0, :);
             else
@@ -208,18 +217,29 @@ classdef BrainPlot < handle
                     function_connectivity_average = mean(function_connectivity_vector);
                 
                     if ~isempty(coefficient)
-                        color_value = obj.mapColorsToLimits(coefficient, function_connectivity_average);
-                        color_value = [reshape(color_value, [1, 3]), 0.5];
-                        edge = plot3(plot_axis, [ROI_position(network_point1, 1), ROI_position(network_point2, 1)],...
-                            [ROI_position(network_point1, 2), ROI_position(network_point2, 2)],...
-                            [ROI_position(network_point1, 3), ROI_position(network_point2, 3)],...
-                            "Color", color_value, "LineWidth", 5);
+                        edge = obj.assignColorToEdge(ROI_position, network_point1, network_point2, plot_axis, coefficient, function_connectivity_average);
                         % colorbar(plot_axis, 'off');
                         % hold(plot_axis, 'on');
                         edge.Annotation.LegendInformation.IconDisplayStyle = "off";
                         edges = [edges, edge];
                     end
                 end
+            end
+        end
+
+        function edge = assignColorToEdge(obj, ROI_position, network_point1, network_point2, plot_axis, coefficient, function_connectivity_average, varargin)
+            if ~isempty(coefficient)
+                if ~isempty(varargin)
+                    color_value = obj.mapColorsToLimits(coefficient, function_connectivity_average, varargin{1}, varargin{2});
+                else
+                    color_value = obj.mapColorsToLimits(coefficient, function_connectivity_average);
+                end
+                color_value = [reshape(color_value, [1, 3]), 0.5];
+                edge = plot3(plot_axis, [ROI_position(network_point1, 1), ROI_position(network_point2, 1)],...
+                    [ROI_position(network_point1, 2), ROI_position(network_point2, 2)],...
+                    [ROI_position(network_point1, 3), ROI_position(network_point2, 3)],...
+                    "Color", color_value, "LineWidth", 5);
+                set(edge, "UserData", struct("plot_axis", plot_axis, "ROI_position", ROI_position, "network_point1", network_point1, "network_point2", network_point2, "coefficient", coefficient, "function_connectivity_average", function_connectivity_average))
             end
         end
 
@@ -379,11 +399,12 @@ classdef BrainPlot < handle
                 colormap(plot_axis, obj.color_map);
                 color_bar = colorbar(plot_axis);
                 color_bar.Location = "southoutside";
+                set(color_bar, 'ButtonDownFcn', @obj.openModal);
             else
                 colormap(plot_axis, obj.color_map);
                 color_bar = colorbar(plot_axis);
                 color_bar.Location = "southoutside";
-                color_bar.ButtonDownFcn = @openModal;
+                set(color_bar, 'ButtonDownFcn', @obj.openModal);
                 
                 number_of_ticks = 10;
                 ticks = 0:number_of_ticks;
@@ -402,25 +423,42 @@ classdef BrainPlot < handle
             if obj.is_noncorrelation_input
                 figure_title = [figure_title sprintf("  (Edge-level P < %.2g)", obj.edge_test_options.prob_max)];
             end
-            obj.figure_plot.Name = figure_title;
+            obj.plot_figure.Name = figure_title;
         end
 
         function openModal(obj, source, ~)
-            d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [source.Position(1), source.Position(2), source.Position(3) * 10, source.Position(4) * 10]);
+            d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [obj.plot_figure.Position(1) + 10, obj.plot_figure.Position(2) + 10, obj.plot_figure.Position(3) / 2, obj.plot_figure.Position(4) / 2]);
             
-            upper_limit_box_position = [90, d.Position(4) - 30, 100, 30];
+            upper_limit_box_position = [120, 90, 100, 30];
             upper_limit_box = uicontrol("Style", "edit", "Units", "pixels", "String", obj.upper_limit, "Position", upper_limit_box_position);
-            lower_limit_box_position = [90, d.Position(4) - 30, 100, 30];
+            uicontrol("Style", "text", "Units", "pixels", "String", "Upper Limit", "Position", [upper_limit_box_position(1) - 90, upper_limit_box_position(2) - 2, 80, upper_limit_box_position(4) - 5]);
+            lower_limit_box_position = [120, 50, 100, 30];
             lower_limit_box = uicontrol("Style", "edit", "Units", "pixels", "String", obj.lower_limit, "Position", lower_limit_box_position);
+            uicontrol("Style", "text", "Units", "pixels", "String", "Lower Limit", "Position", [lower_limit_box_position(1) - 90, lower_limit_box_position(2) - 2, 80, lower_limit_box_position(4) - 5]);
             apply_button_position = [10, 10, 100, 30];
             uicontrol("String", "Apply", "Callback", {@obj.applyScale, upper_limit_box, lower_limit_box}, "Units", "pixels", "Position", apply_button_position); % Apply Button
-            close_button_position = [apply_button_position(1) + apply_button_position(3) + 10, apply_button_position(2), apply_button_position(3), apply_button_position(4)]; 
+            default_button_position = [apply_button_position(1) + apply_button_position(3) + 10, apply_button_position(2), apply_button_position(3), apply_button_position(4)];
+            uicontrol("String", "Default", "Callback", {@obj.setDefaults, upper_limit_box, lower_limit_box}, "Units", "pixels", "Position", default_button_position);
+            close_button_position = [default_button_position(1) + default_button_position(3) + 10, default_button_position(2), default_button_position(3), default_button_position(4)]; 
             uicontrol("String", "Close", "Callback", @(~, ~)close(d), "Units", "pixels", "Position", close_button_position);
         end
 
-        % function applyScale(obj, upper_value, lower_value)
+        function applyScale(obj, upper_value, lower_value)
+            for edge = obj.all_edges
+                ROI_position = edge.UserData.ROI_position;
+                plot_axis = edge.UserData.plot_axis;
+                coefficient = edge.UserData.coefficient;
+                network_point1 = edge.UserData.network_point1;
+                network_point2 = edge.UserData.network_point2;
+                function_connectivity_average = edge.UserData.function_connectivity_average;
+                edge = assignColorToEdge(ROI_position, network_point1, network_point2, plot_axis, coefficient, function_connectivity_average, lower_value, upper_value);
+            end
+        end
 
-        % end
+        function setDefaults(obj, ~, ~, upper_limit_box, lower_limit_box)
+            set(upper_limit_box, "String", obj.default_settings.upper_limit);
+            set(lower_limit_box, "String", obj.default_settings.lower_limit);
+        end
 
         %% 
         % GETTERS for dependent properties
