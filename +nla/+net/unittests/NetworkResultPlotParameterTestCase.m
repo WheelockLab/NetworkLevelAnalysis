@@ -92,7 +92,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
                 testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
-                false, nla.RankingMethod.EGGEBRECHT);
+                false, nla.RankingMethod.UNCORRECTED);
             
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -120,7 +120,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
                 testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
-                false, nla.RankingMethod.EGGEBRECHT);
+                false, nla.RankingMethod.UNCORRECTED);
 
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -154,7 +154,7 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
                 testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
-                false, nla.RankingMethod.EGGEBRECHT);
+                false, nla.RankingMethod.UNCORRECTED);
 
             expected_p_value_max = 2;
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
