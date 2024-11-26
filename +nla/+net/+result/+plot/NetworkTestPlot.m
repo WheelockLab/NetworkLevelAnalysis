@@ -78,22 +78,24 @@ classdef NetworkTestPlot < handle
             obj.title = "";
             % Building the plot title by going through options
             switch obj.test_method
-                case NetworkLevelMethod.NO_PERMUTATIONS
+                case "no_permutations"
                     obj.title = "Non-permuted Method\nNon-permuted Significance";
-                case NetworkLevelMethod.FULL_CONNECTOME
+                case "full_connectome"
                     obj.title = "Full Connectome Method\nNetwork vs. Connectome Significance";
-                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
+                case "within_network_pair"
                     obj.title = "Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair";
             end
             if isequal(obj.current_settings.cohens_d, true)
-                obj.title = sprintf("%s (D < %g)", obj.title, obj.network_test_options.d_max);
+                obj.title = sprintf("%s (D > %g)", obj.title, obj.network_test_options.d_max);
             end
-            if isequal(obj.current_settings.ranking, nla.RankingMethod.WINKLER)
-                obj.title = strcat(obj.title, "\nRanking by Winkler Method");
-            elseif isequal(obj.current_settings.ranking, nla.RankingMethod.WESTFALL_YOUNG)
-                obj.title = strcat(obj.title, "\nRanking by Westfall-Young Method");
-            else
-                obj.title = strcat(obj.title, "\nRanking by Eggebrecht Method");
+            if ~isequal(obj.test_method, "no_permutations")
+                if isequal(obj.current_settings.ranking, nla.RankingMethod.WINKLER) 
+                    obj.title = strcat(obj.title, "\nRanking by Winkler Method");
+                elseif isequal(obj.current_settings.ranking, nla.RankingMethod.WESTFALL_YOUNG)
+                    obj.title = strcat(obj.title, "\nRanking by Westfall-Young Method");
+                else
+                    obj.title = strcat(obj.title, "\nRanking by Eggebrecht Method");
+                end
             end
         end
 
@@ -212,12 +214,15 @@ classdef NetworkTestPlot < handle
 
             % This is for using Cohen's D
             cohens_d_filter = nla.TriMatrix(obj.network_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if isequal(obj.current_settings.cohens_d, true) && ~isequal(obj.test_method, NetworkLevelMethod.NO_PERMUTATIONS)
-                if isequal(obj.test_method, NetworkLevelMethod.FULL_CONNECTOME) && ~isequal(obj.network_test_result.full_connectome, false)
+            if isequal(obj.current_settings.cohens_d, true)
+                if isequal(obj.test_method, "no_permutations") && ~isequal(obj.network_test_result.no_permutations, false)
+                    cohens_d_filter.v = (obj.network_test_result.no_permutations.d.v >= obj.network_test_options.d_max);
+                end 
+                if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
                     cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
                 end
                 if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
-                    && ~isequal(obj.test_method, NetworkLevelMethod.FULL_CONNECTOME)
+                    && ~isequal(obj.test_method, "full_connectome")
                     cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
                 end
             else
@@ -369,11 +374,11 @@ classdef NetworkTestPlot < handle
             flags.show_within_net_pair = false;
             flags.show_nonpermuted = false;
             switch obj.test_method
-                case NetworkLevelMethod.NO_PERMUTATIONS
+                case "no_permutations"
                     flags.show_nonpermuted = true;
-                case NetworkLevelMethod.FULL_CONNECTOME
+                case "full_connectome"
                     flags.show_full_conn = true;
-                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
+                case "within_network_pair"
                     flags.show_within_net_pair = true;
             end
             [test_number, significance_count_matrix, names] = obj.network_test_result.getSigMat(obj.network_test_options,...
