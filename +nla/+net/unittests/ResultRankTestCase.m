@@ -102,7 +102,7 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
 
 
     methods (Test)
-        function fullConnectomeEggebrechtRankingTest(testCase)
+        function fullConnectomeUncorrectedRankingTest(testCase)
             legacy_results = testCase.rank.full_connectome.legacy_two_sample_p_value.v;
             expected_legacy = testCase.rank_results.full_connectome.legacy_two_sample_p_value.v;
 
@@ -128,7 +128,7 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.verifyEqual(westfall_young_results, expected_westfall_young);
         end
 
-        function withinNetworkPairEggebrechtRankingTest(testCase)
+        function withinNetworkPairUncorrectedRankingTest(testCase)
             legacy_results = testCase.rank.within_network_pair.legacy_single_sample_p_value.v;
             expected_legacy = testCase.rank_results.within_network_pair.legacy_single_sample_p_value.v;
 

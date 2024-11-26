@@ -37,8 +37,8 @@ classdef ResultRank < handle
                     permutation_results = obj.permuted_network_results.permutation_results;
                     no_permutation_results = obj.nonpermuted_network_results;
 
-                    % Eggebrecht ranking
-                    ranking_result = obj.eggebrechtRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
+                    % Uncorrected ranking
+                    ranking_result = obj.uncorrectedRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, ranking_result);
 
                     % Winkler Method ranking
@@ -52,7 +52,7 @@ classdef ResultRank < handle
             end
         end
         
-        function ranking = eggebrechtRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
+        function ranking = uncorrectedRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                 probability, ranking)
                         
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)

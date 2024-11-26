@@ -94,7 +94,7 @@ classdef NetworkTestPlot < handle
                 elseif isequal(obj.current_settings.ranking, nla.RankingMethod.WESTFALL_YOUNG)
                     obj.title = strcat(obj.title, "\nRanking by Westfall-Young Method");
                 else
-                    obj.title = strcat(obj.title, "\nRanking by Eggebrecht Method");
+                    obj.title = strcat(obj.title, "\nUncorrected data");
                 end
             end
         end
@@ -238,8 +238,8 @@ classdef NetworkTestPlot < handle
             % All the options (buttons, pulldowns, checkboxes)
             scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"],...
                 [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG, ProbPlotMethod.NEGATIVE_LOG_10]);
-            ranking_method = PullDown("ranking", "Ranking", ["Eggebrecht", "Winkler", "Westfall-Young"],...
-                [RankingMethod.EGGEBRECHT, RankingMethod.WINKLER, RankingMethod.WESTFALL_YOUNG]);
+            ranking_method = PullDown("ranking", "Ranking", ["Uncorrected", "Winkler", "Westfall-Young"],...
+                [RankingMethod.UNCORRECTED, RankingMethod.WINKLER, RankingMethod.WESTFALL_YOUNG]);
             cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", true);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...
