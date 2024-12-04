@@ -217,10 +217,13 @@ classdef NetworkTestPlot < handle
             if isequal(obj.current_settings.cohens_d, true)
                 if isequal(obj.test_method, "no_permutations") && ~isequal(obj.network_test_result.no_permutations, false)
                     cohens_d_filter.v = (obj.network_test_result.no_permutations.d.v >= obj.network_test_options.d_max);
-                elseif isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
+                end 
+                if isequal(obj.test_method, "full_connectome") && ~isequal(obj.network_test_result.full_connectome, false)
                     cohens_d_filter.v = (obj.network_test_result.full_connectome.d.v >= obj.network_test_options.d_max);
-                elseif ~isequal(obj.test_method,"within_network_pair") && ~isequal(obj.network_test_result.within_network_pair, false)
-                    cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);                    
+                end
+                if ~isequal(obj.network_test_result.within_network_pair, false) && isfield(obj.network_test_result.within_network_pair, "d")...
+                    && ~isequal(obj.test_method, "full_connectome")
+                    cohens_d_filter.v = (obj.network_test_result.within_network_pair.d.v >= obj.network_test_options.d_max);
                 end
             else
                 cohens_d_filter.v = true(numel(cohens_d_filter.v), 1);
