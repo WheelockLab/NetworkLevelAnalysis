@@ -5,18 +5,18 @@ The connectome and network structure
 -------------------------------------------
 
 The term connectome essentially describes any network description of whole brain connectivity, from the
-microscale of single neurons and synapses up to the macroscale of entire brain regions and pathways.5
-Connectomics is an ever-advancing field, and large-scale scientific endeavors such as the NIH�s Human
+microscale of single neurons and synapses up to the macroscale of entire brain regions and pathways 
+:cite:p:`SpornsO`. Connectomics is an ever-advancing field, and large-scale scientific endeavors such as the NIH's Human
 Connectome Project have made significant progress in mapping, analyzing, and understanding the
 human connectome. Contemporary connectome research views the brain as an extensive, complex
-network of non-adjacent, yet functionally and structurally connected brain regions.6,7 The connectome
+network of non-adjacent, yet functionally and structurally connected brain regions :cite:p:`GordonE,PowerJ`. The connectome
 can be utilized to assess whole-brain associations between behavior and spatially distinct neural
 networks.
 
 MRI has traditionally been viewed as the gold standard for mapping the connectome and has been used
 to demonstrate consistencies between the spatial topology of task-based activation studies and the brain
-networks derived from task-free functional connectivity.7,8 Contemporary cluster correction approaches
-do not utilize the spatial topology of brain networks when estimating cluster size significance.9�11
+networks derived from task-free functional connectivity :cite:p:`PowerJ,GrattonC`. Contemporary cluster correction approaches
+do not utilize the spatial topology of brain networks when estimating cluster size significance :cite:p:`FormanS,FristonK,VieiraS`.
 Therefore, there is an urgent need for standardized tools that address the robust hierarchical network
 structure of the brain and the limitations of contemporary neuroimaging analysis approaches by utilizing
 this biologically informed network structure to increase reproducibility and biological interpretation of
@@ -30,10 +30,10 @@ connectome research, wherein studies use hundreds of regions of interest (ROI) t
 with thousands of potential connections, yet they lack the tools to establish statistical significance when
 analyzing associations between connectome and behavior. For example, previous research failed to find
 any significant differences in brain connectivity that passed a connectome-wise false discovery rate (FDR)
-correction between individuals with a neurological disorder and healthy controls�a finding which
-contradicts the recognized role of the brain in neurological functioning.12 Other studies have found
+correction between individuals with a neurological disorder and healthy controls - a finding which
+contradicts the recognized role of the brain in neurological functioning :cite:p:`GreeneD`. Other studies have found
 connectome-behavior associations that pass the FDR correction, but lack the statistical tools necessary to
-definitively establish these observations.13 NLA, therefore, serves as a valuable tool for the statistical
+definitively establish these observations :cite:p:`ShirerW`. NLA, therefore, serves as a valuable tool for the statistical
 quantification of network-level associations with behavior. The toolbox relies on cross-disciplinary
 biostatistical approaches to evaluate brain-behavior relationships within the connectome and allows for
 control of FDR at the network level. In this way, NLA diverges from most contemporary tools with a focus
