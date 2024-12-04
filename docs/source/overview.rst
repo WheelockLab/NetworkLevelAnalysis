@@ -51,11 +51,11 @@ Introduction to NLA and enrichment
 Network Level Analysis uses enrichment to evaluate whether pairs of networks demonstrate significant
 clustering of strong brain-behavior correlations. Enrichment applies common statistical tests to measure
 the clustering of associations within a given network pair and reduces the number of comparisons to
-those performed at the network level.4 Network level statistics such as the Chi-Square test,
+those performed at the network level :cite:p:`SubramanianA`. Network level statistics such as the Chi-Square test,
 Hypergeometric test, and Kolmogorov-Smirnov test have been used in numerous network-level
 investigations including joint attention and motor function in infants and toddlers, maternal
 inflammation during gestation, motor and attention development in very preterm children, sex
-differences during fetal brain development, and autism in adults.
+differences during fetal brain development, and autism in adults :cite:p:`EggebrechtA,WheelockM:2018,WheelockM:2019,RudolphM,WheelockM:2021,MaronKatz,MarrusN,FeczkoE`.
 
 Edge-level Statistic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,13 +106,13 @@ The NLA toolbox's use of a novel enrichment approach makes it a transformative t
 wide association studies, given that all current enrichment analysis methods are built for use with
 genome data and NLA is the first enrichment tool designed to analyze the connectome. Many alternative
 methods for connectome analysis rely on spatial extent cluster correction in order to control voxel-wise
-whole brain connectome FPR. Despite mounting evidence that spatially non-contiguous brain regions
+whole brain connectome FPR :cite:p:`ShehzadZ,SharmaA`. Despite mounting evidence that spatially non-contiguous brain regions
 are strongly correlated and often co-activate to the same stimuli, cluster extent correction is often
 regarded as the ideal thresholding approach in human connectome literature. By basing statistical
 significance on contiguous voxels, however, cluster extent correction methods fail to account for this
 covariance structure. Therefore, brain regions that are known to be highly correlated and part of the same
 network - such as the anterior cingulate and posterior cingulate - may be thresholded separately,
-resulting in one or both separate regions not meeting statistical thresholds. NLA is distinguished from
+resulting in one or both separate regions not meeting statistical thresholds :cite:p:`RaichleM`. NLA is distinguished from
 the cluster extent correction methodology in that it groups highly correlated, non-contiguous brain
 regions based on pre-defined network modules prior to estimating network-level significance.
 
@@ -121,7 +121,7 @@ Network Based Statistic (NBS)
 
 Given this deviation from the popular extent cluster correction thresholding method, the most
 conceptually similar existing connectome analysis approach to NLA is the Network Based Statistic (NBS)
-toolbox. NBS was the first tool control the edgewise FPR by leveraging graph-based estimates of
+toolbox :cite:p:`ZaleskyA`. NBS was the first tool control the edgewise FPR by leveraging graph-based estimates of
 modularity. Still, several crucial differences exist between NLA and NBS: (a) the results from NBS focus on
 edgewise significance as opposed to network-level significance, (b) NBS does not have a built-in
 visualization functionality, and (c) NBS allows for different module sizes, number of network modules,
@@ -135,11 +135,11 @@ Graph Theoretical Toolboxes
 
 Graph Theoretical Toolboxes are another comparable approach to NLA, offering an analysis methodology
 to quantify network characteristics such as integration, segregation, resilience, and relative contribution
-of individual network nodes to overall information flow within the network. Various other toolboxes
+of individual network nodes to overall information flow within the network :cite:p:`RubinovM`. Various other toolboxes
 have been created to address network thresholding, graph metric calculation, and graph visualization�
 such as GRETNA, GEPHI, and BrainNet Viewer. Additional methodologies aim to determine network
 topology differences by leveraging generalized estimating equations and generalized linear and nonlinear
-mixed models. Each of these tools has helped to advance the application of graph theory approaches
+mixed models :cite:p:`BahramiM,GinestetC,SimpsonS`. Each of these tools has helped to advance the application of graph theory approaches
 to connectome analysis. The NLA toolbox estimates statistical associations edgewise, rather than on
 network topology features, thereby providing a crucial and complementary approach to the existing
 collection of brain network analysis tools
@@ -148,7 +148,7 @@ Statistical Inference and the use of liberal primary thresholds
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NLA establishes statistical significance in the weak sense similar to traditional voxelwise cluster-level
-inference. In voxelwise cluster correction, a liberal primary threshold is employed in addition to a
+inference :cite:p:`NicholsT`. In voxelwise cluster correction, a liberal primary threshold is employed in addition to a
 cluster-extent threshold (determined by e.g., random field theory or Monte Carlo simulations). The
 resulting clusters are significant but inferences cannot be made about any particular sub-regions or
 voxels within a cluster. Similarly, NLA employs a liberal primary threshold in order to calculate the
@@ -159,4 +159,4 @@ this would still only control the false positive rate in the weak sense. The mot
 approaches (cluster-level inference, network-level enrichment, network-based statistic) is to control the
 false positive rate when a massive number of tests are performed. Controlling the false positive rate in the
 strong sense with several thousand functional connections (e.g., 30k) will often result in no single ROI-pair
-surviving OR a few scattered ROI-pairs surviving with no clear biological pattern.
+surviving OR a few scattered ROI-pairs surviving with no clear biological pattern :cite:p:`GreeneD`.
