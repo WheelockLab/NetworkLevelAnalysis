@@ -20,8 +20,11 @@ extensions = [
     'sphinx.ext.intersphinx', 
     'sphinxcontrib.matlab', 
     'sphinx_rtd_theme',
-    'sphinxcontrib.bibtex'
+    'sphinxcontrib.bibtex',
+    'sphinx.ext.autodoc'
 ]
+this_dir = os.path.dirname(os.path.abspath(__file__))
+matlab_src_dir = os.path.abspath(os.path.join(this_dir, '../../+nla'))
 
 templates_path = ['_templates']
 exclude_patterns = []

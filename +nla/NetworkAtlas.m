@@ -1,9 +1,19 @@
 classdef NetworkAtlas < nla.DeepCopyable
-    %NETWORKATLAS Network atlas(also known as infomap)
-    %   Defines ROI positions/information and networks
+    % Network atlas (also known as infomap)
+    % Defines ROI positions/information and networks
+    %
+    % :param name: The name of the atlas
+    % :param net_names: N\ :sub:`nets`\ x 3 matrix. The names of the networks
+    % :param ROI_key: N\ :sub:`ROIs`\ x 2 matrix. First column is ROI (Region Of Interest) indexes, second column is the network they belong to
+    % :param ROI_order: N\ :sub:`ROIs`\ x 1 vector. Functional Connectivity data indexes corresponding to ROIs
+    % :param ROI_pos: N\ :sub:`ROIs`\ x 3 matrix. Centroid positions for each ROI.
+    % :param net_colors: N\ :sub:`nets`\ x 3 matrix. The color of each network when plotted.
+    % :param parcels: Optional MATLAB struct field for surface parcellations. Contains two sub-fields ``ctx_l`` and ``ctx_r``. N\ :sub:`verts`\ x 1 vectors. Each element of a vector corresponds to a vertex within the spatial mesh and contains the index of the ROI for that vertex.
+    % :param space: Optional The mesh that the atlas` ROI locations/parcels are in. Two options - ``TT`` or ``MNI``
+
     
     properties (SetAccess = private)
-        nets
+        nets % This is the net_names
         ROIs
         ROI_order
         name
@@ -102,18 +112,22 @@ classdef NetworkAtlas < nla.DeepCopyable
         end
         
         function val = numNets(obj)
+            % :returns: The number of networks
             val = numel(obj.nets);
         end
         
         function val = numNetPairs(obj)
+            % :returns: The number of network pairs
             val = nla.helpers.triNum(numel(obj.nets));
         end
         
         function val = numROIs(obj)
+            % :returns: The number of Regions Of Interest (ROIT)
             val = numel(obj.ROIs);
         end
         
         function val = numROIPairs(obj)
+            % :returns: The number of ROI pairs
             val = nla.helpers.triNum(numel(obj.ROIs) - 1);
         end
     end

@@ -2,7 +2,7 @@ Setup
 ====================
 
 Add NLA Folders to MATLAB Path
----------------------------
+-------------------------------------
 
 In order to for any NLA functions to work, MATLAB must be able to find them on the path. To do this, in
 the MATLAB file explorer, navigate to where you have downloaded or cloned the NetworkLevelAnalysis

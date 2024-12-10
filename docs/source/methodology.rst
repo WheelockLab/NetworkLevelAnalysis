@@ -14,7 +14,7 @@ will be included in the NLA toolbox :cite:p:`GordonE,PowerJ,ThomasY,GlasserM,She
 common, reproducible framework for testing brain-behavior associations across connectome research
 
 General Linear Model / Edge-wise Statistical Model Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NLA also requires the user to specify the desired statistical model for testing associations between
 behavioral data and edge-wise�or ROI-pair connectivity�connectome data. The analysis pipeline within

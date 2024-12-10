@@ -15,7 +15,8 @@ Welcome to NetworkLevelAnalysis's documentation!
    methodology
    setup
    getting_started
-   biblography
+   network_atlases
+   bibliography
 
 
 Indices and tables
