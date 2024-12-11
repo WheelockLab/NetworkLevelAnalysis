@@ -16,6 +16,7 @@ Welcome to NetworkLevelAnalysis's documentation!
    setup
    getting_started
    network_atlases
+   edge_level_tests
    bibliography
 
 
