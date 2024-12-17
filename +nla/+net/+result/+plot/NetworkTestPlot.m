@@ -384,7 +384,7 @@ classdef NetworkTestPlot < handle
             [test_number, significance_count_matrix, names] = obj.network_test_result.getSigMat(obj.network_test_options,...
                 obj.network_atlas, flags);
             
-                colors = str2func(lower(obj.current_settings.convergence_color));
+            colors = str2func(lower(obj.current_settings.convergence_color));
             if isequal(obj.current_settings.convergence_color, "Bone")
                 color_map = flip(colors());
             else
