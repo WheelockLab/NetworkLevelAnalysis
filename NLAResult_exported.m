@@ -333,8 +333,8 @@ classdef NLAResult < matlab.apps.AppBase
                     
                     prog.Message = sprintf('Generating %s %s', result.test_display_name, plot_type);
                     
-                    result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
-                    
+%                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
+                    nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct)
                     prog.Value = i / size(selected_nodes, 1);
 %                     app.moveCurrFigToParentLocation();
                 end
@@ -476,8 +476,7 @@ classdef NLAResult < matlab.apps.AppBase
 
         % Button pushed function: OpenTriMatrixPlotButton
         function OpenTriMatrixPlotButtonPushed(app, event)
-            import nla.* % required due to matlab package system quirks
-            displayManyPlots(app, struct('plot_type', PlotType.FIGURE), 'figures');
+            displayManyPlots(app, struct('plot_type', nla.PlotType.FIGURE), 'figures');
         end
 
         % Button pushed function: OpenDiagnosticPlotsButton

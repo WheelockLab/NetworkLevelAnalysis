@@ -284,6 +284,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         
         % I don't really know what these do and haven't really thought about it. Hence the bad naming.
         function [sig, name] = singleSigMat(obj, network_atlas, edge_test_options, p_value, mcc_method, title_prefix)
+            mcc_method = nla.net.mcc.(mcc_method)();
             p_value_max = mcc_method.correct(network_atlas, edge_test_options, p_value);
             p_breakdown_labels = mcc_method.createLabel(network_atlas, edge_test_options, p_value);
 

@@ -110,7 +110,7 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'x_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'y_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
-            addParameter(matrix_input_parser, 'plot_scale', nla.gfx.ProbPlotMethod.DEFAULT, @isenum);
+            addParameter(matrix_input_parser, 'plot_scale', nla.gfx.ProbPlotMethod.DEFAULT);
             
             parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
             properties = {'figure', 'name', 'matrix', 'networks', 'figure_size', 'network_clicked_callback',...
@@ -206,14 +206,18 @@ classdef MatrixPlot < handle
                 lower_limit = get(lower_limit_box, "String");
             end
 
+            if ~isstring(obj.plot_scale)
+                obj.plot_scale = char(obj.plot_scale);
+            end
+            
             obj.matrix = obj.original_matrix;
 
-            if ismember(obj.plot_scale, [ProbPlotMethod.NEGATIVE_LOG_10, ProbPlotMethod.NEGATIVE_LOG_STATISTIC]) &&...
-                ismember(scale, [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG])
+            if ismember(obj.plot_scale, ["nla.ProbPlotMethod.NEGATIVE_LOG_10", "nla.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
+                ismember(scale, ["nla.ProbPlotMethod.DEFAULT", "nla.ProbPlotMethod.LOG"])
                 obj.matrix.v = 10.^(-obj.matrix.v);
                 
-            elseif ~ismember(obj.plot_scale, [ProbPlotMethod.NEGATIVE_LOG_10, ProbPlotMethod.NEGATIVE_LOG_STATISTIC]) &&...
-                ~ismember(scale, [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG])
+            elseif ~ismember(obj.plot_scale, ["nla.ProbPlotMethod.NEGATIVE_LOG_10", "nla.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
+                ~ismember(scale, ["nla.ProbPlotMethod.DEFAULT", "nla.ProbPlotMethod.LOG"])
                 obj.matrix.v = -log10(obj.matrix.v);
                 lower_limit = 0;
                 upper_limit = 2;
@@ -221,16 +225,16 @@ classdef MatrixPlot < handle
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
 
-            if scale == ProbPlotMethod.DEFAULT
+            if scale == "nla.ProbPlotMethod.DEFAULT"
                 new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, upper_limit, color_map);
                 obj.plot_scale = scale;
-            elseif scale == ProbPlotMethod.LOG
+            elseif scale == "nla.ProbPlotMethod.LOG"
                 new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, upper_limit, color_map);
                 obj.plot_scale = scale;
             else
                 color_map_name = str2func(lower(color_map));
                 new_color_map = color_map_name(discrete_colors);
-                obj.plot_scale = ProbPlotMethod.NEGATIVE_LOG_10;
+                obj.plot_scale = "nla.ProbPlotMethod.NEGATIVE_LOG_10";
             end
             obj.color_map = new_color_map;
             obj.embiggenMatrix(lower_limit, upper_limit);

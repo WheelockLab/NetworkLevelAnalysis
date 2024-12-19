@@ -76,14 +76,14 @@ classdef NetworkResultPlotParameter < handle
             % default values for plotting
             statistic_plot_matrix = statistic_input_scaled;
             p_value_plot_max = p_value_max;
-            significance_type = nla.gfx.SigType.DECREASING;
+            significance_type = "nla.gfx.SigType.DECREASING";
             % determine colormap and operate on values if it's -log10
             switch obj.updated_test_options.prob_plot_method
-                case nla.gfx.ProbPlotMethod.LOG
+                case "nla.gfx.ProbPlotMethod.LOG"
                     color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
                         statistic_input, p_value_max);
                 % Here we take a -log10 and change the maximum value to show on the plot
-                case nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10
+                case "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10"
                     color_map = parula(obj.default_discrete_colors);
 
                     statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -94,7 +94,7 @@ classdef NetworkResultPlotParameter < handle
                     else
                         p_value_plot_max = 40;
                     end
-                    significance_type = nla.gfx.SigType.INCREASING;
+                    significance_type = "nla.gfx.SigType.INCREASING";
                 otherwise
                     color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
                         p_value_max);
@@ -184,9 +184,9 @@ classdef NetworkResultPlotParameter < handle
             end
 
             switch ranking_method
-                case RankingMethod.WINKLER
+                case "nla.RankingMethod.WINKLER"
                     ranking = "winkler_";
-                case RankingMethod.WESTFALL_YOUNG
+                case "nla.RankingMethod.WESTFALL_YOUNG"
                     ranking = "westfall_young_";
                 otherwise
                     ranking = "uncorrected_";
