@@ -41,3 +41,13 @@ Provided Tests
 
   * MATLAB's `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`
 * **Welch's t-test**
+
+  * Uses a modified version of MATLAB's t-test found in `+nla/WelchT`
+
+.. math::
+
+    t = \frac{\overline{X_1} - \overline{X_2}}{\sqrt{s_{\overline{X_1}}^2 - s_{\overline{X_2}}^2}}
+    where
+    s_{\overline{X_i}} = \frac{s_i}{\sqrt{N_i}}
+
+* 
