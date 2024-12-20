@@ -185,6 +185,8 @@ classdef MatrixPlot < handle
         
             import nla.net.result.NetworkResultPlotParameter nla.gfx.ProbPlotMethod
 
+            obj.color_bar.Ticks = [];
+            
             color_map = color_map_select;
             if ~isstring(color_map_select) && ~ischar(color_map_select)
                 color_map = get(color_map_select, "Value");
@@ -211,7 +213,6 @@ classdef MatrixPlot < handle
             end
             
             obj.matrix = obj.original_matrix;
-
             if ismember(obj.plot_scale, ["nla.ProbPlotMethod.NEGATIVE_LOG_10", "nla.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
                 ismember(scale, ["nla.ProbPlotMethod.DEFAULT", "nla.ProbPlotMethod.LOG"])
                 obj.matrix.v = 10.^(-obj.matrix.v);
