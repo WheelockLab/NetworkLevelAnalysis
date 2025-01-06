@@ -55,7 +55,7 @@ Provided Tests
   * Faster implementation that stardard MATLAB code providing identical :math:`\tau`\ and p-values.
   * Run-time difference from *O*\ (*n*\ :sup:`2`) to *O*\ (*n* log *n*)
   * This is done with a red-black tree.
-* **Welch's t-test``
+* **Welch's t-test**
 
   * Implements an optomized Welch's t-test comparing the functional connectivity of two groups.
   * Extra imports compared to other edge level tests
