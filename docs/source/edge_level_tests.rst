@@ -62,6 +62,7 @@ Provided Tests
   :Group name(s): Names associated with each group. (For example, 'Male' and 'Female')
   :Group val(s): Behavioral value associated with each group. If 'Female' is donated as '0', and 'Male' as '1', set the vals to the numerical values.
 
+.. _precalculated
 * **Pre-calculated data loader**
 
   * Allows loading of observed and permuted edge-level data the user has pre-calculated outside the NLA.
