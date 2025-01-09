@@ -64,8 +64,7 @@ classdef NLAResult < matlab.apps.AppBase
         
         end
         
-        function setNesting(app, nesting_by_method)
-            import nla.* % required due to matlab package system quirks
+        function setNesting(app)
             % clear old nodes
             for i = 1:size(app.ResultTree.Children, 1)
                 for j = 1:size(app.ResultTree.Children(1).Children, 1)
@@ -75,7 +74,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             % add new nodes
-            if nesting_by_method
+            if app.nesting_by_method
                 if app.net_input_struct.no_permutations
                     root = app.createNode(app.ResultTree, 'Non-permuted');
                     for i = 1:size(app.results.network_test_results, 2)
@@ -121,7 +120,7 @@ classdef NLAResult < matlab.apps.AppBase
                         app.createNode(root, 'Non-permuted', {result, flags});
                     end
                     
-                    if app.net_input_struct.full_connectome && result.has_full_conn
+                    if app.net_input_struct.full_connectome && ~isequal(result.full_connectome, false)
                         perm_result = app.results.permutation_network_test_results{i};
                         if app.net_input_struct.full_connectome && ~isequal(result.full_connectome, false)
                             flags = struct();
@@ -414,7 +413,7 @@ classdef NLAResult < matlab.apps.AppBase
             
             drawnow();
             
-            app.setNesting(true);
+            app.setNesting();
             app.genadjustableNetParams();
             
             close(prog);
@@ -452,9 +451,8 @@ classdef NLAResult < matlab.apps.AppBase
 
         % Button pushed function: FlipNestingButton
         function FlipNestingButtonPushed(app, event)
-            import nla.* % required due to matlab package system quirks
             app.nesting_by_method = ~app.nesting_by_method;
-            app.setNesting(app.nesting_by_method)
+            app.setNesting()
         end
 
         % Button pushed function: ViewEdgeLevelButton
