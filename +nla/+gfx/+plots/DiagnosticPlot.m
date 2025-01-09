@@ -24,14 +24,14 @@ classdef DiagnosticPlot < handle
             end
         end
 
-        function displayPlots(obj, ranking_algorithm)
+        function displayPlots(obj, test_method)
 
-            p_value = obj.choosePlottingStatistic(ranking_algorithm);
+            p_value = nla.net.result.NetworkTestResult().getPValueNames(test_method, obj.networkTestResult.test_name);
             
             plot_parameters = nla.net.result.NetworkResultPlotParameter(...
                 obj.networkTestResult, obj.network_atlas, obj.network_test_options...
             );
-            vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize(ranking_algorithm, p_value);
+            vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize(test_method, p_value);
             no_permutations_vs_network_parameters = plot_parameters.plotProbabilityVsNetworkSize(...
                 "no_permutations", p_value...
             );
@@ -40,7 +40,7 @@ classdef DiagnosticPlot < handle
             permuted_title = sprintf("Permuted P-values vs Network-Pair Size");
 
             plotter = nla.net.result.plot.PermutationTestPlotter(obj.network_atlas);
-            if isequal(ranking_algorithm, "no_permutations")
+            if isequal(test_method, "no_permutations")
                 nla.gfx.createFigure(500, 500);
                 plotter.plotProbabilityVsNetworkSize(vs_network_size_parameters, subplot(1, 1, 1), non_permuted_title);
                 return
@@ -49,8 +49,8 @@ classdef DiagnosticPlot < handle
 
             p_value_histogram = obj.networkTestResult.createHistogram(p_value);
             plotter.plotProbabilityHistogram(...
-                subplot(1, 3, 1), p_value_histogram, obj.networkTestResult.full_connectome.statistic_p_value.v,...
-                obj.networkTestResult.permutation_results.p_value_permutations.v(:, 1),...
+                subplot(1, 3, 1), p_value_histogram, obj.networkTestResult.full_connectome.(strcat("uncorrected_", p_value)).v,...
+                obj.networkTestResult.permutation_results.(strcat(p_value, "_permutations")).v(:, 1),...
                 obj.networkTestResult.test_display_name, obj.network_test_options.prob_max...
             );
             plotter.plotProbabilityVsNetworkSize(no_permutations_vs_network_parameters, subplot(1, 3, 2), non_permuted_title);
