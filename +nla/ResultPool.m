@@ -44,10 +44,10 @@ classdef ResultPool
             flags.plot_type = nla.PlotType.FIGURE;
             if ~islogical(obj.permutation_network_test_results)
                 for i = 1:numel(obj.permutation_network_test_results)
-                    obj.network_test_results{i}.output(obj.test_options, obj.network_test_options, obj.network_atlas,...
+                    obj.network_test_results{i}.output(obj.test_options, obj.network_test_options,...
                         obj.edge_test_results, flags);
                     obj.permutation_network_test_results{i}.output(obj.test_options, obj.network_test_options,...
-                        obj.network_atlas, obj.edge_test_results, flags);
+                        obj.edge_test_results, flags);
                 end
             end
         end

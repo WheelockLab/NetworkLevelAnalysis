@@ -68,7 +68,7 @@ input_struct.net_atlas = net_atlas;
 input_struct.prob_max = 0.05;
 input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
 
-net_input_struct = net.genBaseInputs();
+net_input_struct = nla.net.genBaseInputs();
 net_input_struct.prob_max = 0.05;
 net_input_struct.behavior_count = 1;
 net_input_struct.d_max = 0.5;

@@ -74,9 +74,13 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
-            import nla.NetworkLevelMethod
+        function output(obj, edge_test_options, updated_test_options, edge_test_result, flags)
+            % This function is here to run plots in scripting. GUI doesn't call this.
 
+            % nla.net.result.plot.NetworkTestPlotApp(obj, edge_test_result, flags, edge_test_options,...
+            %     updated_test_options);
+
+            % If the above doesn't work in scripts, then uncomment below and use it
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 test_method = "no_permutations";
             elseif isfield(flags, "show_full_conn") && flags.show_full_conn
@@ -85,7 +89,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 test_method = "within_network_pair";
             end
 
-            network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, network_atlas,...
+            network_result_plot = nla.net.result.plot.NetworkTestPlot(obj, edge_test_result, edge_test_options.net_atlas,...
                 test_method, edge_test_options, updated_test_options);
             network_result_plot.drawFigure(nla.PlotType.FIGURE)
         end
