@@ -12,9 +12,8 @@ Common Inputs
 --------------------------
 
 :P: Edge-level p-value threshold
-:Network Atlas: :doc:`/network_atlases`
-:Functional Connectivity: Initial coorelation matrix if size N\ :sub:`ROIs`\ x N\ :sub:`ROIs`\ x N\ :sub:`scans`\. 
-  r-values or Fisher z-transformed r-values.
+:Network Atlas: :doc:`Network Atlas </network_atlases>`
+:Functional Connectivity: Initial coorelation matrix (r-values or Fisher z-transformed r-values) of size N\ :sub:`ROIs`\  x  N\ :sub:`ROIs`\  x  N\ :sub:`scans`\
 :Behavior: MATLAB table (``.mat``) or tab seperated text file (``.txt``)
   
   ============== =================== ================
@@ -27,7 +26,7 @@ Common Inputs
   ============== =================== ================
 
   Each column header is a name of a variable.
-  Each column contains N\ :sub:`scans`\ entries.
+  Each column contains N\ :sub:`scans`\  entries.
   After loading this file, the table should display in the GUI.
   The user may mark one column as 'Behavior' for the score of interest.
   Other columns may be marked as 'Covariates' which are partialed prior to running statistics.
@@ -59,79 +58,87 @@ Provided Tests
 
   * Implements an optomized Welch's t-test comparing the functional connectivity of two groups.
   * Extra imports compared to other edge level tests
+
   :Group name(s): Names associated with each group. (For example, 'Male' and 'Female')
   :Group val(s): Behavioral value associated with each group. If 'Female' is donated as '0', and 'Male' as '1', set the vals to the numerical values.
 
-.. _precalculated
+.. _precalculated:
+
 * **Pre-calculated data loader**
 
   * Allows loading of observed and permuted edge-level data the user has pre-calculated outside the NLA.
   * Four ``.mat`` files needed as inputs
   * p-values should be thresholded
+
   :Observed p: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x 1 matrix of logical values, the observed, thresholded edge-level p-values.
     N\ :sub:`ROI_pairs`\ are the lower triangle values of a N\ :sub:`ROIs`\ x N\ :sub:`ROIs`\ matrix.
   :Observed coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x 1 matrix of observed edge-level coefficients.
   :Permuted p: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of logical values. Observed, thresholded, permuted p-values.
   :Permuted coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of permuted edge-level coefficients.
 
-Creating an edge-level test
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Creating additional edge-level tests
+-----------------------------------------------
 
-1. All test objects must inherit from the ``nla.edge.test.Base`` class.
-2. All test objects must be saved into the ``+nla/+edge/+test`` directory
-3. There are a few required properties and methods that are required:
-   
-  * **name**
-    * All tests must be given a name. Example::
+To create an edge-level test, a test class must be added to the codebase. Refer to current tests in ``+nla/+edge/+test`` for examples. Guidelines are listed below
+
+* **Test objects**
+  All test objects must inherit from ``nla.edge.test.Base`` and be in the ``+nla/+edge/+test`` directory. There are also a few methods and
+  properties that must be included
+
+  * A constant property ``name`` is required.
+
+  ::
+    
+    properties (Constant)
+      name = "Pearson's r"
+    end
+
+  * A ``run`` method is also required.
   
-      properties (Constant)
-        name = "Kendall's tau"
-      end
+  ::
 
-  * **result**
-    * This is a method. The function handle is::
+    result = run(obj, input_struct)
 
-      function result = run(obj, test_options)
-
-  * **test_options**
-    * This is a structure with options that are used either in the test or visualizing results
-
-  * **requiredInputs**
-    * This is a static function to define the inputs for the test::
-      
-      methods (Static)
-        function inputs = requiredInputs()
-          inputs = {nla.inputField.Number('prob_max', 'P <', 0, 0.05, 1), nla.inputField.NetworkAtlas(), nla.inputField.Behavior()};
-        end
-      end
-
-    * This defines a number field ``prob_max`` from [0, 1] with a default of 0.05. It also specifies a network atlas (:ref:`NetworkAtlas() <network_atlases>` input field, and a behavior input field.
-    * These are all required. If the user does not supply them, the test not run in the GUI.
+  :input_struct: Also called ``test_options`` in the codebase. Parameters needed for a test. The functional connectivity, network atlas, and other properties are stored here.
   
-4. If the test is located in the correct folder, after a GUI restart (not MATLAB GUI) the test will populate in the Edge Level test list.
+.. _requiredInputs:
+  
+  * A ``requiredInputs`` method.
+  
+  ::
 
-In addition to creating the test, a result object will also need to be created.
+    methods (Static)
+      function inputs = requiredInputs()
+        inputs = {
+          nla.inputField.Number('prob_max', 'P <', 0, 0.05, 1),
+          nla.inputField.NetworkAtlas(),
+          nla.inputField.Behavior()
+        }
+      end
+    end
+  
+  This function creates 3 input fields in the GUI. A number ``prob_max`` with range [0, 1] and a default value of 0.05. 
+  A network atlas file, and a behavior file. These are required, meaning that the GUI will not run without these inputs being
+  fulfilled. These values are all stored in the ``input_struct`` object.
 
-Creating a result
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+* **Result object**
+  A result object must be defined for the test edge-level results. If no custom data fields are needed, then the object in ``+nla/+edge/+test/Base.m``
+  may be used and this step can be skipped.
 
-1. ``nla.edge.BaseResult`` will work if custom data fields are not required.
-2. The result must inherit from ``nla.edge.BaseResult``
-3. This result must be placed in ``+nla/+edge/+result/``
-4. Methods and properties
-
-  * **output**
-    * This is the data that will be passed to create a figure of the data::
+  * A ``output`` method must be included.
+  
+  ::
 
       function output(obj, network_atlas, flags)
 
-    * Network atlas :ref:`NetworkAtas() <network_atlases>`
-    * flags - a MATLAB structure that currently only has a field ``display_sig`` which is a boolean to determine if displayed p-values are thresholded
+  :network_atlas: An atlas of the form defined in ``nla.NetworkAtlas``
+  :flags: Contains flags for the various types of figures to output. 
   
-  * **merge**
-    * This is an optional method
-    * It is used to merge blocks of results together (like in a parallel processing environment)::
+  * (Optional) A ``merge`` method to merge blocks of permutation results together. An example can be found in
+    ``+nla/+edge/+result/PermBase.m`` file.
+  
+  ::
 
-      function merge(obj, results)
+    merge(obj, results)
 
-    * The ``results`` argument is a result to merge the object with. Afterwards, the current object will be the two merged blocks
+  :results: Cell array of result objects to merge. The object that calls the method will have the ``result`` merged with it.

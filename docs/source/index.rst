@@ -15,8 +15,11 @@ Welcome to NetworkLevelAnalysis's documentation!
    methodology
    setup
    getting_started
+   using_the_gui
+   behavior_table
    network_atlases
    edge_level_tests
+   network_level_tests
    bibliography
 
 
