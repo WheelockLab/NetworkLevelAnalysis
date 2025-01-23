@@ -12,6 +12,8 @@ classdef BrainPlot < handle
         upper_limit
         lower_limit
         color_map = cat(1, winter(1000), flip(autumn(1000)));
+        color_map_axis
+        color_bar
         ROI_values = []
         function_connectivity_values = []
         ROI_radius
@@ -91,10 +93,11 @@ classdef BrainPlot < handle
             end
 
             if obj.surface_parcels && ~islogical(obj.network_atlas.parcels)
-                obj.singlePlot(plot_axis, ViewPos.DORSAL, BrainColorMode.COLOR_ROIS, obj.color_map);
+                edges5 = obj.singlePlot(plot_axis, ViewPos.DORSAL, BrainColorMode.COLOR_ROIS, obj.color_map);
             else
-                obj.singlePlot(plot_axis, ViewPos.DORSAL, BrainColorMode.NONE, obj.color_map);
+                edges5 = obj.singlePlot(plot_axis, ViewPos.DORSAL, BrainColorMode.NONE, obj.color_map);
             end
+            obj.all_edges = [obj.all_edges edges5];
 
             light("Position", [0, 100, 100], "Style", "local");
 
@@ -115,6 +118,8 @@ classdef BrainPlot < handle
             nla.gfx.hideAxes(plot_axis);
 
             obj.drawColorMap(plot_axis);
+
+            obj.color_map_axis = plot_axis;
 
             obj.addTitle();
         end
@@ -239,7 +244,11 @@ classdef BrainPlot < handle
                     [ROI_position(network_point1, 2), ROI_position(network_point2, 2)],...
                     [ROI_position(network_point1, 3), ROI_position(network_point2, 3)],...
                     "Color", color_value, "LineWidth", 5);
-                set(edge, "UserData", struct("plot_axis", plot_axis, "ROI_position", ROI_position, "network_point1", network_point1, "network_point2", network_point2, "coefficient", coefficient, "function_connectivity_average", function_connectivity_average))
+                % Matlab says you can save a structure to the "UserData" field of a line. You cannot. so, we do something dumb
+                edge_data = {};
+                edge_data{1} = {"coefficient", "function_connectivity_average"};
+                edge_data{2} = {coefficient, function_connectivity_average};
+                set(edge, "UserData", edge_data)
             end
         end
 
@@ -397,23 +406,23 @@ classdef BrainPlot < handle
         function drawColorMap(obj, plot_axis)
             if obj.color_functional_connectivity
                 colormap(plot_axis, obj.color_map);
-                color_bar = colorbar(plot_axis);
-                color_bar.Location = "southoutside";
-                set(color_bar, 'ButtonDownFcn', @obj.openModal);
+                obj.color_bar = colorbar(plot_axis);
+                obj.color_bar.Location = "southoutside";
+                set(obj.color_bar, 'ButtonDownFcn', @obj.openModal);
             else
                 colormap(plot_axis, obj.color_map);
-                color_bar = colorbar(plot_axis);
-                color_bar.Location = "southoutside";
-                set(color_bar, 'ButtonDownFcn', @obj.openModal);
+                obj.color_bar = colorbar(plot_axis);
+                obj.color_bar.Location = "southoutside";
+                set(obj.color_bar, 'ButtonDownFcn', @obj.openModal);
                 
                 number_of_ticks = 10;
                 ticks = 0:number_of_ticks;
-                color_bar.Ticks = double(ticks) ./ number_of_ticks;
+                obj.color_bar.Ticks = double(ticks) ./ number_of_ticks;
                 tick_labels = cell(number_of_ticks + 1, 1);
                 for tick = ticks
                     tick_labels{tick + 1} = sprintf("%.2g", obj.lower_limit + (tick * ((double(obj.upper_limit - obj.lower_limit) / number_of_ticks))));
                 end
-                color_bar.TickLabels = tick_labels;
+                obj.color_bar.TickLabels = tick_labels;
                 caxis(plot_axis, [0, 1]);
             end
         end
@@ -443,17 +452,24 @@ classdef BrainPlot < handle
             uicontrol("String", "Close", "Callback", @(~, ~)close(d), "Units", "pixels", "Position", close_button_position);
         end
 
-        function applyScale(obj, upper_value, lower_value)
+        function applyScale(obj, ~, ~, upper_value, lower_value)
+            colorbar(obj.color_bar, "off");
+            obj.upper_limit = str2double(upper_value.String);
+            obj.lower_limit = str2double(lower_value.String);
             for edge = obj.all_edges
-                ROI_position = edge.UserData.ROI_position;
-                plot_axis = edge.UserData.plot_axis;
-                coefficient = edge.UserData.coefficient;
-                network_point1 = edge.UserData.network_point1;
-                network_point2 = edge.UserData.network_point2;
-                function_connectivity_average = edge.UserData.function_connectivity_average;
-                edge = assignColorToEdge(ROI_position, network_point1, network_point2, plot_axis, coefficient, function_connectivity_average, lower_value, upper_value);
+                edge_data = edge.UserData;
+                edge_data_struct = struct();
+                edge_data_names = edge_data{1};
+                edge_data_values = edge_data{2};
+                for idx = 1:numel(edge_data_names)
+                    edge_data_struct.(edge_data_names{idx}) = edge_data_values{idx};
+                end
+                color_value = obj.mapColorsToLimits(edge_data_struct.coefficient, edge_data_struct.function_connectivity_average, obj.lower_limit, obj.upper_limit);
+                color_value = [reshape(color_value, [1, 3]), 0.5];
+                set(edge, "Color", color_value);
             end
-        end
+            obj.drawColorMap(obj.color_map_axis);
+        end  
 
         function setDefaults(obj, ~, ~, upper_limit_box, lower_limit_box)
             set(upper_limit_box, "String", obj.default_settings.upper_limit);
