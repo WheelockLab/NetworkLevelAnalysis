@@ -286,7 +286,7 @@ classdef NLAResult < matlab.apps.AppBase
             drawnow();
             
             if ~islogical(result.network_test_results)
-                app.setNesting(true);
+                app.setNesting();
             else
                 app.results = false;
             end
