@@ -35,7 +35,7 @@ classdef NetworkResultPlotParameter < handle
             % test_method - 'no permutations', 'within network pair', 'full connectome'
 
             import nla.TriMatrix nla.TriMatrixDiag
-            % We're going to use a default filter here
+            % We're going to use a default filter here, i.e. keep everything
             if isequal(significance_filter, false)
                 significance_filter = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
                 significance_filter.v = true(numel(significance_filter.v), 1);
@@ -57,6 +57,7 @@ classdef NetworkResultPlotParameter < handle
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);
 
+            % More title construction. It's all just string concatenation
             name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
                 p_value_max, p_value_breakdown_label);
             if p_value_max == 0
@@ -145,6 +146,8 @@ classdef NetworkResultPlotParameter < handle
             result.p_values = p_values;
         end
 
+        %%
+        % Getters for props
         function value = get.test_methods(obj)
             value = obj.network_test_results.test_methods;
         end
@@ -156,6 +159,8 @@ classdef NetworkResultPlotParameter < handle
         function value = get.number_of_networks(obj)
             value = obj.network_atlas.numNets();
         end
+        %
+        %%
     end
 
     methods (Access = protected)
@@ -199,6 +204,7 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods(Static)
+        % We call this in other classes, mainly whenever we rescale a plot
         function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max, color_map)
             log_minimum = log10(min(nonzeros(probabilities_input.v)));
             log_minimum = max([-40, log_minimum]);

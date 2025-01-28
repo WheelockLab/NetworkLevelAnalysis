@@ -1,4 +1,9 @@
 classdef PermutationTestPlotter < handle
+    %PERMUTATIONTESTPLOTTER Permutation Test Plotter
+    % This is a class (poorly named) that calls the different plotting functions for plotting results
+    % Collected here are the commands to plot results. They are called by various
+    % different classes and used for different results. Since these are called by different classes
+    % and not on the actual NetworkTestResult, I gathered all the plotting functions here.
 
     properties
         network_atlas

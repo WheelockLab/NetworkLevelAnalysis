@@ -80,7 +80,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             nla.net.result.plot.NetworkTestPlotApp(obj, edge_test_result, flags, edge_test_options,...
                 updated_test_options);
 
-            % If the above doesn't work in scripts, then uncomment below and use it
+            % If the above doesn't work in scripts, comment out command above and then uncomment below and use it
+
             % if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
             %     test_method = "no_permutations";
             % elseif isfield(flags, "show_full_conn") && flags.show_full_conn
