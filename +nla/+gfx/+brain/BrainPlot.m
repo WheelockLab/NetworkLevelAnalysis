@@ -52,7 +52,7 @@ classdef BrainPlot < handle
             addParameter(brain_input_parser, "mesh_alpha", 0.25, validNumberInput);
 
             parse(brain_input_parser, edge_test_result, edge_test_options, network_test_options, network1, network2, network_atlas, varargin{:});
-            properties = {"edge_test_result", "edge_test_options", "network_test_options", "network1", "network2", "network_atlas", "ROI_radius", "surface_parcels", "mesh_type", "mesh_alpha"};
+            properties = ["edge_test_result", "edge_test_options", "network_test_options", "network1", "network2", "network_atlas", "ROI_radius", "surface_parcels", "mesh_type", "mesh_alpha"];
             for property = properties
                 obj.(property{1}) = brain_input_parser.Results.(property{1});
             end
@@ -435,8 +435,8 @@ classdef BrainPlot < handle
             obj.plot_figure.Name = figure_title;
         end
 
-        function openModal(obj, source, ~)
-            d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [obj.plot_figure.Position(1) + 10, obj.plot_figure.Position(2) + 10, obj.plot_figure.Position(3) / 2, obj.plot_figure.Position(4) / 2]);
+        function openModal(obj, ~, ~)
+            d = figure("WindowStyle", "normal", "Units", "pixels", "Position", [obj.plot_figure.Position(1) + 10, obj.plot_figure.Position(2) + 10, 350, 140]);
             
             upper_limit_box_position = [120, 90, 100, 30];
             upper_limit_box = uicontrol("Style", "edit", "Units", "pixels", "String", obj.upper_limit, "Position", upper_limit_box_position);
@@ -453,9 +453,23 @@ classdef BrainPlot < handle
         end
 
         function applyScale(obj, ~, ~, upper_value, lower_value)
+            waitbar(0.05, "Please wait while scale is changed...");
             colorbar(obj.color_bar, "off");
+            total_colors = 2000;
             obj.upper_limit = str2double(upper_value.String);
             obj.lower_limit = str2double(lower_value.String);
+            positive_percent = 0;
+            negative_percent = 0;
+            if obj.lower_limit >= 0
+                positive_percent = 100;
+            elseif obj.upper_limit <= 0
+                negative_percent = 100;
+            else
+                total_spread = obj.upper_limit - obj.lower_limit;
+                positive_percent = obj.upper_limit / total_spread;
+                negative_percent = -obj.lower_limit / total_spread;
+            end
+            obj.color_map = cat(1, winter(total_colors * negative_percent), flip(autumn(total_colors * positive_percent)));
             for edge = obj.all_edges
                 edge_data = edge.UserData;
                 edge_data_struct = struct();
@@ -469,6 +483,7 @@ classdef BrainPlot < handle
                 set(edge, "Color", color_value);
             end
             obj.drawColorMap(obj.color_map_axis);
+            waitbar(0.90);
         end  
 
         function setDefaults(obj, ~, ~, upper_limit_box, lower_limit_box)
