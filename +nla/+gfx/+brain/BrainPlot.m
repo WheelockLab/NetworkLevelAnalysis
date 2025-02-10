@@ -453,7 +453,7 @@ classdef BrainPlot < handle
         end
 
         function applyScale(obj, ~, ~, upper_value, lower_value)
-            waitbar(0.05, "Please wait while scale is changed...");
+            wait_popup = waitbar(0.05, "Please wait while scale is changed...");
             colorbar(obj.color_bar, "off");
             total_colors = 2000;
             obj.upper_limit = str2double(upper_value.String);
@@ -469,7 +469,7 @@ classdef BrainPlot < handle
                 positive_percent = obj.upper_limit / total_spread;
                 negative_percent = -obj.lower_limit / total_spread;
             end
-            obj.color_map = cat(1, winter(total_colors * negative_percent), flip(autumn(total_colors * positive_percent)));
+            obj.color_map = cat(1, winter(round(total_colors * negative_percent)), flip(autumn(round(total_colors * positive_percent))));
             for edge = obj.all_edges
                 edge_data = edge.UserData;
                 edge_data_struct = struct();
@@ -484,6 +484,7 @@ classdef BrainPlot < handle
             end
             obj.drawColorMap(obj.color_map_axis);
             waitbar(0.90);
+            close(wait_popup)
         end  
 
         function setDefaults(obj, ~, ~, upper_limit_box, lower_limit_box)
