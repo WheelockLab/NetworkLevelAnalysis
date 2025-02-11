@@ -60,7 +60,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
     properties (Constant)
         colormap_choices = ["Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
             "Bone", "Copper", "Pink"] % Colorbar choices
-        legend_visible = ["On", "Off"]
         COLORMAP_SAMPLE_COLORS = 16
     end
     
@@ -109,8 +108,19 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.settings.pValueThreshold = app.pvalueThresholdEditField.Value;
                 app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
                 app.settings.cohensDValue = app.CohensDThresholdEditField.Value;
+                app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
                 app.matrix_plot.plot_title.String = {};
                 app.network_test_options.prob_max = app.pvalueThresholdEditField.Value;
+                app.settings.ranking = app.RankingDropDown.Value;
+            end
+            
+            if isfield(app.settings, "ranking") 
+                app.network_test_options.ranking_method = app.settings.ranking;
+                if isobject(app.matrix_plot)
+                    app.matrix_plot.removeLegend();
+                    delete(app.matrix_plot.image_display);
+                    delete(app.matrix_plot.color_bar);
+                end
             end
 
             switch app.MultipleComparisonCorrectionDropDown.Value
@@ -147,6 +157,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.pvalueThresholdEditField.Value = app.settings.pValueThreshold;
                 app.CohensDThresholdCheckBox.Value = app.settings.cohensD;
                 app.CohensDThresholdEditField.Value = app.settings.cohensDValue;
+                app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
                 app.applyScaleChange();
             end
         end
@@ -175,8 +186,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         function applyScaleChange(app)
             progress_bar = uiprogressdlg(app.UIFigure, "Title", "Please Wait", "Message", "Applying Changes...", "Indeterminate", true);
             progress_bar.Message = "Chaning scale of existing TriMatrix...";
-            app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value);
-            app.matrix_plot.display_legend.Visible = lower(app.LegendVisibleDropDown.Value);
+            app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value)
         end
     end
     
@@ -235,9 +245,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         end
 
         % Value changed function: ColormapDropDown, 
-        % LowerLimitEditField, 
+        % LegendVisibleDropDown, LowerLimitEditField, 
         % MultipleComparisonCorrectionDropDown, PlotScaleDropDown, 
-        % UpperLimitEditField
+        % RankingDropDown, UpperLimitEditField
         function PlotScaleValueChanged(app, event)
             if isequal(app.settings, false)
                 app.settings = struct();
@@ -248,7 +258,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.settings.pValueThreshold = app.pvalueThresholdEditField.Value;
             app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
             app.settings.cohensDValue = app.CohensDThresholdEditField.Value;
-            app.settings.RankingDropDown = app.RankingDropDown.Value;
+            app.settings.legend = app.LegendVisibleDropDown.Value;
+            app.settings.ranking = app.RankingDropDown.Value;
         end
 
         % Value changed function: ROIcentroidsonbrainplotsCheckBox
@@ -387,6 +398,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.RankingDropDown = uidropdown(app.Panel);
             app.RankingDropDown.Items = {'Uncorrected', 'Winkler', 'Westfall-Young'};
             app.RankingDropDown.ItemsData = {'nla.RankingMethod.UNCORRECTED', 'nla.RankingMethod.WINKLER', 'nla.RankingMethod.WESTFALL_YOUNG'};
+            app.RankingDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
             app.RankingDropDown.Position = [291 297 100 22];
             app.RankingDropDown.Value = 'nla.RankingMethod.UNCORRECTED';
 
@@ -458,8 +470,10 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create LegendVisibleDropDown
             app.LegendVisibleDropDown = uidropdown(app.Panel);
             app.LegendVisibleDropDown.Items = {'On', 'Off'};
+            app.LegendVisibleDropDown.ItemsData = {'on', 'off'};
+            app.LegendVisibleDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
             app.LegendVisibleDropDown.Position = [332 177 59 22];
-            app.LegendVisibleDropDown.Value = 'On';
+            app.LegendVisibleDropDown.Value = 'on';
 
             % Create MultipleComparisonCorrectionDropDownLabel
             app.MultipleComparisonCorrectionDropDownLabel = uilabel(app.Panel);
