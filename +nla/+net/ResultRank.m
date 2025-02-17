@@ -90,9 +90,15 @@ classdef ResultRank < handle
             winkler_probability = strcat("winkler_", probability);
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
-                ranking.(test_method).(winkler_probability).v(index) = sum(...
-                    squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
-                );
+                if isequal(ranking.test_name, "hypergeometric")
+                    ranking.(test_method).(winkler_probability).v(index) = sum(...
+                        squeeze(max_statistic_array) <= abs(no_permutation_results.(ranking_statistic).v(index))...
+                    );
+                else
+                    ranking.(test_method).(winkler_probability).v(index) = sum(...
+                        squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
+                    );
+                end
             end
             
             ranking.(test_method).(winkler_probability).v = ranking.(test_method).(winkler_probability).v ./ obj.permutations;
@@ -122,8 +128,12 @@ classdef ResultRank < handle
                 max_per_permutation_reducing_rows(row_index, :) = max(permutations_sorted_by_non_permuted(1:row_index, :));
             end
             max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
-
-            ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
+            
+            if isequal(ranking.test_name, "hypergeometric")
+                ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results > max_per_permutation_reducing_rows, 2);
+            else
+                ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
+            end
             
             ranking.(test_method).(westfall_young_probability).v(sorted_statistic_indexes) = ranking.(test_method).(westfall_young_probability).v;
         end 

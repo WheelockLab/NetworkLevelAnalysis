@@ -44,7 +44,8 @@ classdef HyperGeometricTest < handle
                         network_atlas.nets(network2).indexes);
                     network_ROI_count = numel(network_pair_ROI_significance);
                     observed_significance = sum(network_pair_ROI_significance);
-                    expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
+%                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
+                    expected_significance = (sum(edge_test_results.prob_sig.v)/size(edge_test_results.prob_sig.v,1)) * network_ROI_count; % expected sig should be based off HITS, AS 250210
                     result.(permutation_results).(greater_than_expected).set(network, network2, observed_significance > expected_significance)
                     % Matlab function for hypergeometric cdf to get p-value. "Upper" calculates the upper tail instead of
                     % using 1 - lower tail
