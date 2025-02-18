@@ -5,13 +5,13 @@ classdef NLAResult < matlab.apps.AppBase
         UIFigure                   matlab.ui.Figure
         FileMenu                   matlab.ui.container.Menu
         SaveButton                 matlab.ui.container.Menu
+        SaveSummaryTableMenu       matlab.ui.container.Menu
         ResultTree                 matlab.ui.container.Tree
         FlipNestingButton          matlab.ui.control.Button
         EdgeLevelLabel             matlab.ui.control.Label
         ViewEdgeLevelButton        matlab.ui.control.Button
         NetLevelLabel              matlab.ui.control.Label
         RunButton                  matlab.ui.control.Button
-        SaveSummaryTable           matlab.ui.control.Button
         AdjustableNetParamsPanel   matlab.ui.container.Panel
         BranchLabel                matlab.ui.control.Label
         OpenTriMatrixPlotButton    matlab.ui.control.Button
@@ -575,7 +575,7 @@ classdef NLAResult < matlab.apps.AppBase
             displayManyPlots(app, struct('plot_type', PlotType.CHORD_EDGE), 'chord plots');
         end
 
-        % Button pushed function: SaveSummaryTable
+        % Menu selected function: SaveSummaryTableMenu
         function SaveSummaryTableButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             [file, path] = uiputfile({'*.txt', 'Summary Table (*.txt)'}, 'Save Summary Table', 'result.txt');
@@ -654,6 +654,11 @@ classdef NLAResult < matlab.apps.AppBase
             app.SaveButton.Accelerator = 's';
             app.SaveButton.Text = 'Save';
 
+            % Create SaveSummaryTableMenu
+            app.SaveSummaryTableMenu = uimenu(app.FileMenu);
+            app.SaveSummaryTableMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveSummaryTableButtonPushed, true);
+            app.SaveSummaryTableMenu.Text = 'Save Summary Table';
+
             % Create ResultTree
             app.ResultTree = uitree(app.UIFigure);
             app.ResultTree.Multiselect = 'on';
@@ -686,12 +691,6 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.ButtonPushedFcn = createCallbackFcn(app, @RunButtonPushed, true);
             app.RunButton.Position = [18 523 49 40];
             app.RunButton.Text = 'Run';
-
-            % Create SaveSummaryTable
-            app.SaveSummaryTable = uibutton(app.UIFigure, 'push');
-            app.SaveSummaryTable.ButtonPushedFcn = createCallbackFcn(app, @SaveSummaryTableButtonPushed, true);
-            app.SaveSummaryTable.Position = [434 10 125 22];
-            app.SaveSummaryTable.Text = 'Save summary table';
 
             % Create AdjustableNetParamsPanel
             app.AdjustableNetParamsPanel = uipanel(app.UIFigure);
