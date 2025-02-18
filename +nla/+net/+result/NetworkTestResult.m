@@ -183,7 +183,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
         %% This is taken directly from old version to maintain functionality. Not sure anyone uses it.
         function table_new = generateSummaryTable(obj, table_old)
-            table_new = [table_old, table(obj.full_connectome.p_value.v, 'VariableNames', [obj.test_name + "P-value"])];
+            table_new = [table_old, table(...
+                obj.full_connectome.uncorrected_two_sample_p_value.v, 'VariableNames', [obj.test_display_name + "Full Connectome Two Sample p-value"]...
+            )];
         end
 
         %%
