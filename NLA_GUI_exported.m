@@ -138,7 +138,7 @@ classdef NLA_GUI < matlab.apps.AppBase
             app.EdgeInputsPanel.AutoResizeChildren = 'off';
         end
 
-        % Callback function: EdgeInputsPanel, EdgeTestSelector
+        % Value changed function: EdgeTestSelector
         function EdgeTestSelectorValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
             
@@ -354,7 +354,6 @@ classdef NLA_GUI < matlab.apps.AppBase
             % Create EdgeInputsPanel
             app.EdgeInputsPanel = uipanel(app.GridLayout);
             app.EdgeInputsPanel.Title = 'Edge-level inputs';
-            app.EdgeInputsPanel.SizeChangedFcn = createCallbackFcn(app, @EdgeTestSelectorValueChanged, true);
             app.EdgeInputsPanel.Layout.Row = [2 4];
             app.EdgeInputsPanel.Layout.Column = 1;
 
