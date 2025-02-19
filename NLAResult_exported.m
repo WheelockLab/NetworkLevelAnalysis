@@ -298,7 +298,7 @@ classdef NLAResult < matlab.apps.AppBase
         
         function enableNetButtons(app, val)
             % buttons that need net-level data to be used
-            net_buttons = {app.ResultTree, app.FlipNestingButton, app.SaveSummaryTable};
+            net_buttons = {app.ResultTree, app.FlipNestingButton, app.SaveSummaryTableMenu};
             for i = 1:numel(net_buttons)
                 net_buttons{i}.Enable = val;
             end
