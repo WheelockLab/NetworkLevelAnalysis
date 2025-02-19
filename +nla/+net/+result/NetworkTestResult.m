@@ -181,11 +181,26 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 names, significance, name);
         end
 
-        %% This is taken directly from old version to maintain functionality. Not sure anyone uses it.
         function table_new = generateSummaryTable(obj, table_old)
             table_new = [table_old, table(...
                 obj.full_connectome.uncorrected_two_sample_p_value.v, 'VariableNames', [obj.test_display_name + "Full Connectome Two Sample p-value"]...
             )];
+        end
+
+        function previous_result_data = loadPreviousData(obj, file)
+            try
+                results_file = load(file);
+                if isa(results_file.results, 'nla.ResultPool') && ~(isfield(results_file.results_as_struct, 'net_atlas') && isfield(results_file.results_as_struct, 'input_struct'))
+                    previous_result_data = results_file.results;                   
+                end
+            catch 
+                
+            end
+        end
+
+        function old_data = loadOldVersionData(obj, results_struct)
+            new_result = nla.net.result.NetworkTestResult();
+            
         end
 
         %%
