@@ -199,8 +199,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function old_data = loadOldVersionData(obj, results_struct)
-            new_result = nla.net.result.NetworkTestResult();
-            
+            number_of_results = numel(results_struct.net_results);
+            test_options = result_struct.input_struct;
+            network_atlas = result_struct.net_atlas;
+            number_of_networks = network_atlas.numNets();
+            permutation_network_test_results = {};
+            network_test_results = {};
+            for result_number = number_of_results
+                
+            end            
         end
 
         %%
