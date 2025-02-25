@@ -81,7 +81,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             edge_result = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 0);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
-            testCase.verifyEqual(expected_result.edge_result, edge_result);
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.edge_result.(prop_name{1}), edge_result.(prop_name{1}));
+            end
         end
 
         function kendallBTest(testCase)
@@ -89,7 +92,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             edge_result = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 0);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "kendallb_result.mat")));
-            testCase.verifyEqual(expected_result.edge_result, edge_result);
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.edge_result.(prop_name{1}), edge_result.(prop_name{1}));
+            end
         end
 
         function spearmanEstimatorTest(testCase)
@@ -97,7 +103,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             edge_result = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 0);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "spearman_estimator_result.mat")));
-            testCase.verifyEqual(expected_result.edge_result, edge_result);
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.edge_result.(prop_name{1}), edge_result.(prop_name{1}));
+            end
         end
         
         function chiSquaredTest(testCase)
@@ -106,7 +115,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "chi_squared_result.mat")));
-            testCase.verifyEqual(expected_result.network_result, network_result{1});
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+            end
         end
 
         function hyperGeometricTest(testCase)
@@ -115,7 +127,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "hypergeometric_result.mat")));
-            testCase.verifyEqual(expected_result.network_result, network_result{1});
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+            end
         end
 
         function kolmogorovSmirnovTest(testCase)
@@ -124,7 +139,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "kolmogorov_smirnov_result.mat")));
-            testCase.verifyEqual(expected_result.network_result, network_result{1});
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+            end
         end
 
         function studentTTest(testCase)
@@ -133,7 +151,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "student_t_result.mat")));
-            testCase.verifyEqual(expected_result.network_result, network_result{1});
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+            end
         end
 
         function welchTTest(testCase)
@@ -142,7 +163,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "welch_t_result.mat")));
-            testCase.verifyEqual(expected_result.network_result, network_result{1});
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+            end
         end
 
         function wilcoxonTest(testCase)
@@ -151,7 +175,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "wilocoxon_result.mat")));
-            testCase.verifyEqual(expected_result.network_result, network_result{1});
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+            end
         end
     end
 end
