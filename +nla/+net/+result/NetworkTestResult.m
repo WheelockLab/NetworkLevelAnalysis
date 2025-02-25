@@ -198,18 +198,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function old_data = loadOldVersionData(obj, results_struct)
-            number_of_results = numel(results_struct.net_results);
-            test_options = result_struct.input_struct;
-            network_atlas = result_struct.net_atlas;
-            number_of_networks = network_atlas.numNets();
-            permutation_network_test_results = {};
-            network_test_results = {};
-            for result_number = number_of_results
-                
-            end            
-        end
-
         %%
         % getters for dependent properties
         function value = get.permutation_count(obj)
@@ -353,6 +341,106 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                     probability = "single_sample_p_value";
                 end
             end
+        end
+
+        function converted_data_struct = loadOldVersionData(results_struct)
+            import nla.net.test.results.NetworkTestResult, nla.TriMatrix, nla.TriMatrixDiag
+
+            number_of_results = numel(results_struct.net_results);
+            test_options = result_struct.input_struct;
+            
+            network_test_options = result_struct.net_input_struct;
+            network_test_options.ranking_method = "Uncorrected";
+            network_test_options.no_permutations = result_struct.nonpermuted;
+            network_test_options.full_connectome = result_struct.full_conn;
+            network_test_options.within_network_pair = result_struct.show_within_net_pair;
+            network_test_options = rmfield(network_test_options, ["nonpermuted", "full_conn", "within_net_pair"]);
+
+            network_atlas = result_struct.net_atlas;
+            number_of_networks = network_atlas.numNets();
+            
+            converted_data_struct = struct(...
+                'test_options', test_options,...
+                'network_atlas', network_atlas,...
+                'network_test_options', network_test_options,...
+                'edge_test_results', result_struct.edge_result,...
+                'version', result_struct.version,...
+                'commit', result_struct.commit,...
+                'commit_short', result_struct.commit_short...
+            );
+
+            for result_number = number_of_results
+                switch results_struct.perm_net_results{result_number}.name
+                    case "Chi-Squared"
+                        test_name = "chi_squared";
+                        test_display_name = "Chi-Squared";
+                        ranking_statistic = "chi2_statistic";
+                        is_noncorrelation_input = 1;
+                    case "Hypergeometric"
+                        test_name = "hypergeometric";
+                        test_display_name = "Hypergeometric";
+                        ranking_statistic = "two_sample_p_value";
+                        is_noncorrelation_input = 1;
+                    case "Kolmogorov-Smirnov"
+                        test_name = "kolmogorov_smirnov";
+                        test_display_name = "Kolmogorov-Smirnov";
+                        ranking_statistic = "ks_statistic";
+                        is_noncorrelation_input = 0;
+                    case "Student's T"
+                        test_name = "students_t";
+                        test_display_name = "Student's T-test";
+                        ranking_statistic = "t_statistic";
+                        is_noncorrelation_input = 0;
+                    case "Welch's T"
+                        test_name = "welchs_t";
+                        test_display_name = "Welch's T-test";
+                        ranking_statistic = "t_statistic";
+                        is_noncorrelation_input = 0;
+                    case "Wilcoxon"
+                        test_name = "wilcoxon";
+                        test_display_name = "Wilcoxon Rank Sum";
+                        ranking_statistic = "z_statistic";
+                        is_noncorrelation_input = 0;
+                end
+                new_results_struct = struct(...
+                    "test_name", test_name,...
+                    "test_display_name", test_display_name,...
+                    "ranking_statistic", ranking_statistic,...
+                    "is_noncorrelation_input", is_noncorrelation_input,...
+                    "permutation_count", results_struct.perm_net_results{result_number}.perm_count,...
+                    "network_test_results", {}...
+                );
+                test_methods = [];
+                no_permutation = struct();
+                full_connectome = struct();
+                within_network_pair = struct();
+                if results_struct.perm_net_results{result_number}.has_nonpermuted
+                    test_methods = [test_methods "no_permutations"];
+                    no_permutation.uncorrected_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    no_permutation.uncorrected_single_sample_p_value.v = results_struct.perm_net_results{result_number}.prob.v;
+                end
+                if results_struct.perm_net_results.has_full_conn
+                    test_methods = [test_methods "full_connectome"];
+                    full_connectome.uncorrected_two_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    full_connectome.uncorrected_two_sample_p_value.v = results_struct.perm_net_results{result_number}.perm_prob.v;
+                end
+                if results_struct.perm_net_results.has_within_net_pair
+                    test_methods = [test_methods "within_network_pair"];
+                    within_network_pair.uncorrected_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                    within_network_pair.uncorrected_single_sample_p_value.v = results_struct.perm_net_results{result_number}.within_np_prob.v;
+                end
+                new_results_struct.test_methods = test_methods;
+                new_results_struct.test_options = test_options;
+
+                permutation_network_test_results = {...
+                    "no_permutation", no_permutations,...
+                    "full_connectome", full_connectome,...
+                    "within_network_pair", within_network_pair,...
+                    "test_methods", test_methods,...
+                    "test_options", test_options...    
+                };
+                new_results_struct.permutation_network_test_results = permutation_network_test_results;
+            end            
         end
     end
 end
