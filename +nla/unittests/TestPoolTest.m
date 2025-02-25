@@ -70,6 +70,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
             edge_result = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 0);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "spearman_result.mat")));
+            isequaln(expected_result.edge_result, edge_result)
             testCase.verifyEqual(expected_result.edge_result, edge_result);
         end
 
