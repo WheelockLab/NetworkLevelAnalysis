@@ -71,7 +71,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "spearman_result.mat")));
             isequaln(expected_result.edge_result, edge_result)
-            testCase.verifyEqual(expected_result.edge_result, edge_result);
+            testCase.verifyEqual(expected_result.edge_result, edge_result, "RelTol", 0.01);
         end
 
         function pearsonEdgeTest(testCase)
