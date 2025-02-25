@@ -115,7 +115,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "chi_squared_result.mat")));
-            property_names = properties(edge_result);
+            property_names = properties(network_result);
             for prop_name = property_names
                 testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
             end
@@ -127,7 +127,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "hypergeometric_result.mat")));
-            property_names = properties(edge_result);
+            property_names = properties(network_result);
             for prop_name = property_names
                 testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
             end
@@ -139,7 +139,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "kolmogorov_smirnov_result.mat")));
-            property_names = properties(edge_result);
+            property_names = properties(network_result);
             for prop_name = property_names
                 testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
             end
@@ -151,7 +151,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "student_t_result.mat")));
-            property_names = properties(edge_result);
+            property_names = properties(network_result);
             for prop_name = property_names
                 testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
             end
@@ -163,9 +163,9 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "welch_t_result.mat")));
-            property_names = properties(edge_result);
+            property_names = properties(network_result);
             for prop_name = property_names
-                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
+                testCase.verifyEqual(expected_result.network_result.(prop_name), network_result{1}.(prop_name));
             end
         end
 
@@ -175,7 +175,7 @@ classdef TestPoolTest < matlab.unittest.TestCase
             network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
             
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "wilocoxon_result.mat")));
-            property_names = properties(edge_result);
+            property_names = properties(network_result);
             for prop_name = property_names
                 testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
             end
