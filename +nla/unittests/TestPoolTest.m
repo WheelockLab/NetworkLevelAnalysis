@@ -70,8 +70,10 @@ classdef TestPoolTest < matlab.unittest.TestCase
             edge_result = testCase.tests.runEdgeTestPerm(testCase.edge_test_options, testCase.permutations, 0);
 
             expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "spearman_result.mat")));
-            isequaln(expected_result.edge_result, edge_result)
-            testCase.verifyEqual(expected_result.edge_result, edge_result, "RelTol", 0.01);
+            property_names = properties(edge_result);
+            for prop_name = property_names
+                testCase.verifyEqual(expected_result.edge_result.(prop_name{1}), edge_result.(prop_name{1}));
+            end
         end
 
         function pearsonEdgeTest(testCase)
