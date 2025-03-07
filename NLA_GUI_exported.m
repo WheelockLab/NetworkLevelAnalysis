@@ -269,17 +269,18 @@ classdef NLA_GUI < matlab.apps.AppBase
                 prog = uiprogressdlg(app.NetworkLevelAnalysisUIFigure, 'Title', 'Loading previous result', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
                 drawnow;
                 
-                nla.net.result.NetworkTestResult.loadPreviousResult([path file]);
-%                 try
+                [results, old_data] = nla.net.result.NetworkTestResult().loadPreviousData([path file]);
+                
+                try
 %                     results_file = load([path file]);
-%                     if isa(results_file.results, 'nla.ResultPool')
-%                         NLAResult(results_file.results, file, false);
-%                     end
-%                     close(prog);
-%                 catch ex
-%                     close(prog);
-%                     uialert(app.NetworkLevelAnalysisUIFigure, ex.message, 'Error while loading previous result');
-%                 end
+                    if isa(results, 'nla.ResultPool')
+                        NLAResult(results, file, false, old_data);
+                    end
+                    close(prog);
+                catch ex
+                    close(prog);
+                    uialert(app.NetworkLevelAnalysisUIFigure, ex.message, 'Error while loading previous result');
+                end
                 close(prog)
             end
         end

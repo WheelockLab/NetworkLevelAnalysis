@@ -51,6 +51,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         title = ""
         chord_type = "nla.PlotType.CHORD"
         settings = false
+        old_data = false
     end
     
     properties (Dependent)
@@ -133,6 +134,14 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             end
             app.getPlotTitle();
             
+            if isequal(app.old_data, true)
+                app.RankingDropDown.Enable = false;
+                if ~isfield(app.network_test_result.full_connectome, 'd')
+                    app.CohensDThresholdCheckBox.Enable = false;
+                    app.CohensDThresholdEditField.Enable = false;
+                end
+            end
+            
             probability = NetworkTestResult().getPValueNames(app.test_method, app.network_test_result.test_name);
             
             app.network_test_options.show_ROI_centroids = app.ROIcentroidsonbrainplotsCheckBox.Value;
@@ -167,7 +176,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         
         function cohens_d_filter = createSignificanceFilter(app)
             cohens_d_filter = nla.TriMatrix(app.edge_test_options.net_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if isequal(app.CohensDThresholdCheckBox.Value, true)
+            if isequal(app.CohensDThresholdCheckBox.Enable, true) && isequal(app.CohensDThresholdCheckBox.Value, true)
                 if isequal(app.test_method, "no_permutations") && ~isequal(app.network_test_result.no_permutations, false)
                     
                 end
@@ -195,7 +204,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, network_test_result, edge_test_result, flags, edge_test_options, network_test_options, varargin)
+        function startupFcn(app, network_test_result, edge_test_result, flags, edge_test_options, network_test_options, old_data, varargin)
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
                 test_method = "no_permutations";
             elseif isfield(flags, "show_full_conn") && flags.show_full_conn
@@ -203,11 +212,13 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 test_method = "within_network_pair";
             end
+            
             app.network_test_result = network_test_result;
             app.edge_test_result = edge_test_result;
             app.test_method = test_method;
             app.edge_test_options = edge_test_options;
             app.network_test_options = network_test_options;
+            app.old_data = old_data;
             
             % For some reason, MATLAB wouldn't accept this information in the gui editor. *&$*#(
             app.EdgeChordPlotTypeDropDown.Items = ["p-value", "Coefficient", "Coefficient (Split)", "Coefficient (Basic)", "Coefficient (Split, Basic)"];
