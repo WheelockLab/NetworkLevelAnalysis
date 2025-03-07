@@ -79,11 +79,11 @@ classdef NetworkResultPlotParameter < handle
             significance_type = "nla.gfx.SigType.DECREASING";
             % determine colormap and operate on values if it's -log10
             switch obj.updated_test_options.prob_plot_method
-                case "nla.gfx.ProbPlotMethod.LOG"
+                case "LOG" % FUCK Matlab and their enums
                     color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
                         statistic_input, p_value_max);
                 % Here we take a -log10 and change the maximum value to show on the plot
-                case "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10"
+                case "NEGATIVE_LOG_10"
                     color_map = parula(obj.default_discrete_colors);
 
                     statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);

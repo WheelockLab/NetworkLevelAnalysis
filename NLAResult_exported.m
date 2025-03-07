@@ -583,7 +583,7 @@ classdef NLAResult < matlab.apps.AppBase
                 prog = uiprogressdlg(app.UIFigure, 'Title', 'Saving summary table', 'Message', sprintf('Saving to %s', file), 'Indeterminate', true);
                 drawnow;
                 
-                app.results.saveSummaryTable([path file]);
+                app.results.SaveSummaryTableMenu([path file]);
                 
                 close(prog);
             end
