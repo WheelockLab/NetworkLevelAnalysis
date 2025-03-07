@@ -272,7 +272,6 @@ classdef NLA_GUI < matlab.apps.AppBase
                 [results, old_data] = nla.net.result.NetworkTestResult().loadPreviousData([path file]);
                 
                 try
-%                     results_file = load([path file]);
                     if isa(results, 'nla.ResultPool')
                         NLAResult(results, file, false, old_data);
                     end
