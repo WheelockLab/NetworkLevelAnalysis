@@ -61,6 +61,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             %   ranking_statistic [String]: Test statistic that will be used in ranking
 
             import nla.TriMatrix nla.TriMatrixDiag
+            if nargin == 0
+                return
+            end
 
             if nargin == 6
                 obj.test_name = test_name;
@@ -187,17 +190,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             )];
         end
 
-        function previous_result_data = loadPreviousData(obj, file)
-            try
-                results_file = load(file);
-                if isa(results_file.results, 'nla.ResultPool') && ~(isfield(results_file.results_as_struct, 'net_atlas') && isfield(results_file.results_as_struct, 'input_struct'))
-                    previous_result_data = results_file.results;                   
-                end
-            catch 
-                
-            end
-        end
-
         %%
         % getters for dependent properties
         function value = get.permutation_count(obj)
@@ -216,6 +208,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function value = get.is_noncorrelation_input(obj)
             % Convenience method to determine if inputs were correlation coefficients, or "significance" values
             value = any(strcmp(obj.noncorrelation_input_tests, obj.test_name));
+        end
+
+        function set.is_noncorrelation_input(obj, ~)
+        end
+
+        function set.permutation_count(obj, ~)
         end
         %%
     end
@@ -343,20 +341,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
-        function converted_data_struct = loadOldVersionData(results_struct)
-            import nla.net.test.results.NetworkTestResult, nla.TriMatrix, nla.TriMatrixDiag
+        function converted_data_struct = loadOldVersionData(result_struct)
+            import nla.net.result.NetworkTestResult nla.TriMatrix nla.TriMatrixDiag nla.NetworkAtlas
 
-            number_of_results = numel(results_struct.net_results);
+            number_of_results = numel(result_struct.net_results);
             test_options = result_struct.input_struct;
             
             network_test_options = result_struct.net_input_struct;
             network_test_options.ranking_method = "Uncorrected";
-            network_test_options.no_permutations = result_struct.nonpermuted;
-            network_test_options.full_connectome = result_struct.full_conn;
-            network_test_options.within_network_pair = result_struct.show_within_net_pair;
+            network_test_options.no_permutations = network_test_options.nonpermuted;
+            network_test_options.full_connectome = network_test_options.full_conn;
+            network_test_options.within_network_pair = network_test_options.within_net_pair;
             network_test_options = rmfield(network_test_options, ["nonpermuted", "full_conn", "within_net_pair"]);
 
-            network_atlas = result_struct.net_atlas;
+            network_atlas = NetworkAtlas();
+            fields = fieldnames(result_struct.net_atlas);
+            for field_index = 1:numel(fields)
+                network_atlas.(fields{field_index}) = result_struct.net_atlas.(fields{field_index});
+            end
             number_of_networks = network_atlas.numNets();
             
             converted_data_struct = struct(...
@@ -368,9 +370,13 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                 'commit', result_struct.commit,...
                 'commit_short', result_struct.commit_short...
             );
+            
+            converted_data_struct.permutation_network_test_results = {};
+            d = false;
+            single_sample_d = false;
 
-            for result_number = number_of_results
-                switch results_struct.perm_net_results{result_number}.name
+            for result_number = 1:number_of_results
+                switch result_struct.perm_net_results{result_number}.name
                     case "Chi-Squared"
                         test_name = "chi_squared";
                         test_display_name = "Chi-Squared";
@@ -401,46 +407,113 @@ classdef NetworkTestResult < matlab.mixin.Copyable
                         test_display_name = "Wilcoxon Rank Sum";
                         ranking_statistic = "z_statistic";
                         is_noncorrelation_input = 0;
+                    case "Cohen's D"
+                        d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                        d.v = result_struct.perm_net_results{result_number}.d.v;
+                        single_sample_d = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+                        single_sample_d.v = result_struct.perm_net_results{result_number}.within_np_d.v;
                 end
                 new_results_struct = struct(...
-                    "test_name", test_name,...
+                    'test_name', test_name,...
                     "test_display_name", test_display_name,...
                     "ranking_statistic", ranking_statistic,...
                     "is_noncorrelation_input", is_noncorrelation_input,...
-                    "permutation_count", results_struct.perm_net_results{result_number}.perm_count,...
-                    "network_test_results", {}...
+                    "permutation_count", result_struct.perm_net_results{result_number}.perm_count,...
+                    "test_options", test_options...
                 );
-                test_methods = [];
                 no_permutation = struct();
                 full_connectome = struct();
                 within_network_pair = struct();
-                if results_struct.perm_net_results{result_number}.has_nonpermuted
-                    test_methods = [test_methods "no_permutations"];
+                if result_struct.perm_net_results{result_number}.has_nonpermuted
                     no_permutation.uncorrected_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                    no_permutation.uncorrected_single_sample_p_value.v = results_struct.perm_net_results{result_number}.prob.v;
+                    no_permutation.uncorrected_single_sample_p_value.v = result_struct.perm_net_results{result_number}.prob.v;
                 end
-                if results_struct.perm_net_results.has_full_conn
-                    test_methods = [test_methods "full_connectome"];
+                if result_struct.perm_net_results{result_number}.has_full_conn
+                    if ~isequal(d, false)
+                        full_connectome.d = d;
+                    end
                     full_connectome.uncorrected_two_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                    full_connectome.uncorrected_two_sample_p_value.v = results_struct.perm_net_results{result_number}.perm_prob.v;
+                    full_connectome.uncorrected_two_sample_p_value.v = result_struct.perm_net_results{result_number}.perm_prob.v;
                 end
-                if results_struct.perm_net_results.has_within_net_pair
-                    test_methods = [test_methods "within_network_pair"];
+                if result_struct.perm_net_results{result_number}.has_within_net_pair
+                    if ~isequal(single_sample_d, false)
+                        within_network_pair.single_sample_d = single_sample_d;
+                    end
                     within_network_pair.uncorrected_single_sample_p_value = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
-                    within_network_pair.uncorrected_single_sample_p_value.v = results_struct.perm_net_results{result_number}.within_np_prob.v;
+                    within_network_pair.uncorrected_single_sample_p_value.v = result_struct.perm_net_results{result_number}.within_np_prob.v;
                 end
-                new_results_struct.test_methods = test_methods;
-                new_results_struct.test_options = test_options;
-
-                permutation_network_test_results = {...
-                    "no_permutation", no_permutations,...
-                    "full_connectome", full_connectome,...
-                    "within_network_pair", within_network_pair,...
-                    "test_methods", test_methods,...
-                    "test_options", test_options...    
-                };
-                new_results_struct.permutation_network_test_results = permutation_network_test_results;
+                new_results_struct.no_permutation = no_permutation;
+                new_results_struct.full_connectome = full_connectome;
+                new_results_struct.within_network_pair = within_network_pair;
+                converted_data_struct.permutation_network_test_results = [converted_data_struct.permutation_network_test_results new_results_struct];
             end            
+        end
+
+        function [previous_result_data, old_data] = loadPreviousData(file)
+            import nla.net.result.NetworkTestResult
+
+            try        
+                results_file = load(file);
+                
+                % This shouldn't happen, but just in case...
+                if isa(results_file.results, 'nla.ResultPool') && ~(isfield(results_file.results_as_struct, 'net_atlas') && isfield(results_file.results_as_struct, 'input_struct'))
+                    previous_result_data = results_file.results;  
+                    old_data = false;
+                else
+                    
+                    % Turn off some warnings we know are going to trigger with old results
+                    warning('off', 'MATLAB:class:EnumerationNameMissing');
+                    warning('off', 'MATLAB:load:classNotFound');
+                    previous_result_struct = NetworkTestResult().loadOldVersionData(results_file.results_as_struct);
+                    previous_result_struct_edge_class = NetworkTestResult().edgeResultsStructToClasses(previous_result_struct);
+                    previous_result_struct_class = NetworkTestResult().permutationResultsStructToClasses(previous_result_struct_edge_class);
+                    previous_result_data = nla.ResultPool();
+                    props = properties(previous_result_data);
+                    for prop = 1:numel(props)
+                        if isfield(previous_result_struct_class, props{prop})
+                            previous_result_data.(props{prop}) = previous_result_struct_class.(props{prop});
+                        end
+                    end
+                    old_data = true;
+                end
+            catch 
+                error("Failure to load results file");
+            end
+            warning('on', 'MATLAB:class:EnumerationNameMissing');
+            warning('on', 'MATLAB:load:classNotFound');
+        end
+
+        function class_results = permutationResultsStructToClasses(structure_in)
+            new_network_results = cell(1,numel(structure_in.permutation_network_test_results));
+            for result = 1:numel(structure_in.permutation_network_test_results)
+                network_result = nla.net.result.NetworkTestResult();
+                fields = fieldnames(network_result);
+                for field_index = 1:numel(fields)
+                    if isfield(structure_in.permutation_network_test_results{result}, (fields{field_index})) && ~isequal(fields{field_index}, "test_methods")
+                        network_result.(fields{field_index}) = structure_in.permutation_network_test_results{result}.(fields{field_index});
+                    end
+                end
+                new_network_results{result} = network_result;
+            end
+            structure_in.permutation_network_test_results = new_network_results;
+            class_results = structure_in;
+        end
+
+        function class_results = edgeResultsStructToClasses(structure_in)
+            edge_result = nla.edge.result.Base();
+            fields = fieldnames(edge_result);
+            for field_index = 1:numel(fields)
+                if isfield(structure_in.edge_test_results, fields{field_index})
+                    if isequal(fields{field_index}, "coeff") || isequal(fields{field_index}, "prob") || isequal(fields{field_index}, "prob_sig")
+                        edge_result.(fields{field_index}) = nla.TriMatrix(structure_in.edge_test_results.coeff.size, nla.TriMatrixDiag.KEEP_DIAGONAL);
+                        edge_result.(fields{field_index}).v = structure_in.edge_test_results.(fields{field_index}).v;
+                    else
+                        edge_result.(fields{field_index}) = structure_in.edge_test_results.(fields{field_index});
+                    end
+                end
+            end
+            structure_in.edge_test_results = edge_result;
+            class_results = structure_in;
         end
     end
 end

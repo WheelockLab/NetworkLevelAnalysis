@@ -12,8 +12,8 @@ classdef NetworkAtlas < nla.DeepCopyable
     % :param space: Optional The mesh that the atlas` ROI locations/parcels are in. Two options - ``TT`` or ``MNI``
 
     
-    properties (SetAccess = private)
-        nets % This is the net_names
+    properties
+        nets
         ROIs
         ROI_order
         name
@@ -24,6 +24,10 @@ classdef NetworkAtlas < nla.DeepCopyable
     
     methods
         function obj = NetworkAtlas(fname)
+            if nargin == 0
+                return
+            end
+            
             %% IM structure
             if ischar(fname) || isstring(fname)
                 net_struct = load(fname);
