@@ -18,6 +18,9 @@ classdef ResultPool
     methods
         function obj = ResultPool(test_options, network_test_options, network_atlas, edge_test_results,...
                 network_test_results, permutation_edge_test_results, permutation_network_test_results)
+            if nargin == 0
+                return
+            end
             obj.test_options = test_options;
             obj.network_test_options = network_test_options;
             obj.network_atlas = network_atlas;

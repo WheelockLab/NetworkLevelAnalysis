@@ -29,6 +29,7 @@ classdef NLAResult < matlab.apps.AppBase
         prog_bar = false
         net_adjustable_fields
         cur_iter = 0
+        old_data = false
     end
     
     methods (Access = private)
@@ -217,7 +218,7 @@ classdef NLAResult < matlab.apps.AppBase
             end
         end
         
-        function initFromInputs(app, test_pool, input_struct, net_input_struct)
+        function initFromInputs(app, test_pool, input_struct, net_input_struct, ~)
             import nla.* % required due to matlab package system quirks
             app.ViewEdgeLevelButton.Enable = false;
             app.RunButton.Enable = false;
@@ -247,7 +248,7 @@ classdef NLAResult < matlab.apps.AppBase
             close(prog);
         end
         
-        function initFromResult(app, result, file_name)
+        function initFromResult(app, result, file_name, ~, old_data)
             import nla.* % required due to matlab package system quirks
             app.UIFigure.Name = sprintf('%s - NLA Result', file_name);
             
@@ -275,7 +276,8 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             app.results = result;
-            
+            app.old_data = old_data;
+       
             app.ViewEdgeLevelButton.Enable = true;
             app.SaveButton.Enable = true;
             app.RunButton.Enable = false;
@@ -333,7 +335,7 @@ classdef NLAResult < matlab.apps.AppBase
                     prog.Message = sprintf('Generating %s %s', result.test_display_name, plot_type);
                     
 %                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
-                    nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct)
+                    nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct, app.old_data)
                     prog.Value = i / size(selected_nodes, 1);
 %                     app.moveCurrFigToParentLocation();
                 end
@@ -351,16 +353,16 @@ classdef NLAResult < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, test_pool, input_struct, net_input_struct)
+        function startupFcn(app, test_pool, input_struct, net_input_struct, old_data)
             import nla.* % required due to matlab package system quirks
             
             app.UIFigure.Name = 'NLA Result';
             app.UIFigure.Icon = [findRootPath() 'thumb.png'];
             
             if isa(test_pool, 'nla.ResultPool')
-                initFromResult(app, test_pool, input_struct);
+                initFromResult(app, test_pool, input_struct, net_input_struct, old_data);
             else
-                initFromInputs(app, test_pool, input_struct, net_input_struct);
+                initFromInputs(app, test_pool, input_struct, net_input_struct, false);
             end
         end
 
@@ -583,7 +585,7 @@ classdef NLAResult < matlab.apps.AppBase
                 prog = uiprogressdlg(app.UIFigure, 'Title', 'Saving summary table', 'Message', sprintf('Saving to %s', file), 'Indeterminate', true);
                 drawnow;
                 
-                app.results.SaveSummaryTableMenu([path file]);
+                app.results.saveSummaryTable([path file]);
                 
                 close(prog);
             end
