@@ -11,9 +11,9 @@ classdef NetworkAtlas < nla.DeepCopyable
     % :param parcels: Optional MATLAB struct field for surface parcellations. Contains two sub-fields ``ctx_l`` and ``ctx_r``. N\ :sub:`verts`\ x 1 vectors. Each element of a vector corresponds to a vertex within the spatial mesh and contains the index of the ROI for that vertex.
     % :param space: Optional The mesh that the atlas` ROI locations/parcels are in. Two options - ``TT`` or ``MNI``
 
-    
-    properties
-        nets
+    properties (SetAccess = private)
+        nets % This is the net_names
+
         ROIs
         ROI_order
         name

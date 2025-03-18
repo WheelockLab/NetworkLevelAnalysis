@@ -73,6 +73,64 @@ Provided Tests
   :Permuted p: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of logical values. Observed, thresholded, permuted p-values.
   :Permuted coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of permuted edge-level coefficients.
 
-Creating additional edge-level tests
------------------------------------------------
+Creating an edge-level test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1. All test objects must inherit from the ``nla.edge.test.Base`` class.
+2. All test objects must be saved into the ``+nla/+edge/+test`` directory
+3. There are a few required properties and methods that are required:
+   
+  * **name**
+    * All tests must be given a name. Example::
+  
+      properties (Constant)
+        name = "Kendall's tau"
+      end
+
+  * **result**
+    * This is a method. The function handle is::
+
+      function result = run(obj, test_options)
+
+  * **test_options**
+    * This is a structure with options that are used either in the test or visualizing results
+
+  * **requiredInputs**
+    * This is a static function to define the inputs for the test::
+      
+      methods (Static)
+        function inputs = requiredInputs()
+          inputs = {nla.inputField.Number('prob_max', 'P <', 0, 0.05, 1), nla.inputField.NetworkAtlas(), nla.inputField.Behavior()};
+        end
+      end
+
+    * This defines a number field ``prob_max`` from [0, 1] with a default of 0.05. It also specifies a network atlas (:ref:`NetworkAtlas() <network_atlases>` input field, and a behavior input field.
+    * These are all required. If the user does not supply them, the test not run in the GUI.
+  
+4. If the test is located in the correct folder, after a GUI restart (not MATLAB GUI) the test will populate in the Edge Level test list.
+
+In addition to creating the test, a result object will also need to be created.
+
+Creating a result
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. ``nla.edge.BaseResult`` will work if custom data fields are not required.
+2. The result must inherit from ``nla.edge.BaseResult``
+3. This result must be placed in ``+nla/+edge/+result/``
+4. Methods and properties
+
+  * **output**
+    * This is the data that will be passed to create a figure of the data::
+
+      function output(obj, network_atlas, flags)
+
+    * Network atlas :ref:`NetworkAtas() <network_atlases>`
+    * flags - a MATLAB structure that currently only has a field ``display_sig`` which is a boolean to determine if displayed p-values are thresholded
+  
+  * **merge**
+    * This is an optional method
+    * It is used to merge blocks of results together (like in a parallel processing environment)::
+
+      function merge(obj, results)
+
+    * The ``results`` argument is a result to merge the object with. Afterwards, the current object will be the two merged blocks
