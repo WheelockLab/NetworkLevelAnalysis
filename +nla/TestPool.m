@@ -64,8 +64,7 @@ classdef TestPool < nla.DeepCopyable
         function ranked_results = collateNetworkPermutationResults(obj, nonpermuted_edge_test_results, network_atlas, nonpermuted_network_test_results,...
             permuted_network_test_results, network_test_options)
             
-            % Run Cohen's D
-            cohen_d_test = nla.net.CohenDTest();
+            
 
             % Warning: Hacky code. Because of the way non-permuted network tests and permuted are called from the front, they are stored
             % in different objects. (Notice the input argument for non-permuted network results). Eventually, it should probably be done
@@ -78,10 +77,15 @@ classdef TestPool < nla.DeepCopyable
                     end
                 end
             end
-            for test_index = 1:numNetTests(obj)
-                permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
-                    permuted_network_test_results{test_index});
-            end
+            
+            % REMOVE CALL TO COHENS D UNTIL WE DETERMINE CORRECT CALC FOR IT ADE 2025MAR24
+            % Run Cohen's D
+%             cohen_d_test = nla.net.CohenDTest();
+%             for test_index = 1:numNetTests(obj)
+%                 
+%                 permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
+%                     permuted_network_test_results{test_index});
+%             end
 
             ranked_results = obj.rankResults(network_test_options, permuted_network_test_results, network_atlas.numNetPairs());
         end
@@ -274,11 +278,11 @@ classdef TestPool < nla.DeepCopyable
         end
 
         function ranked_results = rankResults(obj, input_options, permuted_network_results, number_of_network_pairs)
-            import nla.net.ResultRank
+            
 
             ranked_results = permuted_network_results;
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(permuted_network_results{test}, number_of_network_pairs);
+                ranker = nla.net.ResultRank(permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
                 if any(strcmp(ranked_results{test}.test_name, obj.correlation_input_tests))

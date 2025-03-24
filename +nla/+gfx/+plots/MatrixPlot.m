@@ -21,7 +21,7 @@ classdef MatrixPlot < handle
         figure_size % Size to display. Either nla.gfx.FigSize.SMALL or nla.gfx.FigSize.LARGE
         draw_legend % Legend on/off
         draw_colorbar % Colorbar on/off
-        color_map % Colormap to use (enter 'turbo(256)' for default)
+        color_map % Colormap to use (enter 'jet(1000)' for default)
         marked_networks % networks to mark with a symbol
         discrete_colorbar % colorbar as discrete. TRUE == discrete, FALSE == continuous
         network_clicked_callback % Button function to add to each network. Used for clickable networks
@@ -55,7 +55,7 @@ classdef MatrixPlot < handle
     end
 
     properties (Constant)
-        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+        colormap_choices = {"Jet", "Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
             "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
@@ -82,7 +82,7 @@ classdef MatrixPlot < handle
             % figure_margins = nla.gfx.FigMargins.WHITESPACE
             % draw_legend = true
             % draw_colorbar = true
-            % color_map = turbo(256)
+            % color_map = jet(1000)
             % lower_limit = -0.3
             % upper_limit = 0.3
             % x_position = 0
@@ -104,7 +104,7 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'figure_margins', nla.gfx.FigMargins.WHITESPACE, @isenum);
             addParameter(matrix_input_parser, 'draw_legend', true, @islogical);
             addParameter(matrix_input_parser, 'draw_colorbar', true, @islogical);
-            addParameter(matrix_input_parser, 'color_map', turbo(256));
+            addParameter(matrix_input_parser, 'color_map', jet(1000)); %reverted to jet(1000) by request
             addParameter(matrix_input_parser, 'lower_limit', -0.3, validNumberInput);
             addParameter(matrix_input_parser, 'upper_limit', 0.3, validNumberInput);
             addParameter(matrix_input_parser, 'x_position', 0, validNumberInput);

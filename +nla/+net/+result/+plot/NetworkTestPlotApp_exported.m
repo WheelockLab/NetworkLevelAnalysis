@@ -175,27 +175,40 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
     methods (Access = private)
         
         function cohens_d_filter = createSignificanceFilter(app)
-            cohens_d_filter = nla.TriMatrix(app.edge_test_options.net_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
-            if isequal(app.CohensDThresholdCheckBox.Enable, true) && isequal(app.CohensDThresholdCheckBox.Value, true)
-                if isequal(app.test_method, "no_permutations") && ~isequal(app.network_test_result.no_permutations, false)
-                    
-                end
-                if isequal(app.test_method, "full_connectome") && ~isequal(app.network_test_result.full_connectome, false)
-                    cohens_d_filter.v = (app.network_test_result.full_connectome.d.v >= app.network_test_options.d_max);
-                end
-                if ~isequal(app.network_test_result.within_network_pair, false) && isfield(app.network_test_result.within_network_pair, "d")...
-                    && ~isequal(app.test_method, "full_connectome")
-                    cohens_d_filter.v = (app.network_test_result.within_network_pair.d.v >= app.network_test_options.d_max);
-                end
-            else
-                cohens_d_filter.v = true(numel(cohens_d_filter.v), 1);   
-            end
+            %REMOVE COHENS D FILTERING UNTIL WE DETERMINE CORRECT CALCULATION FOR IT - ADE 2025MAR24
+            num_nets = app.edge_test_options.net_atlas.numNets;
+            cohens_d_filter = nla.TriMatrix(num_nets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
+            cohens_d_filter.v = true(numel(cohens_d_filter.v), 1);
+            return;
+            
+%             cohens_d_filter = nla.TriMatrix(app.edge_test_options.net_atlas.numNets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
+%             if isequal(app.CohensDThresholdCheckBox.Enable, true) && isequal(app.CohensDThresholdCheckBox.Value, true)
+%                 if isequal(app.test_method, "no_permutations") && ~isequal(app.network_test_result.no_permutations, false)
+%                     
+%                 end
+%                 if isequal(app.test_method, "full_connectome") && ~isequal(app.network_test_result.full_connectome, false)
+%                     cohens_d_filter.v = (app.network_test_result.full_connectome.d.v >= app.network_test_options.d_max);
+%                 end
+%                 if ~isequal(app.network_test_result.within_network_pair, false) && isfield(app.network_test_result.within_network_pair, "d")...
+%                     && ~isequal(app.test_method, "full_connectome")
+%                     cohens_d_filter.v = (app.network_test_result.within_network_pair.d.v >= app.network_test_options.d_max);
+%                 end
+%             else
+%                 cohens_d_filter.v = true(numel(cohens_d_filter.v), 1);   
+%             end
         end
         
         function applyScaleChange(app)
             progress_bar = uiprogressdlg(app.UIFigure, "Title", "Please Wait", "Message", "Applying Changes...", "Indeterminate", true);
             progress_bar.Message = "Chaning scale of existing TriMatrix...";
             app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value)
+        end
+        
+        function hideCohensDControls(app)
+            app.CohensDThresholdEditField.Visible = false;
+            app.CohensDThresholdCheckBox.Visible = false;     
+            app.CohensDThresholdEditFieldLabel.Visible = false;
+        
         end
     end
     
@@ -212,6 +225,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 test_method = "within_network_pair";
             end
+            
+            app.hideCohensDControls(); %keep cohens d controls in code, but hide from user until we get right calcluations - ADE2025MAR24
             
             app.network_test_result = network_test_result;
             app.edge_test_result = edge_test_result;
@@ -232,7 +247,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.ColormapDropDown.Items = app.colormap_choices;
             app.ColormapDropDown.Value = app.colormap_choices{1};
             
-            app.drawTriMatrixPlot()
+            app.drawTriMatrixPlot();
         end
 
         % Callback function
@@ -451,13 +466,14 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create CohensDThresholdEditFieldLabel
             app.CohensDThresholdEditFieldLabel = uilabel(app.Panel);
             app.CohensDThresholdEditFieldLabel.HorizontalAlignment = 'right';
+            app.CohensDThresholdEditFieldLabel.Enable = 'off';
             app.CohensDThresholdEditFieldLabel.Position = [195 237 118 22];
             app.CohensDThresholdEditFieldLabel.Text = 'Cohen''s D Threshold';
 
             % Create CohensDThresholdEditField
             app.CohensDThresholdEditField = uieditfield(app.Panel, 'numeric');
+            app.CohensDThresholdEditField.Enable = 'off';
             app.CohensDThresholdEditField.Position = [339 237 52 22];
-            app.CohensDThresholdEditField.Value = 0.5;
 
             % Create ColormapDropDownLabel
             app.ColormapDropDownLabel = uilabel(app.Panel);
@@ -501,9 +517,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
 
             % Create CohensDThresholdCheckBox
             app.CohensDThresholdCheckBox = uicheckbox(app.Panel);
+            app.CohensDThresholdCheckBox.Enable = 'off';
             app.CohensDThresholdCheckBox.Text = 'Cohen''s D Threshold';
             app.CohensDThresholdCheckBox.Position = [257 207 134 22];
-            app.CohensDThresholdCheckBox.Value = true;
 
             % Create ROIcentroidsonbrainplotsCheckBox
             app.ROIcentroidsonbrainplotsCheckBox = uicheckbox(app.Panel);
