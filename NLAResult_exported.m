@@ -293,9 +293,7 @@ classdef NLAResult < matlab.apps.AppBase
                 app.results = false;
             end
             
-            if ~islogical(result.network_test_results)
-                app.genadjustableNetParams();
-            end
+            
         end
         
         function enableNetButtons(app, val)
@@ -416,7 +414,6 @@ classdef NLAResult < matlab.apps.AppBase
             drawnow();
             
             app.setNesting();
-            app.genadjustableNetParams();
             
             close(prog);
         end
