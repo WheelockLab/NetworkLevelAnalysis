@@ -63,9 +63,9 @@ classdef ChordPlot < handle
             addRequired(chord_input_parser, 'plot_matrix');
             
             validColorMap = @(x) size(x, 2) == 3;
-            addParameter(chord_input_parser, 'direction', nla.gfx.SigType.INCREASING, @isenum);
+            addParameter(chord_input_parser, 'direction', "nla.gfx.SigType.INCREASING");
             addParameter(chord_input_parser, 'color_map', turbo(256), validColorMap);
-            addParameter(chord_input_parser, 'chord_type', nla.PlotType.CHORD, @isenum);
+            addParameter(chord_input_parser, 'chord_type', "nla.PlotType.CHORD");
             addParameter(chord_input_parser, 'upper_limit', 1, @isnumeric);
             addParameter(chord_input_parser, 'lower_limit', 0, @isnumeric);
             addParameter(chord_input_parser, 'random_z_order', false, @islogical);
@@ -99,7 +99,7 @@ classdef ChordPlot < handle
 
         function value = get.space_between_networks_and_labels(obj)
             value = 6;
-            if obj.chord_type == nla.PlotType.CHORD
+            if obj.chord_type == "nla.PlotType.CHORD"
                 value = 3;
             end
         end
@@ -208,7 +208,7 @@ classdef ChordPlot < handle
             import nla.TriMatrix nla.TriMatrixDiag
             
             for network = 1:obj.number_of_networks
-                if obj.chord_type == nla.PlotType.CHORD
+                if obj.chord_type == "nla.PlotType.CHORD"
                     network_start_radian = (network - 1) * obj.network_size_radians + (obj.space_between_networks_radians / 2);
                     network_end_radian = (network * obj.network_size_radians) - (obj.space_between_networks_radians / 2);
                 else
@@ -253,7 +253,7 @@ classdef ChordPlot < handle
             %   display_name - the display name for the network, usually some 3-4 letter abbreviation
             %   text_angle - the angle the name should be displayed
             %   text_position - where the name is displayed. A list or array of points
-            if obj.chord_type == nla.PlotType.CHORD_EDGE && (obj.network_size_radians_array(network) < 0.25) &&...
+            if obj.chord_type == "nla.PlotType.CHORD_EDGE" && (obj.network_size_radians_array(network) < 0.25) &&...
                 (strlength(display_name) > 5)
                 
                 if strlength(display_name) > 8
@@ -285,9 +285,9 @@ classdef ChordPlot < handle
             % Sort the chords
             if obj.random_z_order
                 plot_network_indexes = randperm(numel(obj.plot_matrix.v));
-            elseif obj.direction == SigType.INCREASING
+            elseif obj.direction == "nla.gfx.SigType.INCREASING"
                 [~, plot_network_indexes] = sort(obj.plot_matrix.v);
-            elseif obj.direction == SigType.DECREASING
+            elseif obj.direction == "nla.gfx.SigType.DECREASING"
                 [~, plot_network_indexes] = sort(obj.plot_matrix.v, 'descend');
             else
                 [~, plot_network_indexes] = sort(abs(obj.plot_matrix.v));
@@ -296,7 +296,7 @@ classdef ChordPlot < handle
             % boolean array used to determine if networks connected
             networks_connected = false(obj.number_of_networks, obj.number_of_networks + 1);
 
-            if obj.chord_type == nla.PlotType.CHORD
+            if obj.chord_type == "nla.PlotType.CHORD"
                 % These two arrays are the networks individucally numbered. Taking the same index of both
                 % (in vector, network_array.v(idx)) gives the two networks we're testing
                 network_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
@@ -314,7 +314,7 @@ classdef ChordPlot < handle
             end
 
             for network = 1:obj.number_of_networks
-                if obj.chord_type == nla.PlotType.CHORD
+                if obj.chord_type == "nla.PlotType.CHORD"
                     % These fill in the four networks above.
                     for network2 = network:obj.number_of_networks
                         network_index = find(networks_connected(network, :) == 0, 1, 'last');
@@ -343,9 +343,9 @@ classdef ChordPlot < handle
             for index_iterator = 1:numel(obj.plot_matrix.v)
                 index = plot_network_indexes(index_iterator);
                 if ~isnan(obj.plot_matrix.v(index)) && (...
-                    (obj.direction == SigType.INCREASING && obj.plot_matrix.v(index) > obj.lower_limit) ||...
-                    (obj.direction == SigType.DECREASING && obj.plot_matrix.v(index) < obj.upper_limit) ||...
-                    (obj.direction == SigType.ABS_INCREASING && abs(obj.plot_matrix.v(index)) > 0))
+                    (obj.direction == "nla.gfx.SigType.INCREASING" && obj.plot_matrix.v(index) > obj.lower_limit) ||...
+                    (obj.direction == "nla.gfx.SigType.DECREASING" && obj.plot_matrix.v(index) < obj.upper_limit) ||...
+                    (obj.direction == "nla.gfx.SigType.ABS_INCREASING" && abs(obj.plot_matrix.v(index)) > 0))
                     current_network = obj.plot_matrix.v(index);
                     network_color = nla.gfx.valToColor(current_network, obj.lower_limit, obj.upper_limit, obj.color_map);
 
@@ -354,7 +354,7 @@ classdef ChordPlot < handle
                         network_alpha = 0.5;
                     end
 
-                    if obj.chord_type == nla.PlotType.CHORD
+                    if obj.chord_type == "nla.PlotType.CHORD"
                         network = network_array.v(index);
                         network2 = network2_array.v(index);
                         network_index = network_indexes.v(index);
@@ -400,6 +400,7 @@ classdef ChordPlot < handle
                             chord1_start_cartesian, 50);
 
                         mesh_vertices = [outer; flip(inner, 1)];
+                        warning("off", "MATLAB:polyshape:boundary3Points");
                         mesh = polyshape(mesh_vertices(:, 1), mesh_vertices(:, 2));
 
                         plot(obj.axes, mesh, 'FaceAlpha', network_alpha, 'FaceColor', network_color,...
@@ -424,7 +425,7 @@ classdef ChordPlot < handle
                 end
             end
 
-            if obj.chord_type == nla.PlotType.CHORD_EDGE
+            if obj.chord_type == "nla.PlotType.CHORD_EDGE"
                 % This is the inner circle of dots for the rois on the edge chord circle
                 for roi = 1:obj.number_of_ROIs
                     plot(obj.axes, ROI_centers(roi, 1), ROI_centers(roi, 2), '.k', 'MarkerSize', 3);

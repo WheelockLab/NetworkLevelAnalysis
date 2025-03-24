@@ -73,9 +73,6 @@ Provided Tests
   :Permuted p: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of logical values. Observed, thresholded, permuted p-values.
   :Permuted coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of permuted edge-level coefficients.
 
-Creating additional edge-level tests
------------------------------------------------
-
 Creating an edge-level test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

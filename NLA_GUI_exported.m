@@ -138,7 +138,7 @@ classdef NLA_GUI < matlab.apps.AppBase
             app.EdgeInputsPanel.AutoResizeChildren = 'off';
         end
 
-        % Callback function: EdgeInputsPanel, EdgeTestSelector
+        % Value changed function: EdgeTestSelector
         function EdgeTestSelectorValueChanged(app, event)
             import nla.* % required due to matlab package system quirks
             
@@ -167,11 +167,6 @@ classdef NLA_GUI < matlab.apps.AppBase
                 app.input_fields{i}.read(app.input_struct);
                 y = y - h;
             end
-            
-            % All current edge tests will permute behavior. When adding SWE
-            % or changing permutation behavior, this will need to be put
-            % into requiredInputs for the edge test
-            app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
         end
 
         % Value changed function: NetTestSelector
@@ -239,7 +234,12 @@ classdef NLA_GUI < matlab.apps.AppBase
 
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
-            import nla.*
+            if ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
+                app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
+            else
+                app.input_struct.permute_method = nla.edge.permutationMethods.MultiLevel();
+                app.input_struct.permute_method = app.input_struct.permute_method.createPermutationTree(app.input_struct);
+            end
             runWithInputs(app, 0);
         end
 
@@ -269,16 +269,18 @@ classdef NLA_GUI < matlab.apps.AppBase
                 prog = uiprogressdlg(app.NetworkLevelAnalysisUIFigure, 'Title', 'Loading previous result', 'Message', sprintf('Loading %s', file), 'Indeterminate', true);
                 drawnow;
                 
+                [results, old_data] = nla.net.result.NetworkTestResult().loadPreviousData([path file]);
+                
                 try
-                    results_file = load([path file]);
-                    if isa(results_file.results, 'nla.ResultPool')
-                        NLAResult(results_file.results, file, false);
+                    if isa(results, 'nla.ResultPool')
+                        NLAResult(results, file, false, old_data);
                     end
                     close(prog);
                 catch ex
                     close(prog);
                     uialert(app.NetworkLevelAnalysisUIFigure, ex.message, 'Error while loading previous result');
                 end
+                close(prog)
             end
         end
 
@@ -354,7 +356,6 @@ classdef NLA_GUI < matlab.apps.AppBase
             % Create EdgeInputsPanel
             app.EdgeInputsPanel = uipanel(app.GridLayout);
             app.EdgeInputsPanel.Title = 'Edge-level inputs';
-            app.EdgeInputsPanel.SizeChangedFcn = createCallbackFcn(app, @EdgeTestSelectorValueChanged, true);
             app.EdgeInputsPanel.Layout.Row = [2 4];
             app.EdgeInputsPanel.Layout.Column = 1;
 

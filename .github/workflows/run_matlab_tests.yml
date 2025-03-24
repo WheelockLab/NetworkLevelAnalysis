@@ -1,29 +1,30 @@
 name: Run Matlab Tests
 on: [push]
-#env:
-#  MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
-#jobs:
-#  matlab-test-job:
-#    name: Run Matlab tests and generate reports
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Setup MATLAB
-#        uses: matlab-actions/setup-matlab@v2
-#        with:
-#          release: R2023b #We want coverage reports, so we bump up our version
-#          cache: true
-#          products:
-#            MATLAB
-#            Bioinformatics_Toolbox
-#            Parallel_Computing_Toolbox
-#            Statistics_and_Machine_Learning_Toolbox
-#            Image_Processing_Toolbox
-#      - name: Check Matlab Install
-#        uses: matlab-actions/run-command@v2
-#        with:
-#          command: ver
-#      - name: Run script
-#        uses: matlab-actions/run-command@v2
-#        with:
-#          command: addpath(genpath(pwd)); results = runTests(); assertSuccess(results)
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
+jobs:
+  matlab-test-job:
+    name: Run Matlab tests and generate reports
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2023a
+          cache: true
+          products: >
+            MATLAB
+            Bioinformatics_Toolbox
+            Parallel_Computing_Toolbox
+            Statistics_and_Machine_Learning_Toolbox
+            Image_Processing_Toolbox
+      - name: Check Matlab Install
+        uses: matlab-actions/run-command@v2
+        with:
+          command: ver
+      - name: Run script
+        uses: matlab-actions/run-command@v2
+        with:
+          command: addpath(genpath(pwd)); results = runTests(); assertSuccess(results)
+          use-parallel: true

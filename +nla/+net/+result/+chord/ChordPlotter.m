@@ -15,7 +15,7 @@ classdef ChordPlotter < handle
         network_atlas % Network Atlas for the data
         edge_test_result % Edge test results
         split_plot = false % This is an option that is set automatically during operation. 
-        edge_plot_type = nla.gfx.EdgeChordPlotMethod.PROB % Default chord type for edges
+        edge_plot_type = "nla.gfx.EdgeChordPlotMethod.PROB" % Default chord type for edges
     end
 
     methods
@@ -32,7 +32,7 @@ classdef ChordPlotter < handle
 
         function generateChordFigure(obj, parameters, chord_type)
             % generateChordFigure plots chords for a network test
-            import nla.gfx.SigType nla.net.result.plot.PermutationTestPlotter nla.gfx.EdgeChordPlotMethod
+            import nla.gfx.SigType nla.net.result.plot.PermutationTestPlotter nla.gfx.EdgeChordPlotMethod nla.gfx.setTitle
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
@@ -42,26 +42,26 @@ classdef ChordPlotter < handle
             % Check if it's an edge chord plot, and if so, do we plot positive and negative separately
             if isfield(parameters, 'edge_chord_plot_method')
                 obj.edge_plot_type = parameters.edge_chord_plot_method;
-                if obj.edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT || obj.edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT
+                if obj.edge_plot_type == "nla.gfx/EdgeChordPlotMethod.COEFF_SPLIT" || obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"
                     obj.split_plot = true;
                 end
             end
 
             % Create the figure windows that all the plots will go in
-            if obj.split_plot && chord_type == nla.PlotType.CHORD_EDGE
-                plot_figure = nla.gfx.createFigure((obj.axis_width * 2) + obj.trimatrix_width - 100, obj.axis_width);
+            if obj.split_plot && chord_type == "nla.PlotType.CHORD_EDGE"
+                plot_figure = nla.gfx.createFigure((obj.axis_width * 2), obj.axis_width);
             else
-                plot_figure = nla.gfx.createFigure(obj.axis_width + obj.trimatrix_width, obj.axis_width);
+                plot_figure = nla.gfx.createFigure(obj.axis_width , obj.axis_width);
             end
             
             % Plot a standard chord plot
-            if chord_type == nla.PlotType.CHORD
-                figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width,...
+            if chord_type == "nla.PlotType.CHORD"
+                figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [0, 0, obj.axis_width,...
                     obj.axis_width]);
                 nla.gfx.hideAxes(figure_axis);
 
                 insignificance = coefficient_bounds(2);
-                if parameters.significance_type == SigType.INCREASING
+                if parameters.significance_type == "nla.gfx.SigType.INCREASING"
                     insignificance = coefficient_bounds(1);
                 end
 
@@ -73,16 +73,13 @@ classdef ChordPlotter < handle
                     'color_map', parameters.color_map, 'direction', parameters.significance_type, 'upper_limit',...
                     coefficient_bounds(2), 'lower_limit', coefficient_bounds(1), 'chord_type', chord_type);
                 chord_plotter.drawChords();
+                setTitle(figure_axis, parameters.name_label)
             else
                 % Plot edge chord
                 obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
             end
 
-            % Plot Trimatrix with the chord plots
-            plotter = PermutationTestPlotter(obj.network_atlas);
-            plotter.plotProbability(plot_figure, parameters, 25, obj.bottom_text_height);
 
-            obj.generatePlotText(plot_figure, chord_type);
         end
     end
 
@@ -103,7 +100,7 @@ classdef ChordPlotter < handle
             clipped_values_positive.v(obj.edge_test_result.coeff.v < 0) = 0;
 
             color_map = turbo(1000);
-            significance_type = nla.gfx.SigType.ABS_INCREASING;
+            significance_type = "nla.gfx.SigType.ABS_INCREASING";
             insignificance = 0; % This is basically the background for the plot
             % This is the title for the positive (or non-split) chord plot
             positive_title = sprintf("Edge-level correlation (P < %g) (Within Significant Net-Pair)",...
@@ -114,21 +111,21 @@ classdef ChordPlotter < handle
 
             % There are some settings that need to be changed depending on the specific type of edge plot
             switch obj.edge_plot_type
-                case EdgeChordPlotMethod.COEFF
+                case "nla.gfx.EdgeChordPlotMethod.COEFF"
                     main_title = positive_title;
 
-                case EdgeChordPlotMethod.COEFF_SPLIT
+                case "nla.gfx.EdgeChordPlotMethod.COEFF_SPLIT"
                     main_title = negative_title;
                     positive_main_title = positive_title;
 
-                case EdgeChordPlotMethod.COEFF_BASE_SPLIT
+                case "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"
                     coefficient_min = obj.edge_test_result.coeff_range(1);
                     coefficient_max = obj.edge_test_result.coeff_range(2);
 
                     main_title = negative_title;
                     positive_main_title = positive_title;
 
-                case EdgeChordPlotMethod.COEFF_BASE
+                case "nla.gfx.edgeChordPlotMethod.COEFF_BASE"
                     coefficient_min = obj.edge_test_result.coeff_range(1);
                     coefficient_max = obj.edge_test_result.coeff_range(2);
 
@@ -139,7 +136,7 @@ classdef ChordPlotter < handle
                     color_map = flip(color_map_base(ceil(logspace(-3, 0, 1000) .* 1000), :));
 
                     clipped_values.v = obj.edge_test_result.prob.v;
-                    significance_type = nla.gfx.SigType.DECREASING;
+                    significance_type = "nla.gfx.SigType.DECREASING";
                     
                     coefficient_min = 0;
                     coefficient_max = obj.edge_test_result.prob_max;
@@ -163,13 +160,13 @@ classdef ChordPlotter < handle
                 end
             end
 
-            plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [obj.trimatrix_width, 0, obj.axis_width - 50,...
+            plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [0, 0, obj.axis_width - 50,...
                 obj.axis_width - 50]);
             nla.gfx.hideAxes(plot_axis);
             plot_axis.Visible = true;
 
-            if obj.split_plot && chord_type == nla.PlotType.CHORD_EDGE && (...
-                obj.edge_plot_type == EdgeChordPlotMethod.COEFF_SPLIT || obj.edge_plot_type == EdgeChordPlotMethod.COEFF_BASE_SPLIT...
+            if obj.split_plot && chord_type == "nla.PlotType.CHORD_EDGE" && (...
+                obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_SPLIT" || obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"...
             )
                 positive_chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values_positive,...
                     'direction', significance_type, 'chord_type', chord_type, 'color_map', color_map, 'lower_limit',...
@@ -179,7 +176,7 @@ classdef ChordPlotter < handle
 
                 % create another axis, I hate this naming but we can overwrite the old one
                 plot_axis = axes(plot_figure, 'Units', 'pixels', 'Position',...
-                    [obj.trimatrix_width + obj.axis_width - 100, 0 , obj.axis_width - 50, obj.axis_width - 50]);
+                    [obj.axis_width - 100, 0 , obj.axis_width - 50, obj.axis_width - 50]);
                 nla.gfx.hideAxes(plot_axis);
                 plot_axis.Visible = true;
             end
@@ -205,16 +202,6 @@ classdef ChordPlotter < handle
                 labels{tick + 1} = sprintf("%.2g", coefficient_min + (tick * ((coefficient_max - coefficient_min) / number_ticks)));
             end
             color_bar.TickLabels = labels;
-        end
-
-        function generatePlotText(obj, plot_figure, chord_type)
-            text_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [55, obj.bottom_text_height + 15, 450, 75]);
-            nla.gfx.hideAxes(text_axis);
-            info_text = "Click any net-pair in the above plot to view its edge-level correlations.";
-            if chord_type == nla.PlotType.CHORD_EDGE
-                info_text = sprintf("%s\n\nChord plot:\nEach ROI is marked by a dot next to its corresponding network.\nROIs are placed in increasing order counter-clockwise, the first ROI in\na network being the most clockwise, the last being the most counter-\nclockwise.", info_text);
-            end
-            text(text_axis, 0, 0, info_text, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
         end
     end
 end

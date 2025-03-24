@@ -44,7 +44,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
-            testCase.verifyEqual(results.no_permutations.p_value.size, uint32(testCase.number_of_networks));
+            testCase.verifyEqual(results.no_permutations.uncorrected_single_sample_p_value.size, uint32(testCase.number_of_networks));
         end
 
         function NetworkTestResultWithinNetworkPairTest(testCase)
@@ -53,7 +53,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
-            testCase.verifyEqual(results.within_network_pair.p_value.size, uint32(testCase.number_of_networks));
+            testCase.verifyEqual(results.within_network_pair.uncorrected_single_sample_p_value.size, uint32(testCase.number_of_networks));
         end
 
         function NetworkTestResultFullConnectomeTest(testCase)
@@ -62,7 +62,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
-            testCase.verifyEqual(results.full_connectome.p_value.size, uint32(testCase.number_of_networks));
+            testCase.verifyEqual(results.full_connectome.uncorrected_two_sample_p_value.size, uint32(testCase.number_of_networks));
         end
 
         function NetworkTestResultPermutationResultsTest(testCase)
@@ -71,7 +71,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             results = NetworkTestResult(testCase.test_options, testCase.number_of_networks, testCase.test.name,...
                 testCase.test.display_name, testCase.test.statistics, testCase.test.ranking_statistic);
             % The size of TriMatrices are cast to uint32. Is there a good reason for this?
-            testCase.verifyEqual(results.permutation_results.p_value_permutations.size, uint32(testCase.number_of_networks));
+            testCase.verifyEqual(results.permutation_results.single_sample_p_value_permutations.size, uint32(testCase.number_of_networks));
         end
 
         function NetworkTestResultPermutationsTest(testCase)
@@ -82,7 +82,7 @@ classdef NetworkTestResultTestCase < matlab.unittest.TestCase
             testCase.test_data.v(:, 2) = testCase.test_data.v;
             testCase.test_data.v(:, 3) = testCase.test_data.v(:, 1);
             
-            results.permutation_results.p_value_permutations.v = testCase.test_data.v;
+            results.permutation_results.two_sample_p_value_permutations.v = testCase.test_data.v;
             testCase.verifyEqual(results.permutation_count, size(testCase.test_data.v, 2));
         end
 

@@ -27,7 +27,7 @@ classdef NetworkResultPlotParameter < handle
         end
 
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
-                plot_title, fdr_correction, significance_filter)
+                plot_title, fdr_correction, significance_filter, ranking_method)
             % plot_title - this will be a string
             % plot_statistic - this is the stat that will be plotted
             % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
@@ -42,20 +42,27 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % Adding on to the plot title if it's a -log10 plot
-            if obj.updated_test_options.prob_plot_method == nla.gfx.ProbPlotMethod.NEG_LOG_10
+            if obj.updated_test_options.prob_plot_method == nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10
                 plot_title = sprintf("%s (-log_1_0(P))", plot_title);
             end
 
             % Grab the data from the NetworkTestResult object
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, ranking_method);
 
             % Get the scale max and the labels
+            if isstring(fdr_correction) || ischar(fdr_correction)
+                fdr_correction = nla.net.mcc.(fdr_correction)();
+            end
             p_value_max = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);
 
             name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
                 p_value_max, p_value_breakdown_label);
+            if p_value_max == 0
+                name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
+                    p_value_max, p_value_breakdown_label);
+            end
 
             % Filtering if there's a filter provided 
             significance_plot = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
@@ -69,14 +76,14 @@ classdef NetworkResultPlotParameter < handle
             % default values for plotting
             statistic_plot_matrix = statistic_input_scaled;
             p_value_plot_max = p_value_max;
-            significance_type = nla.gfx.SigType.DECREASING;
+            significance_type = "nla.gfx.SigType.DECREASING";
             % determine colormap and operate on values if it's -log10
             switch obj.updated_test_options.prob_plot_method
-                case nla.gfx.ProbPlotMethod.LOG
+                case "LOG" % FUCK Matlab and their enums
                     color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
                         statistic_input, p_value_max);
                 % Here we take a -log10 and change the maximum value to show on the plot
-                case nla.gfx.ProbPlotMethod.NEG_LOG_10
+                case "NEGATIVE_LOG_10"
                     color_map = parula(obj.default_discrete_colors);
 
                     statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -87,7 +94,7 @@ classdef NetworkResultPlotParameter < handle
                     else
                         p_value_plot_max = 40;
                     end
-                    significance_type = nla.gfx.SigType.INCREASING;
+                    significance_type = "nla.gfx.SigType.INCREASING";
                 otherwise
                     color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
                         p_value_max);
@@ -100,9 +107,11 @@ classdef NetworkResultPlotParameter < handle
                 wait_text = sprintf("Generating %s - %s network-pair brain plot", obj.network_atlas.nets(network1).name,...
                     obj.network_atlas.nets(network2).name);
                 wait_popup = waitbar(0.05, wait_text);
-                nla.gfx.drawBrainVis(edge_test_options, obj.updated_test_options, obj.network_atlas,...
-                    nla.gfx.MeshType.STD, 0.25, 3, true, edge_test_result, network1, network2,...
-                    any(strcmp(obj.noncorrelation_input_tests, obj.network_test_results.test_name)));
+                % nla.gfx.drawBrainVis(edge_test_options, obj.updated_test_options, obj.network_atlas,...
+                %     nla.gfx.MeshType.STD, 0.25, 3, true, edge_test_result, network1, network2,...
+                %     any(strcmp(obj.noncorrelation_input_tests, obj.network_test_results.test_name)));
+                brain_plot = nla.gfx.brain.BrainPlot(edge_test_result, edge_test_options, obj.updated_test_options, network1, network2, edge_test_options.net_atlas);
+                brain_plot.drawBrainPlots()
                 waitbar(0.95);
                 close(wait_popup);
             end
@@ -122,7 +131,7 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityVsNetworkSize(obj, test_method, plot_statistic)
             % Two convience methods
             network_size = obj.getNetworkSizes();
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, obj.updated_test_options.ranking_method);
 
             negative_log10_statistics = -log10(statistic_input.v);
 
@@ -164,14 +173,30 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function statistic = getStatsFromMethodAndName(obj, test_method, plot_statistic)
-            % combining the method and stat name to get the data. With a fail safe for forgetting 'single_sample'
-            if isequal(test_method, "within_network_pair")...
-                && ~startsWith(plot_statistic, "single_sample")...
-                && ~any(ismember(obj.noncorrelation_input_tests, obj.network_test_results.test_name))
-                    plot_statistic = strcat("single_sample_", plot_statistic);
+        function statistic = getStatsFromMethodAndName(obj, method, plot_statistic, ranking_method)
+            import nla.RankingMethod nla.NetworkLevelMethod nla.net.result.NetworkTestResult
+            
+            switch method
+                case "no_permutations" 
+                    test_method = "no_permutations";
+                case "full_connectome" 
+                    test_method = "full_connectome";
+                case "within_network_pair"
+                    test_method = "within_network_pair";
             end
-            statistic = obj.network_test_results.(test_method).(plot_statistic);
+
+            switch ranking_method
+                case "nla.RankingMethod.WINKLER"
+                    ranking = "winkler_";
+                case "nla.RankingMethod.WESTFALL_YOUNG"
+                    ranking = "westfall_young_";
+                otherwise
+                    ranking = "uncorrected_";
+            end
+            
+            probability = NetworkTestResult().getPValueNames(method, obj.network_test_results.test_name);
+
+            statistic = obj.network_test_results.(test_method).(strcat(ranking, probability));
         end
     end
 

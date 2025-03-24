@@ -1,6 +1,5 @@
 classdef RankingMethod
     enumeration
-        P_VALUE, TEST_STATISTIC
+        UNCORRECTED, WINKLER, WESTFALL_YOUNG
     end
 end
-
