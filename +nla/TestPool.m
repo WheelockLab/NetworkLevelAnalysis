@@ -101,27 +101,6 @@ classdef TestPool < nla.DeepCopyable
             result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
         end
         
-        function ranked_results = collateNetworkPermutationResults(obj, nonpermuted_edge_test_results, network_atlas, nonpermuted_network_test_results,...
-            permuted_network_test_results, network_test_options)
-            
-            
-
-            % Warning: Hacky code. Because of the way non-permuted network tests and permuted are called from the front, they are stored
-            % in different objects. (Notice the input argument for non-permuted network results). Eventually, it should probably be done
-            % that we do them all here. That may be another ticket. For now, we're copying over.
-            for test_index = 1:numNetTests(obj)    
-                for test_index2 = 1:numNetTests(obj)
-                    if nonpermuted_network_test_results{test_index2}.test_name == permuted_network_test_results{test_index}.test_name
-                        permuted_network_test_results{test_index}.no_permutations = nonpermuted_network_test_results{test_index2}.no_permutations;
-                        break
-                    end
-                end
-            end
-            ranked_permuted_network_results = obj.rankResults(input_struct, nonpermuted_network_test_results, permutation_network_results, net_atlas.numNetPairs());
-
-            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, nonpermuted_edge_test_results, nonpermuted_network_test_results, edge_results_perm, ranked_permuted_network_results);
-        end
-        
         function [permuted_edge_results, permuted_network_results] = runEdgeAndNetPerm(obj, edge_input_struct, net_input_struct,...
             net_atlas, edge_result_nonperm, num_perms, perm_seed)
             
