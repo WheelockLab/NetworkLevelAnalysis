@@ -149,7 +149,6 @@ classdef ResultRank < handle
                     ranking_statistic = "single_sample_ranksum_statistic";
                 end
             end
-            ranking.within_network_pair.d.v = obj.permuted_network_results.within_network_pair.d.v;
         end
 
         %% Getters for dependent properties
