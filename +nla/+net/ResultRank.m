@@ -84,9 +84,9 @@ classdef ResultRank < handle
             end
         end
 
+
         function ranking = winklerMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, ranking)
-
             winkler_probability = strcat("winkler_", probability);
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
@@ -100,7 +100,6 @@ classdef ResultRank < handle
                     );
                 end
             end
-            
             ranking.(test_method).(winkler_probability).v = ranking.(test_method).(winkler_probability).v ./ obj.permutations;
         end
 
@@ -159,7 +158,7 @@ classdef ResultRank < handle
         end
 
         function value = get.number_of_networks(obj)
-            value = obj.permuted_network_results.no_permutations.p_value.size;
+            value = obj.permuted_network_results.no_permutations.p_value.size;   
         end
         %%
     end

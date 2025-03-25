@@ -295,7 +295,7 @@ classdef ChordPlot < handle
 
             % boolean array used to determine if networks connected
             networks_connected = false(obj.number_of_networks, obj.number_of_networks + 1);
-
+            
             if obj.chord_type == "nla.PlotType.CHORD"
                 % These two arrays are the networks individucally numbered. Taking the same index of both
                 % (in vector, network_array.v(idx)) gives the two networks we're testing
@@ -312,7 +312,7 @@ classdef ChordPlot < handle
                 ROI_center_radians = [];
                 ROI_centers = [];
             end
-
+            
             for network = 1:obj.number_of_networks
                 if obj.chord_type == "nla.PlotType.CHORD"
                     % These fill in the four networks above.

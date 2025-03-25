@@ -68,7 +68,6 @@ classdef ChordPlotter < handle
                 % thresholding below the "insignificance" value
                 statistic_matrix = copy(parameters.statistic_plot_matrix);
                 statistic_matrix.v(~parameters.significance_plot.v) = insignificance;
-
                 chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, figure_axis, 500, statistic_matrix,...
                     'color_map', parameters.color_map, 'direction', parameters.significance_type, 'upper_limit',...
                     coefficient_bounds(2), 'lower_limit', coefficient_bounds(1), 'chord_type', chord_type);
@@ -78,8 +77,6 @@ classdef ChordPlotter < handle
                 % Plot edge chord
                 obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
             end
-
-
         end
     end
 
@@ -137,7 +134,6 @@ classdef ChordPlotter < handle
 
                     clipped_values.v = obj.edge_test_result.prob.v;
                     significance_type = "nla.gfx.SigType.DECREASING";
-                    
                     coefficient_min = 0;
                     coefficient_max = obj.edge_test_result.prob_max;
 

@@ -1,27 +1,16 @@
 classdef NetworkTestResult < matlab.mixin.Copyable
-    %NETWORKTESTRESULT Network Test Results
-    % This is the super class that all network test results will be in
-    % When a result is created the three repositories (within_network_pair, full_connectome, no_permutations) are set
-    % to false. This makes it easier to do an if/else check on them. 
-    % The three private methods create the structures and trimatrices to keep the data.
-    % Notation:
-    %   Test Methods: The method used for ranking the statistics (within net pair, full connectome, no permutation)
-    %   Statistics: The statistical results from a specific network test (chi-squared, t-tests)
+    % Network level test results
+    % Class to store all relevant results for a network level test. Each test will create an instance of this to store results
     %
-    % Output object:
-    %   test_name: The name of the network test run (chi_squared, hypergeometric, etc)
-    %   test_options: The options passed in. Method, plotting methods (formerly input_struct)
-    %   within_network_pair: Results from within_network_pair tests
-    %   full_connectome: Results from full_connectome tests
-    %   no_permutations: Results from the no permutation test
-    %   permutation_results: Results from all the permutations of the network tests. These are used in the ranking to create
-    %       the results for the test methods
-    %
-    % Within each of the three results structures will be properties containing the tri-matrices. Each test is different,
-    % but all contain:
-    %   p_value: TriMatrix with p-values
-    %   single_sample_p_value: TriMatrix with the single sample p-value (if available)
-    %
+    % :param test_name: The name of the network test run
+    % :param test_display_name: The name of the network test for display
+    % :param test_options: Options and inputs for tests to be run (also called input_struct) 
+    % :param ranking_statistic: The statistic to be used in ranking to determine p-value
+    % :param within_network_pair: Results of the within network pair test. Single sample p-values (except :math:`\chi^2`\ and hypergeometric tests). "legacy_" results use the individual test p-values to rank and determine the final p-value. Multiple ranking strategies available
+    % :param full_connectome: Results of the full_connectome test. Same format as above.
+    % :param no_permutations: Results for the non-permuted test. Same format as above.
+    % :param permutation_results: Results of each permutation. Statistics and p-values. Note: The p-values are for each individual permutation test, not the overall p-value.
+
     properties
         test_name = "" % Name of the network test run
         test_display_name = "" % Name of the network test for the front-end to display
@@ -43,7 +32,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     end
 
     properties (Constant)
-        % TODO: replace wtih enums
         test_methods = ["no_permutations", "full_connectome", "within_network_pair"]
         noncorrelation_input_tests = ["chi_squared", "hypergeometric"] % These are tests that do not use correlation coefficients as inputs
     end
@@ -51,15 +39,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     methods
         function obj = NetworkTestResult(test_options, number_of_networks, test_name, test_display_name,...
             test_specific_statistics, ranking_statistic)
-            %CONSTRUCTOR Used for creating results.
-            %
-            % Arguments:
-            %   test_options [Struct]: Options for the test. Formerly 'input_struct'
-            %   number_of_networks [Int]: The number of networks in the data being analyzed
-            %   test_name [String]: The name of the network test being run
-            %   test_specific_statistics [Array[String]]: Test statistics for a test. (Example: t_statistic for a t-Test)
-            %   ranking_statistic [String]: Test statistic that will be used in ranking
-
             import nla.TriMatrix nla.TriMatrixDiag
             if nargin == 0
                 return
@@ -77,7 +56,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
+        % Used for plotting
         function output(obj, edge_test_options, updated_test_options, network_atlas, edge_test_result, flags)
+            % Outputs data to be plotted using nla.net.result.plot.NetworkTestPlot
+            %
+            % :param edge_test_options: The test_options used to instantiate the class. Contains the functional connectivity and network atlas among other options
+            % :param updated_test_options: The network test options. These can also include the options for plotting.
+            % :param network_atlas: The network atlas
+            % :param edge_test_result: Results of the edge level test.
+            % :param flags: More options that are used after the tests have run. One of them is which test method to plot.
             import nla.NetworkLevelMethod
 
             if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
@@ -93,8 +80,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             network_result_plot.drawFigure(nla.PlotType.FIGURE)
         end
 
+        % Use for merging multiple results together into one
         function merge(obj, other_objects)
-            %MERGE Merge two groups of results together. Not guaranteed to be ordered
+            % Used to merge multiple results together into one
+            %
+            % :param other_objects: The other result objects to merge into this result object
+
             if ~iscell(other_objects)
                 other_objects = {other_objects};
             end
@@ -111,7 +102,9 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function concatenateResult(obj, other_object)
-            %CONCATENATERESULT Add a result to the back of a TriMatrix. Used to keep permutation data.
+            % Concatenate results together. This is used to preserve the individual permutation results.
+            %
+            % :param other_object: The object to append to the end of the current result
 
             statistics = fieldnames(obj.permutation_results);
             for statistic_index = 1:numel(statistics)
@@ -124,74 +117,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             obj.last_index = obj.last_index + 1;
         end
-
-        function histogram = createHistogram(obj, statistic)
-            if ~endsWith(statistic, "_permutations")
-                statistic = strcat(statistic, "_permutations");
-            end
-            permutation_data = obj.permutation_results.(statistic);
-            histogram = zeros(nla.HistBin.SIZE, "uint32");
-
-            for permutation = 1:obj.permutation_count
-                histogram = histogram + uint32(histcounts(permutation_data.v(:, permutation), nla.HistBin.EDGES)');
-            end
-        end
-
-        function runDiagnosticPlots(obj, edge_test_options, updated_test_options, edge_test_result, network_atlas, flags)
-            import nla.NetworkLevelMethod
-
-            diagnostics_plot = nla.gfx.plots.DiagnosticPlot(edge_test_options, updated_test_options,...
-                edge_test_result, network_atlas, obj);
-
-            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                test_method = "no_permutations";
-            elseif isfield(flags, "show_full_conn") && flags.show_full_conn
-                test_method = "full_connectome";
-            elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                test_method = "within_network_pair";
-            end
-
-            diagnostics_plot.displayPlots(test_method);
-        end
-
-        % I'm assuming this is Get Significance Matrix. It's used for the convergence plots button, but the naming makes zero sense
-        % Any help on renaming would be great.
-        function [test_number, significance_count_matrix, names] = getSigMat(obj, network_test_options, network_atlas, flags)
-            
-            import nla.TriMatrix nla.TriMatrixDiag
-
-            test_number = 0;
-            significance_count_matrix = TriMatrix(network_atlas.numNets(), 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            names = [];
-
-            if isfield(flags, "show_nonpermuted") && flags.show_nonpermuted
-                title = "Non-Permuted";
-                p_values = obj.no_permutations.uncorrected_two_sample_p_value;
-                fdr_method = network_test_options.fdr_correction; 
-            end
-            if isfield(flags, "show_full_conn") && flags.show_full_conn
-                title = "Full Connectome";
-                p_values = obj.full_connectome.uncorrected_two_sample_p_value;
-                fdr_method = network_test_options.fdr_correction;
-            end
-            if isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
-                title = "Within Network Pair";
-                p_values = obj.within_network_pair.uncorrected_single_sample_p_value;
-                fdr_method = network_test_options.fdr_correction;
-            end
-            [significance, name] = obj.singleSigMat(network_atlas, network_test_options, p_values, fdr_method, title);
-            [test_number, significance_count_matrix, names] = obj.appendSignificanceMatrix(test_number, significance_count_matrix,...
-                names, significance, name);
-        end
-
-        function table_new = generateSummaryTable(obj, table_old)
-            table_new = [table_old, table(...
-                obj.full_connectome.uncorrected_two_sample_p_value.v, 'VariableNames', [obj.test_display_name + "Full Connectome Two Sample p-value"]...
-            )];
-        end
-
-        %%
-        % getters for dependent properties
+        
         function value = get.permutation_count(obj)
             % Convenience method to carry permutation from data through here
             if isfield(obj.permutation_results, "two_sample_p_value_permutations") &&...
@@ -205,8 +131,8 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             end
         end
 
+        % Convenience method to determine if inputs were correlation coefficients, or "significance" values
         function value = get.is_noncorrelation_input(obj)
-            % Convenience method to determine if inputs were correlation coefficients, or "significance" values
             value = any(strcmp(obj.noncorrelation_input_tests, obj.test_name));
         end
 
@@ -220,9 +146,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
     methods (Access = private)
         function createResultsStorage(obj, test_options, number_of_networks, test_specific_statistics)
-            %CREATERESULTSSTORAGE Create the substructures for the methods chosen
+            % Creates the objects to hold results. Uses statistic names from test objects.
+            %
+            % :param test_options: The test options
+            % :param number_of_networks: The number of networks. Used to determine the size of the TriMatrix result. A property of the Network Atlas
+            % :param test_specific_statistics: The statistics used in each test. A property of each test.
 
-            % create the results containers. This replaces the false boolean with a struct of TriMatrices
             for test_method_index = 1:numel(obj.test_methods)
                 if isequal(obj.(obj.test_methods(test_method_index)), false) &&...
                     isequal(test_options.(obj.test_methods(test_method_index)), true)
@@ -235,7 +164,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function createTestSpecificResultsStorage(obj, number_of_networks, test_specific_statistics)
-            %CREATETESTSPECIFICRESULTSSTORAGE Create the substructures for the specific statistical tests
             import nla.TriMatrix nla.TriMatrixDiag
 
             for statistic_index = 1:numel(test_specific_statistics)
@@ -247,7 +175,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function createPValueTriMatrices(obj, number_of_networks, test_method)
-            %CREATEPVALUETRIMATRICES Creates the p-value substructure for the test method
             import nla.TriMatrix nla.TriMatrixDiag
 
             non_correlation_test = any(strcmp(obj.test_name, obj.noncorrelation_input_tests));
@@ -313,13 +240,24 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             sig_count_mat.v = sig_count_mat.v + sig.v;
             names = [names name];
         end
+
+        function p_value = choosePlottingMethod(obj, test_options, plot_test_type)
+            p_value = "p_value";
+            if test_options == nla.gfx.ProbPlotMethod.STATISTIC
+                p_value = strcat("statistic_", p_value);
+            end
+            if ~obj.is_noncorrelation_input && plot_test_type == "within_network_pair"
+                p_value = strcat("single_sample_", p_value);
+            end
+        end
     end
 
     methods (Static)
         function options = editableOptions()
-            % options that can be edited post-run (ie: are simple
-            % thresholds etc. for summary statistics, or generally can be
-            % modified without requiring re-permutation)
+            % Static method to return options that can be adjusted afterwards.
+            %
+            % :return: Options. Defaults to behavior_count, prob_max (The threshold for p-values), d_max (The threshold for Cohen's D values)
+
             import nla.inputField.Integer nla.inputField.Number 
             options = {...
                 Integer('behavior_count', 'Test count:', 1, 1, Inf),...
@@ -329,6 +267,12 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         end
 
         function probability = getPValueNames(test_method, test_name)
+            % Static method to determine prefixes of p-values for test results
+            %
+            % :param test_method: No permutations, full connectome, or within network pair
+            % :param test_name: The name of the test run
+            % :return: The full name of the p-value. (example: "single_sammple_p_value")
+
             import nla.NetworkLevelMethod
             noncorrelation_input_tests = ["chi_squared", "hypergeometric"];
             non_correlation_test = any(strcmp(test_name, noncorrelation_input_tests));
