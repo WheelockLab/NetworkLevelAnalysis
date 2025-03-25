@@ -287,12 +287,12 @@ classdef TestPool < nla.DeepCopyable
 
             ranked_results = permuted_network_results;
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(permuted_network_results{test}, number_of_network_pairs);
+                ranker = ResultRank(permuted_network_results(test), number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
-                if any(strcmp(ranked_results{test}.test_name, obj.correlation_input_tests))
-                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "legacy_two_sample_p_value");
-                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "uncorrected_two_sample_p_value");
+                if any(strcmp(ranked_results(test).test_name, obj.correlation_input_tests))
+                    ranked_results{test}.no_permutations = rmfield(ranked_results(test).no_permutations, "legacy_two_sample_p_value");
+                    ranked_results{test}.no_permutations = rmfield(ranked_results(test).no_permutations, "uncorrected_two_sample_p_value");
                 end
             end
         end
