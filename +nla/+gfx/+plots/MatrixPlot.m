@@ -62,17 +62,6 @@ classdef MatrixPlot < handle
         default_settings
     end
 
-    properties (Constant)
-        colormap_choices = {"Jet", "Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
-            "Bone", "Copper", "Pink"}; % Colorbar choices
-    end
-
-    properties (SetAccess = immutable)
-        original_matrix % The original matrix for scaling purposes. Despite it saying "immutable",
-        % this property is mutable since it's a mutable object type and not a static value.
-        default_settings
-    end
-
     methods
         function obj = MatrixPlot(figure, name, matrix, networks, figure_size, varargin)
             % MatrixPlot constructor
@@ -499,7 +488,6 @@ classdef MatrixPlot < handle
                             [position_y, position_y + chunk_height + 1]));
                         obj.addCallback(drawLine(obj.axes, [position_x - 2, position_x + chunk_width - 1],...
                             [position_y + chunk_height, position_y + chunk_height]));
-                    end
 
                         if x == maximum_x && obj.matrix_type == MatrixType.TRIMATRIX && ~isequal(network_matrix, false)
                             obj.addCallback(drawLine(obj.axes, [position_x + chunk_width, position_x + chunk_width],...
