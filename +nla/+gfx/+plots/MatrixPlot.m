@@ -52,6 +52,9 @@ classdef MatrixPlot < handle
         colorbar_offset = 15; % Offset of the colorbar
         colorbar_text_w = 50; % Width of label on colorbar
         legend_offset = 5; % Offset of the Legend
+    end
+
+    properties (Constant)
         colormap_choices = {"Jet", "Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
             "Bone", "Copper", "Pink"}; % Colorbar choices
     end

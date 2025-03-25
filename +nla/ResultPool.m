@@ -11,6 +11,8 @@ classdef ResultPool
         permutation_edge_test_results
         permutation_network_test_results
         version
+        commit
+        commit_short
     end
     
     methods

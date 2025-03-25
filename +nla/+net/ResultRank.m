@@ -148,12 +148,6 @@ classdef ResultRank < handle
                 if isequal(obj.permuted_network_results.test_name, "wilcoxon")
                     ranking_statistic = "single_sample_ranksum_statistic";
                 end
-                
-            elseif isstruct(obj.permuted_network_results.within_network_pair) &&...
-                any(strcmp(obj.permuted_network_results.test_name, obj.permuted_network_results.noncorrelation_input_tests))
-                % This condition catches Chi-Squared and Hypergeometric tests. We do not do within network ranking for them, we just copy
-                % the full connectome ranking over. 
-                ranking.within_network_pair.single_sample_p_value = ranking.full_connectome.p_value;
             end
             ranking.within_network_pair.d.v = obj.permuted_network_results.within_network_pair.d.v;
         end

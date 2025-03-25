@@ -78,11 +78,11 @@ classdef NetworkTestPlot < handle
             obj.title = "";
             % Building the plot title by going through options
             switch obj.test_method
-                case NetworkLevelMethod.NO_PERMUTATIONS
+                case "no_permutations"
                     obj.title = "Non-permuted Method\nNon-permuted Significance";
-                case NetworkLevelMethod.FULL_CONNECTOME
+                case "full_connectome"
                     obj.title = "Full Connectome Method\nNetwork vs. Connectome Significance";
-                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
+                case "within_network_pair"
                     obj.title = "Within Network Pair Method\nNetwork Pair vs. Permuted Network Pair";
             end
             if isequal(obj.current_settings.cohens_d, true)
@@ -371,11 +371,11 @@ classdef NetworkTestPlot < handle
             flags.show_within_net_pair = false;
             flags.show_nonpermuted = false;
             switch obj.test_method
-                case NetworkLevelMethod.NO_PERMUTATIONS
+                case "no_permutations"
                     flags.show_nonpermuted = true;
-                case NetworkLevelMethod.FULL_CONNECTOME
+                case "full_connectome"
                     flags.show_full_conn = true;
-                case NetworkLevelMethod.WITHIN_NETWORK_PAIR
+                case "within_network_pair"
                     flags.show_within_net_pair = true;
             end
             [test_number, significance_count_matrix, names] = obj.network_test_result.getSigMat(obj.network_test_options,...

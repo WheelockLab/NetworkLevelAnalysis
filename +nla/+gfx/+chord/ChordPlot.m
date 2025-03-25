@@ -295,16 +295,24 @@ classdef ChordPlot < handle
 
             % boolean array used to determine if networks connected
             networks_connected = false(obj.number_of_networks, obj.number_of_networks + 1);
-
-            % These two arrays are the networks individucally numbered. Taking the same index of both
-            % (in vector, network_array.v(idx)) gives the two networks we're testing
-            network_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            network2_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            % These two arrays set up the placement in each network arc the chords will begin and end.
-            % Again, taking the same index from both will give the start and end offsets within each arc
-            network_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-            network2_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
-
+            
+            if obj.chord_type == "nla.PlotType.CHORD"
+                % These two arrays are the networks individucally numbered. Taking the same index of both
+                % (in vector, network_array.v(idx)) gives the two networks we're testing
+                network_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+                network2_array = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+                % These two arrays set up the placement in each network arc the chords will begin and end.
+                % Again, taking the same index from both will give the start and end offsets within each arc
+                network_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+                network2_indexes = TriMatrix(obj.number_of_networks, 'double', TriMatrixDiag.KEEP_DIAGONAL);
+            else
+                % These TriMatrix are to keep track of the ROIs for Edge Chord plots
+                row_matrix = TriMatrix(repelem(1:obj.number_of_ROIs, obj.number_of_ROIs, 1)');
+                column_matrix = TriMatrix(repelem(1:obj.number_of_ROIs, obj.number_of_ROIs, 1));
+                ROI_center_radians = [];
+                ROI_centers = [];
+            end
+            
             for network = 1:obj.number_of_networks
                 if obj.chord_type == "nla.PlotType.CHORD"
                     % These fill in the four networks above.

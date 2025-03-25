@@ -24,7 +24,7 @@ classdef DiagnosticPlot < handle
             end
         end
 
-        function displayPlots(obj, ranking_algorithm)
+        function displayPlots(obj, test_method)
 
             p_value = nla.net.result.NetworkTestResult().getPValueNames(test_method, obj.networkTestResult.test_name);
             
@@ -33,7 +33,7 @@ classdef DiagnosticPlot < handle
             );
             vs_network_size_parameters = plot_parameters.plotProbabilityVsNetworkSize(test_method, p_value);
             no_permutations_vs_network_parameters = plot_parameters.plotProbabilityVsNetworkSize(...
-                nla.NetworkLevelMethod.NO_PERMUTATIONS, p_value...
+                "no_permutations", p_value...
             );
 
             non_permuted_title = sprintf("Non-permuted P-values vs.\nNetwork-Pair Size");

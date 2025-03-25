@@ -64,8 +64,7 @@ classdef TestPool < nla.DeepCopyable
         function ranked_results = collateNetworkPermutationResults(obj, nonpermuted_edge_test_results, network_atlas, nonpermuted_network_test_results,...
             permuted_network_test_results, network_test_options)
             
-            % Run Cohen's D
-            cohen_d_test = nla.net.CohenDTest();
+            
 
             % Warning: Hacky code. Because of the way non-permuted network tests and permuted are called from the front, they are stored
             % in different objects. (Notice the input argument for non-permuted network results). Eventually, it should probably be done
@@ -78,10 +77,15 @@ classdef TestPool < nla.DeepCopyable
                     end
                 end
             end
-            for test_index = 1:numNetTests(obj)
-                permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
-                    permuted_network_test_results{test_index});
-            end
+            
+            % REMOVE CALL TO COHENS D UNTIL WE DETERMINE CORRECT CALC FOR IT ADE 2025MAR24
+            % Run Cohen's D
+%             cohen_d_test = nla.net.CohenDTest();
+%             for test_index = 1:numNetTests(obj)
+%                 
+%                 permuted_network_test_results{test_index} = cohen_d_test.run(nonpermuted_edge_test_results, network_atlas,...
+%                     permuted_network_test_results{test_index});
+%             end
 
             ranked_results = obj.rankResults(network_test_options, permuted_network_test_results, network_atlas.numNetPairs());
         end
@@ -96,9 +100,9 @@ classdef TestPool < nla.DeepCopyable
             if ~exist('perm_seed', 'var')
                 perm_seed = false;
             end
-            edge_results_perm = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
-            net_results_perm = obj.runNetTestsPerm(net_input_struct, net_atlas, net_results_nonperm, edge_results_perm, edge_result_nonperm);
-            result = nla.ResultPool(input_struct, net_input_struct, net_atlas, edge_result_nonperm, net_results_nonperm, edge_results_perm, net_results_perm);
+
+            permuted_edge_test_results = obj.runEdgeTestPerm(input_struct, num_perms, perm_seed);
+            permuted_network_test_results = obj.runNetTestsPerm(net_input_struct, network_atlas, permuted_edge_test_results);
         end
         
         function [permuted_edge_results, permuted_network_results] = runEdgeAndNetPerm(obj, edge_input_struct, net_input_struct,...
@@ -272,27 +276,18 @@ classdef TestPool < nla.DeepCopyable
         function val = numNetTests(obj)
             val = numel(obj.net_tests);
         end
-        
-        function val = containsSigBasedNetworkTest(obj)
-            val = false;
-            for i = 1:obj.numNetTests()
-                if isa(obj.net_tests{i}, 'net.BaseSigTest')
-                    val = true;
-                end
-            end
-        end
 
-        function ranked_results = rankResults(obj, input_options, nonpermuted_network_results, permuted_network_results, number_of_network_pairs)
-            import nla.net.ResultRank
+        function ranked_results = rankResults(obj, input_options, permuted_network_results, number_of_network_pairs)
+            
 
             ranked_results = permuted_network_results;
             for test = 1:numNetTests(obj)
-                ranker = ResultRank(permuted_network_results(test), number_of_network_pairs);
+                ranker = nla.net.ResultRank(permuted_network_results{test}, number_of_network_pairs);
                 ranked_results_object = ranker.rank();
                 ranked_results{test} = ranked_results_object;
-                if any(strcmp(ranked_results(test).test_name, obj.correlation_input_tests))
-                    ranked_results{test}.no_permutations = rmfield(ranked_results(test).no_permutations, "legacy_two_sample_p_value");
-                    ranked_results{test}.no_permutations = rmfield(ranked_results(test).no_permutations, "uncorrected_two_sample_p_value");
+                if any(strcmp(ranked_results{test}.test_name, obj.correlation_input_tests))
+                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "legacy_two_sample_p_value");
+                    ranked_results{test}.no_permutations = rmfield(ranked_results{test}.no_permutations, "uncorrected_two_sample_p_value");
                 end
             end
         end
