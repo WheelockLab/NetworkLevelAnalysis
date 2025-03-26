@@ -193,7 +193,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                             obj.checkbox_surface_parcels.Value = true;
                         end
                         
-                        obj.update(true);
+                        obj.update();
                         close(prog);
                     catch ex
                         close(prog);
@@ -246,7 +246,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                         end
                     end
                     
-                    obj.update(false);
+                    obj.update();
                     close(prog);
                 else
                     close(prog);
@@ -312,7 +312,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             end
         end
         
-        function update(obj, network_atlas_button)
+        function update(obj)
             import nla.inputField.widthOfString nla.inputField.LABEL_H nla.inputField.LABEL_GAP            
 
             obj.updateFuncConn();
