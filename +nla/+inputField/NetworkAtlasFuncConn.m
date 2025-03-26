@@ -193,7 +193,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                             obj.checkbox_surface_parcels.Value = true;
                         end
                         
-                        obj.update();
+                        obj.update(true);
                         close(prog);
                     catch ex
                         close(prog);
@@ -246,7 +246,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                         end
                     end
                     
-                    obj.update();
+                    obj.update(false);
                     close(prog);
                 else
                     close(prog);
@@ -312,7 +312,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             end
         end
         
-        function update(obj)
+        function update(obj, network_atlas_button)
             import nla.inputField.widthOfString nla.inputField.LABEL_H nla.inputField.LABEL_GAP            
 
             obj.updateFuncConn();
@@ -332,8 +332,9 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                     obj.checkbox_surface_parcels.Value = false;
                 end
             end
-            obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + LABEL_GAP);
-            
+            % Instead of changing the width of the button and making the line unusable, use a tooltip
+            % obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + LABEL_GAP);
+            obj.button.Tooltip = obj.button.Text;
 
             obj.inflation_label.Position(1) = obj.button.Position(1) + obj.button.Position(3) + LABEL_GAP;
             obj.inflation_dropdown.Position(1) = obj.button.Position(1) + obj.button.Position(3) + LABEL_GAP +...
