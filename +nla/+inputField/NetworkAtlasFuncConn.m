@@ -332,8 +332,9 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                     obj.checkbox_surface_parcels.Value = false;
                 end
             end
-            obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + LABEL_GAP);
-            
+            % Instead of changing the width of the button and making the line unusable, use a tooltip
+            % obj.button.Position(3) = widthOfString(obj.button.Text, LABEL_H) + widthOfString('  ', LABEL_H + LABEL_GAP);
+            obj.button.Tooltip = obj.button.Text;
 
             obj.inflation_label.Position(1) = obj.button.Position(1) + obj.button.Position(3) + LABEL_GAP;
             obj.inflation_dropdown.Position(1) = obj.button.Position(1) + obj.button.Position(3) + LABEL_GAP +...
