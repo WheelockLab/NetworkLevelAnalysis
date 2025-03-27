@@ -8,5 +8,6 @@ docs/build
 # All files with these extensions will be ignored in
 # this directory and all its sub-directories.
 *.asv
-.*
 !.gitignore
+.vscode/*
+read_the_docs/*
