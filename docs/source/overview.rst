@@ -60,13 +60,13 @@ differences during fetal brain development, and autism in adults :cite:p:`Eggebr
 Edge-level Statistic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, correlations are calculated between behavioral scores and Fisher z-transformed functional
+First, correlations are calculated between behavioral scores and Fisher Z-transformed functional
 connectivity correlation measures for each pair of ROI. For behavioral scores that are normally
-distributed, Pearson r correlations are used to calculate the associations. Non-parametric Spearman rank
+distributed, Pearson correlations are used to calculate the associations. Non-parametric Spearman rank
 correlations are used to assess the relationship between functional connectivity and behavioral scores
-that are not normally distributed. Other tests of correlation such as Kendall's tau and 2-sample Welch�s t
+that are not normally distributed. Other tests of correlation such as Kendall's Tau and 2-sample Welch's *t*
 can also be used. Network pairs are then tested for enrichment of strong correlation values, defined as
-only those values that remain after being nominally thresholded. An uncorrected p-threshold (e.g., 0.05 or
+only those values that remain after being nominally thresholded. An uncorrected *p*-threshold (e.g. 0.05 or
 0.01) is applied and the remaining correlations are binarized.
 
 Network Level Statistics
@@ -75,24 +75,29 @@ Network Level Statistics
 After the edge-level statistic matrix has been calculated, it is given as input to a variety of network-level
 tests. First, it is input directly to the tests, and the resulting statistic is called the "non-permuted network
 level statistic" (for every given network-level test). Then, permuted edge-level statistics are calculated via
-the same method as described previously, but with the behavioral scores permuted across subjects. The
-network-level test is performed on this as well, and the significance of permuted network-level statistics
-ranked against the non-permuted, to calculate the permuted experiment-wide p-value (an empirical p-
+the same method as described in the previous section, but with the behavioral scores permuted across subjects. The
+network-level test is performed with the permuted behavioral scores, also. The significance of permuted network-level statistics
+ranked against the non-permuted, to calculate the permuted experiment-wide *p*-value (an empirical *p*-
 value produced from this ranking). Additionally, "single-sample within-net-pair" statistics are calculated
 for each test, which, rather than comparing a given network to the connectome over a number of
 permutations (as in the permuted network-level test), performs a single-sample test on the network
 alone, which is then ranked against permutations of said network similarly to the permuted network-level
 test.
-A number of statistic tests are utilized at the network level. The 1-degree-of-freedom :math:\chi^{2} test is used to
-compare the observed number of strong (thresholded and binarized) brain-behavior correlations within
-one pair of functional networks to the number of strong brain-behavior correlations that would be
-expected if strong correlations were uniformly distributed across all possible network pairs. A large
-resulting test statistic can indicate that the number of strong correlations within a specific network pair is
-enriched. The hypergeometric test aims to assess the likelihood of observing a given number of strong
-correlations within a pair of networks, given (1) the total number of strong correlations observed over the
-entire connectome and (2) the total number of possible hits for that network pair (i.e., the total number or
-ROI-pairs within a given network pair). Other tests such as Kolmogorov-Smirnov, Wilcoxon rank-sum,
-Welch's t can be used, as well as Cohen's d to measure effect sizes.
+A number of statistic tests are utilized at the network level. 
+  #. The 1-degree-of-freedom :math:`\chi^{2}` test is used to
+    compare the observed number of strong (thresholded and binarized) brain-behavior correlations within
+    one pair of functional networks to the number of strong brain-behavior correlations that would be
+    expected if strong correlations were uniformly distributed across all possible network pairs. A large
+    resulting test statistic can indicate that the number of strong correlations within a specific network pair is
+    enriched. 
+  #. The hypergeometric test aims to assess the likelihood of observing a given number of strong
+    correlations within a pair of networks, given: 
+      #. The total number of strong correlations observed over the
+      entire connectome
+      #. The total number of possible hits for that network pair (i.e., the total number or
+      ROI-pairs within a given network pair). 
+  #. Other tests such as Kolmogorov-Smirnov, Wilcoxon rank-sum,
+    Welch's *t* can be used, as well as Cohen's *d* to measure effect sizes.
 As described, significance for all statistical tests is determined using permutation testing. Behavioral
 labels are randomly permuted and correlated with the connectome data (typically 10k times) to create
 null brain-behavior correlation matrices. Tests are calculated on these permuted brain-behavior
@@ -136,7 +141,7 @@ Graph Theoretical Toolboxes
 Graph Theoretical Toolboxes are another comparable approach to NLA, offering an analysis methodology
 to quantify network characteristics such as integration, segregation, resilience, and relative contribution
 of individual network nodes to overall information flow within the network :cite:p:`RubinovM`. Various other toolboxes
-have been created to address network thresholding, graph metric calculation, and graph visualization�
+have been created to address network thresholding, graph metric calculation, and graph visualization -
 such as GRETNA, GEPHI, and BrainNet Viewer. Additional methodologies aim to determine network
 topology differences by leveraging generalized estimating equations and generalized linear and nonlinear
 mixed models :cite:p:`BahramiM,GinestetC,SimpsonS`. Each of these tools has helped to advance the application of graph theory approaches
