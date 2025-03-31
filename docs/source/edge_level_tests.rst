@@ -36,32 +36,32 @@ Common Inputs
 Provided Tests
 --------------------------------
 
-* **Pearson's r**
+* **Pearson's** *r*
   
-  * MATLAB `corr <https://www.mathworks.com/help/stats/corr.html>_` function with ``type``, ``Pearson``
+  * MATLAB `corr <https://www.mathworks.com/help/stats/corr.html>`_ function with (``type``, ``Pearson``)
 * **Spearman's** :math:`\rho`
   
-  * MATLAB `corr <https://www.mathworks.com/help/stats/corr.html>_` function with ``type``, ``Spearman``
-* **Spearman's** :math:`\rho` **estimator**
+  * MATLAB `corr <https://www.mathworks.com/help/stats/corr.html>`_ function with (``type``, ``Spearman``)
+* **Spearman's** :math:`\rho`  **estimator**
   
   * Faster approximation of the Spearman's rho function at the cost of slightly less accurate result.
   * Based on developer testing, rho values may differ by :math:`10^{-4}` and *p*-values by :math:`10^{-5}`.
   * This error is passed on to the network-level tests, and can cause *p*-value difference by :math:`10^{-4}` 
   * These differences were found with 10,000 permutations. Less permutations results in higher error in a less evenly distributed fashion. 
   * This is recommended for exploratory research with the Spearman's rho function for publications
-* **Kendall's** :math:`\tau` **-b**
+* **Kendall's** :math:`tau` **-b**
 
   * Implements Kendall's :math:`\tau` -b using C code in a MATLAB MEX file (``+mex/+src/kendallTauB.c``)
   * Faster implementation that stardard MATLAB code providing identical :math:`\tau` and *p*-values.
   * Run-time difference from *O*\ (*n*\ :sup:`2`) to *O*\ (*n* log *n*)
   * This is done with a red-black tree.
-* **Welch's t-test**
+* **Welch's** *t* **-test**
 
-  * Implements an optomized Welch's t-test comparing the functional connectivity of two groups.
+  * Implements an optomized Welch's *t*-test comparing the functional connectivity of two groups.
   * Extra imports compared to other edge level tests
 
   :Group name(s): Names associated with each group. (For example, 'Male' and 'Female')
-  :Group val(s): Behavioral value associated with each group. If 'Female' is donated as '0', and 'Male' as '1', set the vals to the numerical values.
+  :Group val(s): Behavioral value associated with each group. If 'Female' is denoted as '0', and 'Male' as '1', set the vals to the numerical values.
 
 .. _precalculated:
 
@@ -71,11 +71,11 @@ Provided Tests
   * Four ``.mat`` files needed as inputs
   * *p*-values should be thresholded
 
-  :Observed p: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x 1 matrix of logical values, the observed, thresholded edge-level *p*-values.
-    N\ :sub:`ROI_pairs`\ are the lower triangle values of a N\ :sub:`ROIs`\ x N\ :sub:`ROIs`\ matrix.
-  :Observed coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x 1 matrix of observed edge-level coefficients.
-  :Permuted p: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of logical values. Observed, thresholded, permuted *p*-values.
-  :Permuted coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\ x N\ :sub:`permutations`\ of permuted edge-level coefficients.
+  :Observed p: ``.mat`` file containing N\ :sub:`ROI_pairs`\  x 1 matrix of logical values, the observed, thresholded edge-level *p*-values.
+    N\ :sub:`ROI_pairs`\  are the lower triangle values of a N\ :sub:`ROIs`\  x N\ :sub:`ROIs`\  matrix.
+  :Observed coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\  x 1 matrix of observed edge-level coefficients.
+  :Permuted p: ``.mat`` file containing N\ :sub:`ROI_pairs`\  x N\ :sub:`permutations`\  of logical values. Observed, thresholded, permuted *p*-values.
+  :Permuted coeff: ``.mat`` file containing N\ :sub:`ROI_pairs`\  x N\ :sub:`permutations`\  of permuted edge-level coefficients.
 
 Creating additional edge-level tests
 -----------------------------------------------
