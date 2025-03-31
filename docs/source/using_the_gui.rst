@@ -11,18 +11,19 @@ Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.m
 
     Main windows of Network Level Analysis program
 
-1. Edge-level test dropdown selector (See :doc:`Edge-level Statistical Tests <../edge_level_tests>`)
-2. Edge-level test pane
+#. Edge-level test dropdown selector 
+   (See :doc:`Edge-level Statistical Tests <../edge_level_tests>`)
+#. Edge-level test pane
     This pane will list all of the options and inputs needed for each test that's currently selected. 
     Usually there are selectors for functional connectivity, network atlas, and behavior files. There may also be other options depending on the test.
     If "Precalculated data" is selected, there will be selectors for data instead. (See: :ref:`Precalculated data loader <precalculated>`)
-3. Behavior table
+#. Behavior table
     This will display the table when the behavior file is loaded. The table is used to select the behvaior to test, co-variates used (optional), and 
     permutation groupings (optional). (See: :doc:`Behavior Table <../behavior_table>`)
-4. Network-level test pane
+#. Network-level test pane
     Selection of network-level test(s). One can be selected, or multiple with Ctrl/Shift + left click. 
     See :doc:`Network-level tests`
-5. Run options
+#. Run options
     Checkboxes to select test method(s). If within network pair is selected, full connectome will also be selected. 
     Permutation count is how many permutations to run. More permutations will take more time, but will produce more precise results.
     Run will run the edge level test and open the results window.
@@ -31,7 +32,7 @@ Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.m
 
 Loading Results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If previous data was saved (See :ref:`saving results <saving_results>`) there is an option to load it here. Click the ``File`` menu in the upper left-hand corner and select "Load Previous Results."
+If previous data was saved (See :ref:`saving results <saving_results>`) there is an option to load it here. Click the ``File`` menu in the upper left-hand corner and select ``Load Previous Results``.
 Depending on the size of the saved data, this could take a bit of time.
 
 Results Window

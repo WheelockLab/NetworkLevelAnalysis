@@ -17,14 +17,14 @@ General Linear Model / Edge-wise Statistical Model Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NLA also requires the user to specify the desired statistical model for testing associations between
-behavioral data and edge-wise�or ROI-pair connectivity�connectome data. The analysis pipeline within
+behavioral data and edge-wise or ROI-pair connectivity connectome data. The analysis pipeline within
 the NLA toolbox offers both parametric and non-parametric correlation.
 
 Connectivity Matrices
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Other software packages are used to create the connectivity matrices that are provided as input into the
-NLA toolbox. One useful option for mapping functional connectivity matrices is CONN - MATLAB-based
+NLA toolbox. One useful option for mapping functional connectivity matrices is `CONN <https://web.conn-toolbox.org/>_` - a MATLAB-based
 software with the ability to compute, display, and analyze functional connectivity in fMRI.
 
 The NLA Method
@@ -40,9 +40,9 @@ Both p-value and test-statistic binarization are offered in the current NLA pipe
 supported the incorporation of a proportional edge density threshold, given that uneven edge density
 thresholds have been shown to unfairly bias results :cite:p:`vandenHeuvelM`.
 For enrichment statistic calculation, NLA offers a number of statistical tests. Prior research has relied on
-chi-square and Fisher's Exact test, as well as a Kolmogorov-Smirnov (KS) test and non-parametric tests
+chi-squared and Fisher's Exact tests. As well as a Kolmogorov-Smirnov (KS) test and non-parametric tests
 based on ranks, which compare the distribution of test values within a region to other regions :cite:p:`WheelockM:2018,RudolphM,MoothaV,ZahnJ`. In
-addition, KS alternatives such as averaging or minmax have also shown promise in connectome
+addition, KS alternatives such as averaging or min-max have also shown promise in connectome
 applications :cite:p:`ChenJ,NewtonM,YaariG,EfronB`.
 
 NLA then conducts data-driven permutation testing to establish significance. In the NLA toolbox, network
