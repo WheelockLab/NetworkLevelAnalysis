@@ -2,24 +2,22 @@ classdef NetworkTestResult < matlab.mixin.Copyable
     % Network level test results
     % Class to store all relevant results for a network level test. Each test will create an instance of this to store results
     %
+    % :param test_options: Options and inputs for tests to be run (also called input_struct)
+    % :param number_of_networks: The number of networks in the network atlas
     % :param test_name: The name of the network test run
     % :param test_display_name: The name of the network test for display
-    % :param test_options: Options and inputs for tests to be run (also called input_struct) 
-    % :param ranking_statistic: The statistic to be used in ranking to determine p-value
-    % :param within_network_pair: Results of the within network pair test. Single sample p-values (except :math:`\chi^2`\ and hypergeometric tests). "legacy_" results use the individual test p-values to rank and determine the final p-value. Multiple ranking strategies available
-    % :param full_connectome: Results of the full_connectome test. Same format as above.
-    % :param no_permutations: Results for the non-permuted test. Same format as above.
-    % :param permutation_results: Results of each permutation. Statistics and p-values. Note: The p-values are for each individual permutation test, not the overall p-value.
+    % :param test_specific_statistics: The statistics that a specific test produces
+    % :param ranking_statistic: The statistic used for calculating p-values
 
     properties
         test_name = "" % Name of the network test run
-        test_display_name = "" % Name of the network test for the front-end to display
-        test_options = struct() % Options selected for the test. Formerly input_struct
-        ranking_statistic = "" 
-        within_network_pair = false % Results for within-network-pair tests
-        full_connectome = false % Results for full connectome tests (formerly 'experiment wide')
-        no_permutations = false % Results for the network tests with no permutations (the 'observed' results)
-        permutation_results = struct() % Results for each permutation test used to calculate p-values for the test methods   
+        test_display_name = "" % The name of the network test for display
+        test_options = struct() % Options and inputs for tests to be run (also called input_struct)
+        ranking_statistic = "" % The statistic used for calculating p-values
+        within_network_pair = false % Results of the within network pair test. Single sample p-values (except :math:`\chi^2`\ and hypergeometric tests). "legacy_" results use the individual test p-values to rank and determine the final p-value.
+        full_connectome = false % Results of the full_connectome test. Two sample p-values.
+        no_permutations = false % Results for the non-permuted test. Single sample p-values (except :math:`\chi^2`\ and hypergeometric tests).
+        permutation_results = struct() % Results of each permutation. Statistics and p-values. Note: The p-values are for each individual permutation test, not the overall p-value.  
     end
 
     properties (Access = private)

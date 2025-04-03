@@ -1,18 +1,19 @@
 classdef ResultRank < handle
-    % RESULTRANK Class to take permutation results and rank them. This used to be done incrementally. It"s a little hacky, beware
-    % This class does a classic permutation based ranking of results. The "observed" (nonpermuted) result is appended to the results
-    % of all the permuted results. All of these results are sorted and then searched for the observed result. Where this result is located
-    % in the sorted array ends up being the p-value.
+    % Ranker to calculate *p*-values from permutation testing
+    % 
+    % :param permuted_network_results: The NetworkTestResult object from permutation test
+    % :param number_of_network_pairs: The number of network pairs for the Brain Atlas used
+    % :return 
 
     properties
-        nonpermuted_network_results % The results from the network tests (these are the ones being tested)
-        permuted_network_results % The results from the network tests with all the paramters permuted over and over
+        nonpermuted_network_results % The results from the network level test (NetworkTestResult object)
+        permuted_network_results % The network level test results for each permutation
         number_of_network_pairs % The number of network pairs in the atlas being used
     end
     
     properties (Dependent)
-        permutations
-        number_of_networks
+        permutations 
+        number_of_networks 
     end
     
     methods
@@ -53,8 +54,18 @@ classdef ResultRank < handle
         end
         
         function ranking = uncorrectedRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
-                probability, ranking)
-                        
+            probability, ranking)
+            % Performs ranking of observed result among all results (all permutations plus itself)
+            %
+            % :param test_method: The method of the test being ranked (full connectome or within network pair)
+            % :param permutation_results: The test result for all permutations
+            % :param no_permutation_results: The observed test result
+            % :param ranking_statistic: The statistic used in ranking for each test
+            % :param probability: The name of the *p*-value (single_sample or two_sample)
+            % :param ranking: The NetworkTestResult object to place the results
+            % :return: The same NetworkTestResult object with ranking results
+                
+
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
                 combined_probabilities = [...
                     permutation_results.(strcat((probability), "_permutations")).v(index, :),...
@@ -86,7 +97,17 @@ classdef ResultRank < handle
 
 
         function ranking = winklerMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
-                        probability, ranking)
+            probability, ranking)
+            % Ranks the observed result using method described by Winkler to correct for FWER
+            %
+            % :param test_method: The method of the test being ranked (full connectome or within network pair)
+            % :param permutation_results: The test result for all permutations
+            % :param no_permutation_results: The observed test result
+            % :param ranking_statistic: The statistic used in ranking for each test
+            % :param probability: The name of the *p*-value (single_sample or two_sample)
+            % :param ranking: The NetworkTestResult object to place the results
+            % :return: The same NetworkTestResult object with ranking results
+
             winkler_probability = strcat("winkler_", probability);
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
@@ -104,7 +125,16 @@ classdef ResultRank < handle
         end
 
         function ranking = westfallYoungMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
-                        probability, ranking)
+            probability, ranking)
+            % Ranks the observed result using method described by Westfall and Young to correct for FWER
+            %
+            % :param test_method: The method of the test being ranked (full connectome or within network pair)
+            % :param permutation_results: The test result for all permutations
+            % :param no_permutation_results: The observed test result
+            % :param ranking_statistic: The statistic used in ranking for each test
+            % :param probability: The name of the *p*-value (single_sample or two_sample)
+            % :param ranking: The NetworkTestResult object to place the results
+            % :return: The same NetworkTestResult object with ranking results
 
             % sort statistics in ascending order
             [sorted_no_permutation_results, sorted_statistic_indexes] = sort(...
