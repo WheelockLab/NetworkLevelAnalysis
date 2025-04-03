@@ -27,7 +27,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 matlab_src_dir = os.path.abspath(os.path.join(this_dir, '../../+nla'))
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ['**/*_exported.py']
 
 
 

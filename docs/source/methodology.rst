@@ -1,6 +1,51 @@
 Methodology
 ================================
 
+The Network Level Analysis (NLA) Method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+First, connectome-wide associations are calculated between ROI-pair connectivity and behavioral data,
+resulting in a set of standardized regression coefficients that specify the brain-behavior association at
+each ROI-pair of the connectome matrix. Next, network level analysis, consisting of a transformation of the
+edge-level test statistics and enrichment statistic calculation :cite:p:`AckermanM`, is done to determine which networks are
+strongly associated with the behavior of interest.
+
+Both *p*-value and test-statistic binarization are offered in the current NLA pipeline :cite:p:`EggebrechtA,WheelockM:2018`. Prior research has
+supported the incorporation of a proportional edge density threshold, given that uneven edge density
+thresholds have been shown to unfairly bias results :cite:p:`vandenHeuvelM`.
+For enrichment statistic calculation, NLA offers a number of statistical tests (detailed below). Prior research has relied on
+:math:`\chi` :sup:`2` and Fisher's Exact tests. As well as a Kolmogorov-Smirnov (KS) test and non-parametric tests
+based on ranks, which compare the distribution of test values within a region to other regions :cite:p:`WheelockM:2018,RudolphM,MoothaV,ZahnJ`. In
+addition, KS alternatives such as averaging or min-max have also shown promise in connectome
+applications :cite:p:`ChenJ,NewtonM,YaariG,EfronB`.
+
+Permutation testing
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Permutation testing can be used to provide approximate control of false positive results and allow wide variety of test statistics.
+This is done under the assumption that the data are exchangeable under the null hypothesis - the joint distribution of the
+error terms don't change with the permutation. 
+
+NLA performs the permutation testing by shuffling the behavior vector labels and computing the selected statistic(s) many
+times to produce a null distribution for each network. Family-wise error rate (FWER) can be corrected via Bonferroni, Benjamini-Yekutieli,
+Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :cite:p:`WinklerA`.
+
+.. NLA then conducts data-driven permutation testing to establish significance. In the NLA toolbox, network
+.. level significance is determined by comparing each measured enrichment statistic to permuted
+.. enrichment *p*-values which are calculated by randomly shuffling behavior vector labels and computing
+.. the enrichment statistic many times to produce a null distribution for each network. The FPR is controlled
+.. at the network level using Bonferroni correction. Therefore, NLA is able to retain edge-level correlations
+.. within each network module, but network communities are used to reduce the number of comparisons
+.. and control the FPR at the network level. After significance is determined, the pipeline allows users to
+.. create publication quality images to visualize network level findings both in connectome format and on
+.. the surface of the brain.
+
+.. note::
+    While the behavior vector labels are shuffled to conduct permutations in the enrichment pipeline,
+    functional connectivity data are not shuffled in order to preserve the inherent covariant structure of the
+    data across permutations
+
+
 Brain Network Map Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -13,51 +58,64 @@ one's preferred algorithm or one of several published ROI and corresponding netw
 will be included in the NLA toolbox :cite:p:`GordonE,PowerJ,ThomasY,GlasserM,ShenX,CraddockR`. The use of standardized ROI and network maps creates a
 common, reproducible framework for testing brain-behavior associations across connectome research
 
-General Linear Model / Edge-wise Statistical Model Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-NLA also requires the user to specify the desired statistical model for testing associations between
-behavioral data and edge-wise or ROI-pair connectivity connectome data. The analysis pipeline within
-the NLA toolbox offers both parametric and non-parametric correlation.
-
 Connectivity Matrices
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Other software packages are used to create the connectivity matrices that are provided as input into the
-NLA toolbox. One useful option for mapping functional connectivity matrices is `CONN <https://web.conn-toolbox.org/>_` - a MATLAB-based
+NLA toolbox. One useful option for mapping functional connectivity matrices is `CONN <https://web.conn-toolbox.org/>`_ - a MATLAB-based
 software with the ability to compute, display, and analyze functional connectivity in fMRI.
 
-The NLA Method
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Edge-level Statistical Model Selection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, connectome-wide associations are calculated between ROI-pair connectivity and behavioral data,
-resulting in a set of standardized regression coefficients that specify the brain-behavior association at
-each ROI-pair of the connectome matrix. Next, network level analysis-consisting of transformation of the
-edge-wise test statistics and enrichment statistic calculation :cite:p:`AckermanM` - is done to determine which networks are
-strongly associated with the behavior of interest.
+NLA requires the user to specify the desired statistical model for testing associations between
+behavioral data and edge-level or ROI-pair connectivity connectome data. The analysis pipeline within
+the NLA toolbox offers both parametric and non-parametric correlation.
 
-Both p-value and test-statistic binarization are offered in the current NLA pipeline :cite:p:`EggebrechtA,WheelockM:2018`. Prior research has
-supported the incorporation of a proportional edge density threshold, given that uneven edge density
-thresholds have been shown to unfairly bias results :cite:p:`vandenHeuvelM`.
-For enrichment statistic calculation, NLA offers a number of statistical tests. Prior research has relied on
-chi-squared and Fisher's Exact tests. As well as a Kolmogorov-Smirnov (KS) test and non-parametric tests
-based on ranks, which compare the distribution of test values within a region to other regions :cite:p:`WheelockM:2018,RudolphM,MoothaV,ZahnJ`. In
-addition, KS alternatives such as averaging or min-max have also shown promise in connectome
-applications :cite:p:`ChenJ,NewtonM,YaariG,EfronB`.
+.. list-table:: Edge-level Statistical Tests
+    :header-rows: 1
 
-NLA then conducts data-driven permutation testing to establish significance. In the NLA toolbox, network
-level significance is determined by comparing each measured enrichment statistic to permuted
-enrichment p-values which are calculated by randomly shuffling behavior vector labels and computing
-the enrichment statistic many times to produce a null distribution for each network. The FPR is controlled
-at the network level using Bonferroni correction. Therefore, NLA is able to retain edge-wise correlations
-within each network module, but network communities are used to reduce the number of comparisons
-and control the FPR at the network level. After significance is determined, the pipeline allows users to
-create publication quality images to visualize network level findings both in connectome format and on
-the surface of the brain.
+    * - Test Name/Statistic
+      - NLA Test Name
+    * - Kendall Rank Correlation Coefficient
+      - Kendall's tau-b
+    * - Pearson Correlation Coefficient
+      - Pearson's *r*
+    * - Spearman Rank Correlation Coefficient
+      - Spearman's rho
+    * - Welch's *t*-test
+      - Welch's *t*
+    * - Paired Difference Test
+      - Paired *t*   
 
-**Note**: While the behavior vector labels are shuffled to conduct permutations in the enrichment pipeline,
-functional connectivity data are not shuffled in order to preserve the inherent covariant structure of the
-data across permutations
+Network-level Statistical Model Selection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+NLA also allows the user to select one or more statistical models for testing associations between
+behavioral data and network-level data.
+
+.. list-table:: Network-level Statistical Tests
+    :header-rows: 1
+
+    * - Test Name/Statistic
+      - NLA Test Name
+    * - :math:`\chi` :sup:`2`
+      - Chi-Squared Test  
+    * - Hypergeometric
+      - Hypergeometric Test
+    * - Kolmogorov-Smirnov Test
+      -
+    * - Student's *t*-test
+      -
+    * - Welch's *t*-test
+      -
+    * - Wilcoxon Signed-Rank Test
+      - Wilcoxon
+  
+Two different methods are available for the network level testing. The first is referred to as "Full Connectome"
+testing. Each network is compared against the entire connectome. The second is "Within Network Pair". This is where
+network pairs are compared against each other. Two of the network-level test results are the same regardless of method:
+:math:`\chi` :sup:`2` and Hypergeometric. This is because there are no single sample versions of these tests.
 
 How Should the Test Statistic Threshold Be Chosen?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

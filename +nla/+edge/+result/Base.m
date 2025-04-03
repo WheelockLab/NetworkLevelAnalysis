@@ -1,5 +1,8 @@
 classdef Base < nla.TestResult
-    %BASE Base class of results of edge-level analysis
+    %Base class of results of edge-level analysis
+    %
+    % :param size: The size of the Trimatrix being analyzed
+    % :param prob_max: The threshold for the p-value
     
     properties
         coeff % Fisher transformed r-value
@@ -26,6 +29,11 @@ classdef Base < nla.TestResult
         end
         
         function output(obj, net_atlas, flags, prob_label)
+            % Plotting method for the edge-level analysis results
+            %
+            % :param net_atlas: The network atlas of the data
+            % :param flags: Options from the front-end for plotting
+            % :param prob_label: Extra information appended to title of plot
             
             coeff_label = sprintf('Edge-level %s', obj.coeff_name);
             prob_label_appended = '';

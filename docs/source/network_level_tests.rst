@@ -99,33 +99,3 @@ To create a network-level test, a test class must be added to the codebase. Refe
   :permutations: Boolean to determine if the test is being run with permutations (``true``) or without (``false``)
 
   * ``requiredInputs`` See :ref:`Edge-level tests <requiredInputs>`
-  
-
-Network Level results
----------------------------------------
-.. mat:module:: .
-
-All network level tests use ``nla.net.NetworkTestResult`` as the result object. This object uses the properties of the test
-to name the results. 
-
-.. mat:autoclass:: NetworkTestResult
-
-    .. mat:automethod:: merge
-
-    .. mat:automethod:: concatenateResult
-
-    .. mat:automethod:: output
-
-    .. mat:automethod:: createResultsStorage
-
-    .. mat:automethod:: editableOptions
-
-    .. mat:automethod:: getPValueNames
-
-The three test methods (no_permutations, full_connectome, within_network_pair) will each contain multiple TriMatrices (lower half of a square matrix) of results.
-
-:d: This is the results of a Cohen's D test (effects size) using the results of the test method
-:uncorrected_<single/two>_sample_p_value: The uncorrected *p*-value found by ranking the observed (non-permuted) result versus the test results of all the permutations.
-:legacy_<single/two>_sample_p_value: The *p*-value found using the individual test p-values. Not verified for correctness.
-:westfall_<single/two>_sample_p_value: The uncorrected *p*-value corrected for family-wise error rate using the method described by Westfall and Young :cite:p:`WestfallPH`
-:winkler_<single/two>_sample_p_value: The uncorrected *p*-value corrected using the method described in :cite:p:`WinklerA`

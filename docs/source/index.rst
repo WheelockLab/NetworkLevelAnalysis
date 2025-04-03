@@ -11,7 +11,6 @@ Welcome to NetworkLevelAnalysis's documentation!
    :caption: Table of Contents:
 
    preface
-   overview
    methodology
    setup
    getting_started
@@ -20,7 +19,8 @@ Welcome to NetworkLevelAnalysis's documentation!
    network_atlases
    edge_level_tests
    network_level_tests
-   bibliography
+   network_level_results
+   for_developers
 
 
 Indices and tables
