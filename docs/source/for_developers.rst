@@ -9,7 +9,13 @@ Creating additional edge-level tests
 Current tests are located in ``+nla/+edge/+test``. This is where all the current tests are located and also where
 any user-created custom tests will need to be saved. All edge-level test objects must inherit from ``nla.edge.BaseTest``
 
+.. mat:module:: edge
 
+.. mat:autoclass:: BaseTest
+
+    .. mat:automethod:: run(input_struct)
+
+    .. mat:automethod:: inputs = requiredInputs()
 
 
 * **Result object**
