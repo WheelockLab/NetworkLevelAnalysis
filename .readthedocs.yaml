@@ -12,5 +12,11 @@ python:
 sphinx:
   configuration: docs/source/conf.py
 
+search:
+  ignore:
+    - '*_exported.py'
+    - '*/*_exported.py'
+
+
 formats:
   - pdf
