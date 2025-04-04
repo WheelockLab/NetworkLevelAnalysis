@@ -24,11 +24,7 @@ any user-created custom tests will need to be saved. All edge-level test objects
   may be used and this step can be skipped. If a new result is needed, a permutation result inheriting ``+nla/+edge/+result/PermBase``
   must also be created
 
-.. mat:module:: edge.result
 
-.. mat:autoclass:: Base
-
-    .. mat:automethod:: output(net_atlas, flags, prob_label)
 
 Creating additional network-level tests
 ----------------------------------------------------------
