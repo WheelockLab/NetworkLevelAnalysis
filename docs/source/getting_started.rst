@@ -9,13 +9,15 @@ test from the edge-level test dropdown.
 
 Click ``Select`` to choose a network atlas, navigating to the ``support_files`` folder withing your
 NetworkLevelAnalysis installation and selecting ``Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat``.
-This file is used to parcellate the data.
+This file is used to parcellate the data. 
+
+:menuselection:`Network Atlas Select Button --> support files --> Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat`
 
 Then, select the functional connectivity, located in the ``examples/fc_and_behavior`` folder under the name
 ``sample_func_conn.mat``. Click 'Yes' to Fisher z-transform the data. Take a moment to visualize the functional
 connectivity (FC) average by clicking ``View``. Note that the FC appears to match the parcellation, (effects
 generally line up with network boundaries) - this can be a useful diagnostic tool if you are having issues
-with parcellations not matching data.
+with parcellations not matching data. 
 
 Finally, load the behavior ``sample_behavior.mat`` from the ``examples/fc_and_behavior`` folder (The 'file type' drop-down
 will need to be changed from ``Text`` to ``MATLAB table`` in the file browser). Set the behavioral variable to 'Flanker_AgeAdj' by

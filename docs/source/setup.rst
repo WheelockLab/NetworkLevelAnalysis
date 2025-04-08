@@ -1,13 +1,21 @@
 Setup
 ====================
 
+Download
+--------------------------------
+
+Download the NLA files from github to your computer. Note where it is located, this folder will be added to 
+MATLAB's path in the next step.
+
 Add NLA Folders to MATLAB Path
 -------------------------------------
 
 In order to for any NLA functions to work, MATLAB must be able to find them on the path. To do this, in
 the MATLAB file explorer, navigate to where you have downloaded or cloned the NetworkLevelAnalysis
 folder to. Right click the folder, hover over ``Add to Path`` in the context menu, and click the ``Selected
-Folders and Subfolders`` option.
+Folders and Subfolders`` option. 
+
+:kbd:`Right click` then :menuselection:`Add to Path --> Selected Folders and Subfolders`
 
 **NOTE**: If you only add the base 'NetworkLevelAnalysis' folder to the path the code will not work, you must
 pick the ``Selected Folders and Subfolders`` option
@@ -16,7 +24,7 @@ Running the GUI
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To open the GUI, navigate to the root directory of the NetworkLevelAnalysis package in MATLAB and run
-the command ``NLA_GUI`` via the MATLAB command line.
+the command :command:`NLA_GUI` via the MATLAB command line.
 
 **Note**: Running the GUI through an X11-based remote connection (eg: MobaXTerm or similar) can be very
 laggy in some cases. It is strongly recommended to use the GUI through a more modern remote protocol
