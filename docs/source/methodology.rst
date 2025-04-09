@@ -102,19 +102,37 @@ behavioral data and network-level data.
 
     * - Test Name/Statistic
       - NLA Test Name
+      - Has Single Sample Test
+      - Has Two Sample Test
     * - :math:`\chi` :sup:`2`
-      - Chi-Squared Test  
+      - Chi-Squared Test
+      - No
+      - Yes
     * - Hypergeometric
       - Hypergeometric Test
+      - No
+      - Yes
     * - Kolmogorov-Smirnov Test
       - Kolmogorov-Smirnov Test
+      - Yes
+      - Yes
     * - Student's *t*-test
       - Student's *t*-test
+      - Yes
+      - Yes
     * - Welch's *t*-test
       - Welch's *t*-test
+      - Yes
+      - Yes
+    * - Wilcoxon Rank-Sum Test
+      - Wilcoxon
+      - No
+      - Yes
     * - Wilcoxon Signed-Rank Test
       - Wilcoxon
-  
+      - Yes
+      - No
+
 Three different methods are available for network level testing. The first is referred to as "Full Connectome" testing.
 Each network is compared against the entire connectome. The second is "Within Network Pair".
 This is where network pairs are compared against permuted versions of themselves using single sample tests.
