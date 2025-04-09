@@ -12,7 +12,6 @@ classdef NLAResult < matlab.apps.AppBase
         ViewEdgeLevelButton        matlab.ui.control.Button
         NetLevelLabel              matlab.ui.control.Label
         RunButton                  matlab.ui.control.Button
-        AdjustableNetParamsPanel   matlab.ui.container.Panel
         BranchLabel                matlab.ui.control.Label
         OpenTriMatrixPlotButton    matlab.ui.control.Button
         OpenDiagnosticPlotsButton  matlab.ui.control.Button
@@ -155,69 +154,7 @@ classdef NLAResult < matlab.apps.AppBase
                 end
             end
         end
-        
-        function genadjustableNetParams(app)
-            import nla.* % required due to matlab package system quirks
-            
-            % disgusting special case
-            if isfield(app.net_input_struct, 'prob_max_original')
-                app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
-            end
-            
-            results = app.results.network_test_results;
-            
-            % required inputs to run these tests
-            inputs = {};
-            for i = 1:numel(results)
-                inputs = cat(2, inputs, results{i}.editableOptions());
-            end
-            app.net_adjustable_fields = inputField.reduce(inputs);
-            
-            % display input fields
-            x = inputField.LABEL_GAP * 2;
-            y = app.AdjustableNetParamsPanel.InnerPosition(4);
-            for i = 1:numel(app.net_adjustable_fields)
-                y = y - inputField.LABEL_GAP;
-                [w, h] = app.net_adjustable_fields{i}.draw(x, y, app.AdjustableNetParamsPanel, app.UIFigure);
-                app.net_adjustable_fields{i}.read(app.net_input_struct);
-                y = y - h;
-            end
-        end
-        
-        function readNetParamAdjustments(app)
-            import nla.* % required due to matlab package system quirks
-            
-            [error_str, satisfied] = validateInputStruct(app.net_adjustable_fields, 'Must satisfy fields:', true);
-            
-            if satisfied
-                error_str = "";
-                errors_found = false;
                 
-                % store adjustable fields
-                for i = 1:numel(app.net_adjustable_fields)
-                    [app.net_input_struct, error] = app.net_adjustable_fields{i}.store(app.net_input_struct);
-                    if ~islogical(error)
-                        error_str = [error_str sprintf('\n - %s: %s', app.net_adjustable_fields{i}.disp_name, error)];
-                        errors_found = true;
-                    end
-                end
-                
-                if errors_found
-                    uialert(app.UIFigure, error_str, 'Error with adjustable field (using previous settings)');
-                else
-                    % disgusting special case
-                    if isfield(app.net_input_struct, 'prob_max') && isfield(app.net_input_struct, 'behavior_count')
-                        app.net_input_struct.prob_max_original = app.net_input_struct.prob_max;
-                        app.net_input_struct.prob_max = app.net_input_struct.prob_max / app.net_input_struct.behavior_count;
-                    end
-                end
-            else
-                % TODO ideally buttons would just stay greyed out until
-                % all inputs were satisfied
-                uialert(app.UIFigure, error_str, 'adjustable field not satisfied (using previous settings)');
-            end
-        end
-        
         function initFromInputs(app, test_pool, input_struct, net_input_struct, ~)
             import nla.* % required due to matlab package system quirks
             app.ViewEdgeLevelButton.Enable = false;
@@ -307,18 +244,10 @@ classdef NLAResult < matlab.apps.AppBase
             if ~isfield(app.net_input_struct, 'behavior_count') || ~isfield(app.net_input_struct, 'prob_max')
                 net_inputs_enabled = false;
             end
-            
-            if net_inputs_enabled
-                app.AdjustableNetParamsPanel.Enable = 'on';
-            else
-                app.AdjustableNetParamsPanel.Enable = 'off';
-            end
         end
         
         function displayManyPlots(app, extra_flags, plot_type)
             import nla.* % required due to matlab package system quirks
-            
-            app.readNetParamAdjustments();
             
             prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating %s', plot_type), 'Message', sprintf('Generating %s', plot_type));
             prog.Value = 0.02;
@@ -422,8 +351,6 @@ classdef NLAResult < matlab.apps.AppBase
         function SaveButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
             
-            app.readNetParamAdjustments();
-            
             if islogical(app.results)
                 % save just edge-level results
                 result = ResultPool(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, false, false, false);
@@ -516,8 +443,6 @@ classdef NLAResult < matlab.apps.AppBase
         % Callback function
         function DisplayConvergenceButtonPushed(app, event)
             import nla.* % required due to matlab package system quirks
-            
-            app.readNetParamAdjustments();
             
             prog = uiprogressdlg(app.UIFigure, 'Title', sprintf('Generating convergence map'), 'Message', 'Generating net-level convergence map');
             prog.Value = 0.02;
@@ -639,7 +564,7 @@ classdef NLAResult < matlab.apps.AppBase
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [100 100 858 659];
+            app.UIFigure.Position = [100 100 435 659];
             app.UIFigure.Name = 'MATLAB App';
             app.UIFigure.Resize = 'off';
 
@@ -661,7 +586,7 @@ classdef NLAResult < matlab.apps.AppBase
             % Create ResultTree
             app.ResultTree = uitree(app.UIFigure);
             app.ResultTree.Multiselect = 'on';
-            app.ResultTree.Position = [9 10 418 562];
+            app.ResultTree.Position = [9 90 418 482];
 
             % Create FlipNestingButton
             app.FlipNestingButton = uibutton(app.UIFigure, 'push');
@@ -691,29 +616,24 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Position = [18 523 49 40];
             app.RunButton.Text = 'Run';
 
-            % Create AdjustableNetParamsPanel
-            app.AdjustableNetParamsPanel = uipanel(app.UIFigure);
-            app.AdjustableNetParamsPanel.Title = 'Adjustable network-level parameters';
-            app.AdjustableNetParamsPanel.Position = [434 170 416 427];
-
             % Create BranchLabel
             app.BranchLabel = uilabel(app.UIFigure);
             app.BranchLabel.HorizontalAlignment = 'right';
             app.BranchLabel.VerticalAlignment = 'top';
             app.BranchLabel.FontColor = [0.8 0.8 0.8];
-            app.BranchLabel.Position = [434 627 418 29];
+            app.BranchLabel.Position = [1 41 418 29];
             app.BranchLabel.Text = {'gui | unknown_branch:0000000'; 'result produced by | unknown_branch:0000000'};
 
             % Create OpenTriMatrixPlotButton
             app.OpenTriMatrixPlotButton = uibutton(app.UIFigure, 'push');
             app.OpenTriMatrixPlotButton.ButtonPushedFcn = createCallbackFcn(app, @OpenTriMatrixPlotButtonPushed, true);
-            app.OpenTriMatrixPlotButton.Position = [435 127 146 22];
+            app.OpenTriMatrixPlotButton.Position = [11 58 146 22];
             app.OpenTriMatrixPlotButton.Text = 'Open TriMatrix Plot';
 
             % Create OpenDiagnosticPlotsButton
             app.OpenDiagnosticPlotsButton = uibutton(app.UIFigure, 'push');
             app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
-            app.OpenDiagnosticPlotsButton.Position = [435 98 147 22];
+            app.OpenDiagnosticPlotsButton.Position = [11 28 147 22];
             app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
 
             % Show the figure after all components are created
