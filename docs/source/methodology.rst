@@ -4,13 +4,13 @@ Methodology
 The Network Level Analysis (NLA) Method
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, connectome-wide associations are calculated between ROI-pair connectivity and behavioral data,
+First, connectome-wide associations are calculated between :abbr:`ROI (Region of Interest)`-pair connectivity and behavioral data,
 resulting in a set of standardized regression coefficients that specify the brain-behavior association at
 each ROI-pair of the connectome matrix. Next, network level analysis, consisting of a transformation of the
 edge-level test statistics and enrichment statistic calculation :cite:p:`AckermanM`, is done to determine which networks are
 strongly associated with the behavior of interest.
 
-Both *p*-value and test-statistic binarization are offered in the current NLA pipeline :cite:p:`EggebrechtA,WheelockM:2018`. Prior research has
+At the edge-level both *p*-value and test-statistic binarization are offered in the current NLA pipeline :cite:p:`EggebrechtA,WheelockM:2018`. Prior research has
 supported the incorporation of a proportional edge density threshold, given that uneven edge density
 thresholds have been shown to unfairly bias results :cite:p:`vandenHeuvelM`.
 For enrichment statistic calculation, NLA offers a number of statistical tests (detailed below). Prior research has relied on
@@ -28,7 +28,7 @@ error terms don't change with the permutation.
 
 NLA performs the permutation testing by shuffling the behavior vector labels and computing the selected statistic(s) many
 times to produce a null distribution for each network. Family-wise error rate (FWER) can be corrected via Bonferroni, Benjamini-Yekutieli,
-Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :cite:p:`WinklerA`.
+Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :cite:p:`WinklerA`. 
 
 .. NLA then conducts data-driven permutation testing to establish significance. In the NLA toolbox, network
 .. level significance is determined by comparing each measured enrichment statistic to permuted
@@ -45,6 +45,9 @@ Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :c
     functional connectivity data are not shuffled in order to preserve the inherent covariant structure of the
     data across permutations
 
+.. note::
+    Freedman-Lane FWER correction is referred to as Winkler in NLA. Implementation was modeled after the algorithm described in the paper
+    by Winkler.
 
 Brain Network Map Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +55,7 @@ Brain Network Map Selection
 NLA requires the user to specify the network map that will be used to depict the known architecture of the
 human connectome, which is crucial given that the network map selection affects both statistical
 significance testing and interpretation :cite:p:`BellecP`. The current pipeline uses network maps that are generated with
-Infomap, due to its greater congruence with networks derived from task-activation and seed-based
+`Infomap <https://www.mapequation.org/infomap/#Infomap>`_, due to its greater congruence with networks derived from task-activation and seed-based
 connectivity studies than alternative modularity algorithms :cite:p:`PowerJ,RosvallM`. Network maps can be generated using
 one's preferred algorithm or one of several published ROI and corresponding network map options that
 will be included in the NLA toolbox :cite:p:`GordonE,PowerJ,ThomasY,GlasserM,ShenX,CraddockR`. The use of standardized ROI and network maps creates a
@@ -104,26 +107,27 @@ behavioral data and network-level data.
     * - Hypergeometric
       - Hypergeometric Test
     * - Kolmogorov-Smirnov Test
-      -
+      - Kolmogorov-Smirnov Test
     * - Student's *t*-test
-      -
+      - Student's *t*-test
     * - Welch's *t*-test
-      -
+      - Welch's *t*-test
     * - Wilcoxon Signed-Rank Test
       - Wilcoxon
   
-Two different methods are available for the network level testing. The first is referred to as "Full Connectome"
-testing. Each network is compared against the entire connectome. The second is "Within Network Pair". This is where
-network pairs are compared against each other. Two of the network-level test results are the same regardless of method:
-:math:`\chi` :sup:`2` and Hypergeometric. This is because there are no single sample versions of these tests.
+Three different methods are available for network level testing. The first is referred to as "Full Connectome" testing.
+Each network is compared against the entire connectome. The second is "Within Network Pair".
+This is where network pairs are compared against permuted versions of themselves using single sample tests.
+The third is "No Permutation" where network level statistics are exclusively calculated using single sample tests on non-permuted data. 
+Two of the network-level test results are the same regardless of method: :math:`\chi` :sup:`2` and Hypergeometric. This is because there are no single sample versions of these tests.
 
 How Should the Test Statistic Threshold Be Chosen?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A nominal threshold is used for the thresholding and binarization step of the edge-level tests. The
 nominal threshold is uncorrected and is typically set at 0.05 or 0.01 in the edge-level prob_max field. In
-contrast, a network-level corrected threshold using the Bonferroni method is used in the net-level
-statistics, where the nominal threshold is divided by the number of tests being done to correct for
+contrast, a network-level corrected threshold using the Bonferroni method can be applied to the network-level
+statistics, where the nominal network-level threshold is divided by the number of tests being done to correct for
 multiple comparisons.
 
 How Should the Networks Be Chosen?
@@ -134,4 +138,4 @@ definitions include ROI that are not consistently assigned to any network. These
 prior to network level analysis, as is the case in the ``Seitzman_15nets_288ROI_on_TT`` and the
 ``Gordon_12nets_286parcels_on_MNI`` network atlases included in this version of the toolbox. Network
 atlases that are not included in this package may also be used, but they must first be formatted into the 
-correct structure
+correct structure. Information on how to format a network atlas for use in the toolbox can be found in the :ref:`For Developers <for_developers>` section.
