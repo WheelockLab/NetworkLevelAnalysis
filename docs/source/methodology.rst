@@ -156,4 +156,4 @@ definitions include ROI that are not consistently assigned to any network. These
 prior to network level analysis, as is the case in the ``Seitzman_15nets_288ROI_on_TT`` and the
 ``Gordon_12nets_286parcels_on_MNI`` network atlases included in this version of the toolbox. Network
 atlases that are not included in this package may also be used, but they must first be formatted into the 
-correct structure. Information on how to format a network atlas for use in the toolbox can be found in the :ref:`For Developers <for_developers>` section.
+correct structure. Information on how to format a network atlas for use in the toolbox can be found in the :ref:`Network Atlas <network_atlases>` section.

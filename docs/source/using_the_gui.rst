@@ -5,7 +5,7 @@ Main Window
 ---------------------------
 
 To start the GUI, navigate to the folder that contains the files and type ``NLA_GUI`` in the command section of the MATLAB window. 
-Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.mlapp`` and select ``Run``.
+Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.mlapp`` and select :guilabel:`Run`.
 
 .. figure:: _static/main_gui2.png
 
@@ -32,7 +32,7 @@ Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.m
 
 Loading Results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If previous data was saved (See :ref:`saving results <saving_results>`) there is an option to load it here. Click the ``File`` menu in the upper left-hand corner and select ``Load Previous Results``.
+If previous data was saved (See :ref:`saving results <saving_results>`) there is an option to load it here. Click the :guilabel:`File` menu in the upper left-hand corner and select :guilabel:`Load Previous Results`.
 Depending on the size of the saved data, this could take a bit of time.
 
 Results Window
@@ -42,17 +42,16 @@ Results Window
 
     Results windown with results for Network Level Analysis program
 
-After ``Run`` is pressed in the main window, the results window will open. Initially, most of it bill be bank except for a ``View`` button to view the result
-of the (non-permuted) edge-level test along with another ``Run`` button. Pressing this run button will begin running all the permutations of the edge-level and network-level test(s).
+After :guilabel:`Run` is pressed in the main window, the results window will open. Initially, most of it bill be bank except for a :guilabel:`View` button to view the result
+of the (non-permuted) edge-level test along with another :guilabel:`Run` button. Pressing this run button will begin running all the permutations of the edge-level and network-level test(s).
 
 After all the permutations of the tests are run, the window will change. 
 
-1. Edge test results display
-2. Network level test results. Grouped by test method. The list can be changed to group by test by pushing the ``Flip Nesting`` button.
-3. Results display options
-4. Open TriMatrix Plot.
+#. Edge test results display
+#. Network level test results. Grouped by test method. The list can be changed to group by test by pushing the :guilabel:`Flip Nesting` button.
+#. Open TriMatrix Plot.
    This opens an interactive plot of the statistics. (See :ref:`TriMatrix Plot <trimatrix_plot>`)
-5. Open Diagnostic Plots. 
+#. Open Diagnostic Plots. 
    These three plots 
 
 .. _saving_results:
@@ -60,7 +59,7 @@ After all the permutations of the tests are run, the window will change.
 Saving Results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To save results for use later (See :ref:`loading results <loading_results>`), click the ``File`` menu in the upper left-hand corner and select save. This may take a bit of time depending on how large the dataset is and how many permutations were run.
+To save results for use later (See :ref:`loading results <loading_results>`), click the :guilabel:`File` menu in the upper left-hand corner and select save. This may take a bit of time depending on how large the dataset is and how many permutations were run.
 The results will be saved as:
 
 #. a ResultPool object using models and classes from the NLA codebase. This can only be used if the NLA is in MATLAB's current path.
@@ -76,6 +75,6 @@ TriMatrix Plot
     Trimatrix (lower triangular area) of p-values and display options
 
 1. TriMatrix plot of p-values for selected test.
-2. Options. After changing options, the ``Apply`` button must be pushed to take effect.
+2. Options. After changing options, the :guilabel:`Apply` button must be pushed to take effect.
    There are also two buttons to display chord plots. One displays the network-level results, one displays the edge-level results. The options for these must be selected before the 
    chord plots are opened. The chord plots will not update after they are opened.

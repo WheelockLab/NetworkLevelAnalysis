@@ -21,7 +21,7 @@ the desired column and pressing the green button (marked :guilabel:`Set Behavior
 column is clicked, the column should stay green. 
 
 .. note::
-    If a column is selected as a behavior or covariate(s), it must have a nuermical value. No blanks or NaNs
+    If a column is selected as a behavior or covariate(s), it must have a numerical value. No blanks or NaNs
 
 Setting Covariate(s)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -36,8 +36,8 @@ Setting Permutation Groups
 Permutation groups can also be set. This allows permutation of the data and tests to be run in user-set blocks instead of
 the entire dataset.
 
-To do this a column should be added to the behavior file. This column should be filled with positive numbers that are the same
+To do this a column should be added to the behavior file. This column should be filled with non-negative whole numbers that are the same
 per group. For example, one group would be 0, all of the subjects in this group should have a 0 in this column. The next group
 would be 1, each subject in this group should have a 1. Continue this for the number of groups desired. 
 
-This column can then be selected by pushing the blue buttons (marked: :guilabel:`Add Permutation Group Level` and :guilabel:`Remove Permutation Group Level`).
+This column can then be selected by pushing the blue buttons (marked: :guilabel:`Add Permutation Group Level` and :guilabel:`Remove Last Permutation Group`).

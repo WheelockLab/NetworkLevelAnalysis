@@ -3,13 +3,13 @@ classdef NetworkAtlas < nla.DeepCopyable
     % Defines ROI positions/information and networks
     %
     % :param name: The name of the atlas
-    % :param net_names: N\ :sub:`nets`\  x 3 matrix. The names of the networks
+    % :param net_names: N\ :sub:`nets`\  x 1 matrix. The names of the networks
     % :param ROI_key: N\ :sub:`ROIs`\  x 2 matrix. First column is ROI (Region Of Interest) indexes, second column is the network they belong to
     % :param ROI_order: N\ :sub:`ROIs`\  x 1 vector. Functional Connectivity data indexes corresponding to ROIs
     % :param ROI_pos: N\ :sub:`ROIs`\  x 3 matrix. Centroid positions for each ROI.
     % :param net_colors: N\ :sub:`nets`\  x 3 matrix. The color of each network when plotted.
     % :param parcels: (Optional) MATLAB struct field for surface parcellations. Contains two sub-fields ``ctx_l`` and ``ctx_r``. N\ :sub:`verts`\ x 1 vectors. Each element of a vector corresponds to a vertex within the spatial mesh and contains the index of the ROI for that vertex.
-    % :param space: (Optional) The mesh that the atlas` ROI locations/parcels are in. Two options - ``TT`` or ``MNI``
+    % :param space: (Optional) The mesh that the atlas` ROI locations/parcels are in. Two options - ``Talairach (TT)`` or ``Montreal Neurological Institute (MNI)``
 
     properties (SetAccess = private)
         nets % This is the net_names
@@ -126,7 +126,7 @@ classdef NetworkAtlas < nla.DeepCopyable
         end
         
         function val = numROIs(obj)
-            % :returns: The number of Regions Of Interest (ROIT)
+            % :returns: The number of Regions Of Interest (ROI)
             val = numel(obj.ROIs);
         end
         

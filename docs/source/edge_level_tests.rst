@@ -13,8 +13,8 @@ Common Inputs
 
 :P: Edge-level *p*-value threshold
 :Network Atlas: :doc:`Network Atlas </network_atlases>`
-:Functional Connectivity: Initial coorelation matrix (r-values or Fisher z-transformed r-values) of size N\ :sub:`ROIs`\  x  N\ :sub:`ROIs`\  x  N\ :sub:`scans`\
-:Behavior: MATLAB table (``.mat``) or tab seperated text file (``.txt``)
+:Functional Connectivity: Initial correlation matrix (r-values or Fisher z-transformed r-values) of size N\ :sub:`ROIs`\  x  N\ :sub:`ROIs`\  x  N\ :sub:`scans`\
+:Behavior: MATLAB table (``.mat``) or tab separated text file (``.txt``)
   
   ============== =================== ================
   Variable Name  Next Variable Name  More Variable...
@@ -52,16 +52,23 @@ Provided Tests
 * **Kendall's** :math:`tau` **-b**
 
   * Implements Kendall's :math:`\tau` -b using C code in a MATLAB MEX file (``+mex/+src/kendallTauB.c``)
-  * Faster implementation that stardard MATLAB code providing identical :math:`\tau` and *p*-values.
+  * Faster implementation that standard MATLAB code providing identical :math:`\tau` and *p*-values.
   * Run-time difference from *O*\ (*n*\ :sup:`2`) to *O*\ (*n* log *n*)
   * This is done with a red-black tree.
 * **Welch's** *t* **-test**
 
-  * Implements an optomized Welch's *t*-test comparing the functional connectivity of two groups.
-  * Extra imports compared to other edge level tests
+  * Implements an optimized Welch's *t*-test comparing the functional connectivity of two groups.
+  * :abbr:`FC (Functional Connectivity)` for both groups must be concatenated along the 3rd dimension (N\ :sub:`scans`\). As such, the third dimension will be N\ :sub:`scans`\  x 2
+  * Behavior must contain Group IDs for both groups. The simplest way to do this is by creating a column vector containing 0's for subjects in Group 1 and 1's for subjects in Group 2.
+  * We also recommend using that same column for setting the Permutation Groups as described in (link to �Setting Permutation Groups� here).
 
   :Group name(s): Names associated with each group. (For example, 'Male' and 'Female')
   :Group val(s): Behavioral value associated with each group. If 'Female' is denoted as '0', and 'Male' as '1', set the vals to the numerical values.
+
+* **Paired** *t* **-test**
+  
+  * MATLAB `ttest <https://www.mathworks.com/help/stats/ttest.html>`_ function with (``Dim``, ``2``)
+  * Otherwise implemented the same way as the Welch's *t*-test above
 
 .. _precalculated:
 
