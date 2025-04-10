@@ -46,7 +46,7 @@ Provided Tests
 
 .. math::
 
-  E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}}  * 
+  E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} * 
   (\text{number of ROIs in the network-pair of interest})
 
 

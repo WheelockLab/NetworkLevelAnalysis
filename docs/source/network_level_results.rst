@@ -70,7 +70,11 @@ Result Rank
 
     .. mat:automethod:: westfallYoungMethodRank
 
-.. list-table:: *p*-value for each test based on test method
+
+*p*-value for Each Test Based on Test Method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
     :header-rows: 1
 
     * - 
@@ -97,7 +101,10 @@ Result Rank
       - Single Sample
       - Two Sample
       - Single Sample
-    * - Wilcoxon Rank Sum
-      - Single Sample
-      - Two Sample
-      - Single Sample 
+    * - Wilcoxon
+      - | Single Sample
+        | (Signed-Rank)
+      - | Two Sample
+        | (Rank-Sum)
+      - | Single Sample
+        | (Signed-Rank)
