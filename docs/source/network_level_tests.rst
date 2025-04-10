@@ -5,14 +5,20 @@ Methods
 --------------------------
 
 The non-permuted method measures how significant each network is compared to the entire connectome using
-the given statistical test.
+the given statistical test. The non-permuted method, like its name suggests, does not employ permutation testing. 
+:math:`\chi` :sup:`2`  and Hypergeometric tests are two sample and compare a network block against the rest of the connectome. 
+Student's *t*-test, Welch's *t*-test, Wilcoxon Signed-Rank, and Kolmogorov-Smirnov tests are performed single-sample for each network pair using edge-level data.
 
 The full connectome method ranks the non-permuted (observed) significance of each network against the
-significance of the same network calculated over many permutations using the same test.
-**I DON"T KNOW HOW TO EXPLAIN THE PROBABILITY BEING CALCULATED** - Jim
+significance of the same network calculated over many permutations using the same test. The full connectome method compares edge-level statistics 
+for a given network pair against edge-level statistics for the full connectome using two-sample tests. 
+These two sample tests are performed both on non-permuted and on permuted edge-level data and then ranked to determine statistical significance. 
+The Wilcoxon Rank-Sum test is used for two sample data instead of the Wilcoxon Signed-Rank test
 
 The within network-pair method measures how significant each network is compared to all permutations of
-only the selected network.
+only the selected network. The within-network pair method utilizes single sample tests to compare a non-permuted network pair of interest against permuted versions of itself. 
+As :math:`\chi` :sup:`2`  and Hypergeometric tests do not have a single sample form, they are computed identically to the non-permuted method. Student's *t*-test, Welch's *t*-test, 
+Wilcoxon Signed-Rank test are performed on both the non-permuted and permuted data. Ranking for these tests is performed identically to the full connectome method
 
 Common Inputs
 ------------------------
@@ -33,6 +39,16 @@ Provided Tests
 .. math::
 
     \chi^2 = \sum_{n=1}^n \frac{(O_i - E_i)^2}{E_i}
+    
+..
+  
+  *Where:*
+
+.. math::
+
+  E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}}  * 
+  (\text{number of ROIs in the network-pair of interest})
+
 
 * **Kolmogorov-Smirnov**
   
@@ -50,11 +66,7 @@ Provided Tests
   
 * **Welch's** *t* **-test**
   
-  * Implements an optomized Welch's t-test comparing the functional connectivity of two groups.
-  * Extra imputs compared to other edge level tests
-
-  :Group name(s): Names associated with each group. (For example, 'Male' and 'Female')
-  :Group val(s): Behavioral value associated with each group. If 'Female' is denoted as '0', and 'Male' as '1', set the vals to the numerical values.
+  * Implements an optimized Welch's *t*-test to compare the mean differences of two groups.
 
 * **Student's** *t* **-test**
   
