@@ -6,7 +6,7 @@ Methods
 
 The non-permuted method measures how significant each network is compared to the entire connectome using
 the given statistical test. The non-permuted method, like its name suggests, does not employ permutation testing. 
-:math:`\chi` :sup:`2`  and Hypergeometric tests are two sample and compare a network block against the rest of the connectome. 
+:math:`\chi^2`  and Hypergeometric tests are two sample and compare a network block against the rest of the connectome. 
 Student's *t*-test, Welch's *t*-test, Wilcoxon Signed-Rank, and Kolmogorov-Smirnov tests are performed single-sample for each network pair using edge-level data.
 
 The full connectome method ranks the non-permuted (observed) significance of each network against the
@@ -17,7 +17,7 @@ The Wilcoxon Rank-Sum test is used for two sample data instead of the Wilcoxon S
 
 The within network-pair method measures how significant each network is compared to all permutations of
 only the selected network. The within-network pair method utilizes single sample tests to compare a non-permuted network pair of interest against permuted versions of itself. 
-As :math:`\chi` :sup:`2`  and Hypergeometric tests do not have a single sample form, they are computed identically to the non-permuted method. Student's *t*-test, Welch's *t*-test, 
+As :math:`\chi^2`  and Hypergeometric tests do not have a single sample form, they are computed identically to the non-permuted method. Student's *t*-test, Welch's *t*-test, 
 Wilcoxon Signed-Rank test are performed on both the non-permuted and permuted data. Ranking for these tests is performed identically to the full connectome method
 
 Common Inputs
@@ -32,9 +32,10 @@ Provided Tests
 * **Hypergeomtric**
 
   * MATLAB's `hypercdf <https://www.mathworks.com/help/stats/hygecdf.html>`_ used to find the probablity
+  
 * **Chi-squred**
 
-  * Runs a :math:`\chi` :sup:`2`  test. 
+  * Runs a :math:`\chi^2`  test. 
 
 .. math::
 
@@ -58,9 +59,7 @@ Provided Tests
   
   * MATLAB `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`_ function.
   
-  * MATLAB's `kstest2 <https://www.mathworks.com/help/stats/kstest2.html>`_
-  
-* **Wilcoxon**
+* **Wilcoxon signed-rank test**
 
   * MATLAB's `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`_
   

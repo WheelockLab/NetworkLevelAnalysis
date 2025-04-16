@@ -14,7 +14,7 @@ At the edge-level both *p*-value and test-statistic binarization are offered in 
 supported the incorporation of a proportional edge density threshold, given that uneven edge density
 thresholds have been shown to unfairly bias results :cite:p:`vandenHeuvelM`.
 For enrichment statistic calculation, NLA offers a number of statistical tests (detailed below). Prior research has relied on
-:math:`\chi` :sup:`2` and Fisher's Exact tests. As well as a Kolmogorov-Smirnov (KS) test and non-parametric tests
+:math:`\chi^2` and Fisher's Exact tests. As well as a Kolmogorov-Smirnov (KS) test and non-parametric tests
 based on ranks, which compare the distribution of test values within a region to other regions :cite:p:`WheelockM:2018,RudolphM,MoothaV,ZahnJ`. In
 addition, KS alternatives such as averaging or min-max have also shown promise in connectome
 applications :cite:p:`ChenJ,NewtonM,YaariG,EfronB`.
@@ -104,7 +104,7 @@ behavioral data and network-level data.
       - NLA Test Name
       - Has Single Sample Test
       - Has Two Sample Test
-    * - :math:`\chi` :sup:`2`
+    * - :math:`\chi^2`
       - Chi-Squared Test
       - No
       - Yes
@@ -137,7 +137,7 @@ Three different methods are available for network level testing. The first is re
 Each network is compared against the entire connectome. The second is "Within Network Pair".
 This is where network pairs are compared against permuted versions of themselves using single sample tests.
 The third is "No Permutation" where network level statistics are exclusively calculated using single sample tests on non-permuted data. 
-Two of the network-level test results are the same regardless of method: :math:`\chi` :sup:`2` and Hypergeometric. This is because there are no single sample versions of these tests.
+Two of the network-level test results are the same regardless of method: :math:`\chi^2` and Hypergeometric. This is because there are no single sample versions of these tests.
 
 How Should the Test Statistic Threshold Be Chosen?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

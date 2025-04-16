@@ -29,7 +29,7 @@ Common Inputs
   Each column contains N\ :sub:`scans`\  entries.
   After loading this file, the table should display in the GUI.
   The user may mark one column as 'Behavior' for the score of interest.
-  Other columns may be marked as 'Covariates' which are partialed prior to running statistics.
+  Other columns may be marked as 'Covariates' which are `partialed <https://en.wikipedia.org/wiki/Partial_correlation>`_ prior to running statistics.
 
   **Note**: Network Level Analysis cannot handle missing values for behavior or covariates. If there are ``NaNs`` or missing values in a column, using this column will result in errors
 

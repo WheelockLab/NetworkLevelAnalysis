@@ -47,5 +47,5 @@ intersphinx_mapping = {}
 # https://sphinxcontrib-bibtex.readthedocs.io/en/latest/quickstart.html#installation
 
 bibtex_bibfiles = ['refs.bib']
-bibtex_default_style = 'plain'
+bibtex_default_style = 'unsrt'
 bibtex_reference_style = 'super'

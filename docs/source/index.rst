@@ -21,6 +21,7 @@ Welcome to NetworkLevelAnalysis's documentation!
    network_level_tests
    network_level_results
    for_developers
+   bibliography
 
 
 Indices and tables

@@ -81,7 +81,7 @@ Result Rank
       - No Permutations
       - Full Connectome
       - Within Network Pair
-    * - :math:`\chi` :sup:`2`
+    * - :math:`\chi^2`
       - Two Sample
       - Two Sample
       - Two Sample
