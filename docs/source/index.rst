@@ -1,9 +1,9 @@
-.. NetworkLevelAnalysis documentation master file, created by
+.. Network Level Analysis documentation master file, created by
    sphinx-quickstart on Mon Nov 18 13:00:09 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to NetworkLevelAnalysis's documentation!
+Welcome to Network Level Analysis's documentation!
 ================================================
 
 .. toctree::
