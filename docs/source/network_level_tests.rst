@@ -36,14 +36,7 @@ Provided Tests
   *Inputs:*
     * :math:`O_i`: non-permuted, nominally thresholded, and binarized edge-level *p*-values for the network-pair of interest
     * :math:`\sum_{}O_i`
-    * :math:`E_i`:
-
-      .. math::
-  
-        \textstyle E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} \scriptstyle * (\text{number of ROIs in the network-pair of interest})
-
-      .. 
-
+    * :math:`\textstyle E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} \scriptstyle * (\text{number of ROIs in the network-pair of interest})`
     * Number of ROI pairs across the full connectome
     * Number of ROI pairs within the network pair of interest
   
