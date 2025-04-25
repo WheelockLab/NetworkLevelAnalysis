@@ -71,7 +71,7 @@ Provided Tests
     * Edge-level correlation coefficients for the network-pair of interest
     * Edge-level correlation coefficients across the full connectome
       
-      * **Note**: This input is not used for single-sample tests
+  * **Note**: This test is only run as a two-sample test.
   
 * **Wilcoxon signed-rank test**
 
@@ -80,7 +80,7 @@ Provided Tests
   *Inputs:*
     * Edge-level correlation coefficients for the network-pair of interest
       
-      * **Note**: This input is not used for single-sample tests
+  * **Note**: This test is only run as a single-sample test.
   
 * **Welch's** *t* **-test**
   
