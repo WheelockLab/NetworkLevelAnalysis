@@ -60,6 +60,7 @@ Provided Tests
   *Inputs:*
     * Edge-level correlation coefficients for the network-pair of interest
     * Edge-level correlation coefficients across the full connectome
+      
       * **Note**: This input is not used for single-sample tests
 
 * **Wilcoxon rank-sum test**
@@ -69,6 +70,7 @@ Provided Tests
   *Inputs:*
     * Edge-level correlation coefficients for the network-pair of interest
     * Edge-level correlation coefficients across the full connectome
+      
       * **Note**: This input is not used for single-sample tests
   
 * **Wilcoxon signed-rank test**
@@ -77,6 +79,7 @@ Provided Tests
 
   *Inputs:*
     * Edge-level correlation coefficients for the network-pair of interest
+      
       * **Note**: This input is not used for single-sample tests
   
 * **Welch's** *t* **-test**
@@ -86,6 +89,7 @@ Provided Tests
   *Inputs:*
     * Edge-level correlation coefficients for the network-pair of interest
     * Edge-level correlation coefficients across the full connectome
+      
       * **Note**: This input is not used for single-sample tests
 
 * **Student's** *t* **-test**
@@ -95,6 +99,7 @@ Provided Tests
   *Inputs:*
     * Edge-level correlation coefficients for the network-pair of interest
     * Edge-level correlation coefficients across the full connectome
+      
       * **Note**: This input is not used for single-sample tests
 
 Creating additional network-level tests
