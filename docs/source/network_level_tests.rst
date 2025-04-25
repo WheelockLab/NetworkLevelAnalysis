@@ -32,44 +32,77 @@ Provided Tests
 * **Hypergeomtric**
 
   * MATLAB's `hypercdf <https://www.mathworks.com/help/stats/hygecdf.html>`_ used to find the probablity
+
+  *Inputs:*
+    * :math:`O_i`: non-permuted, nominally thresholded, and binarized edge-level *p*-values for the network-pair of interest
+    * :math:`\sum_{}O_i`
+    * :math:`E_i`:
+
+      .. math::
+  
+        \textstyle E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} \scriptstyle * (\text{number of ROIs in the network-pair of interest})
+
+      .. 
+
+    * Number of ROI pairs across the full connectome
+    * Number of ROI pairs within the network pair of interest
   
 * **Chi-squred**
 
   * Runs a :math:`\chi^2`  test. 
 
-.. math::
-
+  .. math:: 
+    
     \chi^2 = \sum_{n=1}^n \frac{(O_i - E_i)^2}{E_i}
     
-..
-  
-  *Where:*
-
-.. math::
-
-  E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} * 
-  (\text{number of ROIs in the network-pair of interest})
-
+  ..
+    
+    * :math:`\textstyle E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} \scriptstyle * (\text{number of ROIs in the network-pair of interest})`
+    * :math:`O_i`: non-permuted, nominally thresholded, and binarized edge-level *p*-values for the network-pair of interest
 
 * **Kolmogorov-Smirnov**
   
   * MATLAB `kstest2 <https://www.mathworks.com/help/stats/kstest2.html>`_ function.
+  
+  *Inputs:*
+    * Edge-level correlation coefficients for the network-pair of interest
+    * Edge-level correlation coefficients across the full connectome
+      * **Note**: This input is not used for single-sample tests
 
 * **Wilcoxon rank-sum test**
   
   * MATLAB `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`_ function.
+
+  *Inputs:*
+    * Edge-level correlation coefficients for the network-pair of interest
+    * Edge-level correlation coefficients across the full connectome
+      * **Note**: This input is not used for single-sample tests
   
 * **Wilcoxon signed-rank test**
 
-  * MATLAB's `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`_
+  * MATLAB's `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`_ function
+
+  *Inputs:*
+    * Edge-level correlation coefficients for the network-pair of interest
+      * **Note**: This input is not used for single-sample tests
   
 * **Welch's** *t* **-test**
   
   * Implements an optimized Welch's *t*-test to compare the mean differences of two groups.
 
+  *Inputs:*
+    * Edge-level correlation coefficients for the network-pair of interest
+    * Edge-level correlation coefficients across the full connectome
+      * **Note**: This input is not used for single-sample tests
+
 * **Student's** *t* **-test**
   
   * MATLAB `ttest2 <https://www.mathworks.com/help/stats/ttest2.html>`_ function.
+
+  *Inputs:*
+    * Edge-level correlation coefficients for the network-pair of interest
+    * Edge-level correlation coefficients across the full connectome
+      * **Note**: This input is not used for single-sample tests
 
 Creating additional network-level tests
 -----------------------------------------------------
