@@ -158,11 +158,7 @@ classdef SandwichEstimator < nla.edge.BaseTest
             contrastTVal = contrastCalc ./ contrastSE;
             
             %pVals = zeros(size(tVals));  
-            contrastPVal = zeros(size(contrastTVal));
-            for fcIdx = 1:numFcEdges
-                %pVals(:,fcIdx) = 2 * (1 - cdf('T',abs(tVals(:,fcIdx)), dof));
-                contrastPVal(fcIdx) = 2 * (1 - cdf('T',abs(contrastTVal(fcIdx)),dof));
-            end
+            contrastPVal = 2*(1-cdf('T',abs(contrastTVal),dof));
                 
             %sweRes.tVals = tVals;
             %sweRes.pVals = pVals;
@@ -186,7 +182,19 @@ classdef SandwichEstimator < nla.edge.BaseTest
             residCorrectFactor = (1 - diag(hat)).^(-1); %Type 3 residual correction defined in Guillaume 2014
             
             %compute residuals
-            outResidual = diag(residCorrectFactor) * (Y - hat*Y);
+            
+            % Goal is to multiply row for each subject by respective
+            % correction factor in vector residCorrectFactor.
+            % Below equation is equivalent to row wise multiplying Y-hat*Y
+            % with elements of residCorrectFactor.
+            % It is exactly equivalent to:
+            %    outResidual = diag(residCorrectFactor) * (Y - hat*Y);
+            % but over twice as fast by avoiding constructing sparse
+            % [subjxsubj] matrix of diag(residCorrectFactor)   
+            
+            %outResidual = diag(residCorrectFactor) * (Y - hat*Y);
+            outResidual = residCorrectFactor .* (Y - hat*Y);
+
             
         end
        
