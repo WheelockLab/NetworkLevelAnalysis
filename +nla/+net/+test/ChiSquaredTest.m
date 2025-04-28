@@ -42,12 +42,12 @@ classdef ChiSquaredTest < handle
                     network_pair_ROI_significance = edge_test_results.prob_sig.get(network_atlas.nets(network).indexes,...
                         network_atlas.nets(network2).indexes);
                     network_ROI_count = numel(network_pair_ROI_significance);
-                    observed_significance = sum(network_pair_ROI_significance);
+                    observed_hits = sum(network_pair_ROI_significance);
 %                     expected_significance = edge_test_results.avg_prob_sig * network_ROI_count;
-                    expected_significance = (sum(edge_test_results.prob_sig.v)/size(edge_test_results.prob_sig.v,1)) * network_ROI_count; % expected sig should be based off HITS, AS 250210
-                    chi2_value = ((observed_significance - expected_significance) .^ 2) .* ((expected_significance .^ -1)); %legacy style, AS 240529
+                    expected_hits = (sum(edge_test_results.prob_sig.v)/size(edge_test_results.prob_sig.v,1)) * network_ROI_count; % expected sig should be based off HITS, AS 250210
+                    chi2_value = ((observed_hits - expected_hits) .^ 2) .* ((expected_hits .^ -1)); %legacy style, AS 240529
                     result.(permutation_results).(chi2_statistic).set(network, network2, chi2_value);
-                    result.(permutation_results).(greater_than_expected).set(network, network2, observed_significance > expected_significance);
+                    result.(permutation_results).(greater_than_expected).set(network, network2, observed_hits > expected_hits);
                 end
             end
 
