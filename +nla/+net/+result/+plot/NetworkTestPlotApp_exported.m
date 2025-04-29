@@ -51,7 +51,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         title = ""
         chord_type = "nla.PlotType.CHORD"
         settings = false
-        old_data = false
+        old_data = false % data from previous output structures. Not networktestresult object
     end
     
     properties (Dependent)
@@ -105,6 +105,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.settings = struct();
                 app.settings.upperLimit = app.UpperLimitEditField.Value;
                 app.settings.lowerLimit = app.LowerLimitEditField.Value;
+                app.settings.prevPlotScale = app.matrix_plot.plot_scale;
                 app.settings.plotScale = app.PlotScaleDropDown.Value;
                 app.settings.pValueThreshold = app.pvalueThresholdEditField.Value;
                 app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
@@ -153,16 +154,16 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.test_method, probability, sprintf(app.title), mcc, app.createSignificanceFilter(),...
                 app.RankingDropDown.Value);
             
-            if ~isequal(app.UpperLimitEditField.Value, 0.3) && ~isequal(app.LowerLimitEditField.Value, 0.3)
-                probability_parameters.p_value_plot_max = app.UpperLimitEditField.Value;
-            end
+%             if ~isequal(app.UpperLimitEditField.Value, 0.3) && ~isequal(app.LowerLimitEditField.Value, 0.3)
+            probability_parameters.p_value_plot_max = app.pvalueThresholdEditField.Value;
+%             end
             
             plotter = nla.net.result.plot.PermutationTestPlotter(app.edge_test_options.net_atlas);
             [width, height, app.matrix_plot] = plotter.plotProbability(app.Panel_2, probability_parameters, nla.inputField.LABEL_GAP, -50);
             if ~isequal(app.settings, false)
-                app.UpperLimitEditField.Value = app.settings.upperLimit;
-                app.LowerLimitEditField.Value = app.settings.lowerLimit;
                 app.PlotScaleDropDown.Value = app.settings.plotScale;
+                app.UpperLimitEditField.Value = app.settings.upperLimit;
+                app.LowerLimitEditField.Value = app.settings.lowerLimit;               
                 app.pvalueThresholdEditField.Value = app.settings.pValueThreshold;
                 app.CohensDThresholdCheckBox.Value = app.settings.cohensD;
                 app.CohensDThresholdEditField.Value = app.settings.cohensDValue;
@@ -201,7 +202,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         function applyScaleChange(app)
             progress_bar = uiprogressdlg(app.UIFigure, "Title", "Please Wait", "Message", "Applying Changes...", "Indeterminate", true);
             progress_bar.Message = "Chaning scale of existing TriMatrix...";
-            app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value)
+            app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.settings.prevPlotScale, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value)
+            app.UpperLimitEditField.Value = app.matrix_plot.upper_limit;
+            app.LowerLimitEditField.Value = app.matrix_plot.lower_limit;
         end
         
         function hideCohensDControls(app)
@@ -409,10 +412,10 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create PlotScaleDropDown
             app.PlotScaleDropDown = uidropdown(app.Panel);
             app.PlotScaleDropDown.Items = {'Linear', 'Log', 'Negative Log10'};
-            app.PlotScaleDropDown.ItemsData = {'nla.ProbPlotMethod.DEFAULT', 'nla.ProbPlotMethod.LOG', 'nla.ProbPlotMethod.NEGATIVE_LOG_10'};
+            app.PlotScaleDropDown.ItemsData = {'nla.gfx.ProbPlotMethod.DEFAULT', 'nla.gfx.ProbPlotMethod.LOG', 'nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10'};
             app.PlotScaleDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
             app.PlotScaleDropDown.Position = [78 297 100 22];
-            app.PlotScaleDropDown.Value = 'nla.ProbPlotMethod.DEFAULT';
+            app.PlotScaleDropDown.Value = 'nla.gfx.ProbPlotMethod.DEFAULT';
 
             % Create RankingDropDownLabel
             app.RankingDropDownLabel = uilabel(app.Panel);
