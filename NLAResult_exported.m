@@ -28,7 +28,7 @@ classdef NLAResult < matlab.apps.AppBase
         prog_bar = false
         net_adjustable_fields
         cur_iter = 0
-        old_data = false
+        old_data = false % data from old result objects, not NetworkTestResult
     end
     
     methods (Access = private)
