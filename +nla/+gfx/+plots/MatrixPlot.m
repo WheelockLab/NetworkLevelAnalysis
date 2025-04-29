@@ -34,6 +34,7 @@ classdef MatrixPlot < handle
         plot_scale % The scale and values being plotted (Linear, log, -log10, p-value, statistic p-value)
         current_settings % the settings for the plot (upper, lower, scale)
         display_legend
+        p_value_max
     end
 
     properties (Dependent)
@@ -111,11 +112,12 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'y_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
             addParameter(matrix_input_parser, 'plot_scale', nla.gfx.ProbPlotMethod.DEFAULT);
+            addParameter(matrix_input_parser, 'p_value_max', 0.05)
             
             parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
             properties = {'figure', 'name', 'matrix', 'networks', 'figure_size', 'network_clicked_callback',...
                 'marked_networks', 'figure_margins', 'draw_legend', 'draw_colorbar', 'color_map', 'lower_limit',...
-                'upper_limit', 'x_position', 'y_position', 'discrete_colorbar', 'plot_scale'};
+                'upper_limit', 'x_position', 'y_position', 'discrete_colorbar', 'plot_scale', 'p_value_max'};
             for property = properties
                 obj.(property{1}) = matrix_input_parser.Results.(property{1});
                 if property{1} == "marked_networks"
@@ -179,7 +181,7 @@ classdef MatrixPlot < handle
 
         end
 
-        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, scale, color_map_select)
+        function applyScale(obj, ~, ~, upper_limit_box, lower_limit_box, old_scale, new_scale, color_map_select)
             % This callback gets the colormap/scale and then applies the new bounds to the data.
             % Only works with APPLY button, will not work with only CLOSE
         
@@ -197,15 +199,15 @@ classdef MatrixPlot < handle
             end
 
             if isnumeric(upper_limit_box)
-                upper_limit = upper_limit_box;
+                obj.upper_limit = upper_limit_box;
             else
-                upper_limit = get(upper_limit_box, "String");
+                obj.upper_limit = get(upper_limit_box, "String");
             end
 
             if isnumeric(lower_limit_box)
-                lower_limit = lower_limit_box;
+                obj.lower_limit = lower_limit_box;
             else
-                lower_limit = get(lower_limit_box, "String");
+                obj.lower_limit = get(lower_limit_box, "String");
             end
 
             if ~isstring(obj.plot_scale)
@@ -213,33 +215,34 @@ classdef MatrixPlot < handle
             end
             
             obj.matrix = obj.original_matrix;
-            if ismember(obj.plot_scale, ["nla.ProbPlotMethod.NEGATIVE_LOG_10", "nla.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
-                ismember(scale, ["nla.ProbPlotMethod.DEFAULT", "nla.ProbPlotMethod.LOG"])
-                obj.matrix.v = 10.^(-obj.matrix.v);
-                
-            elseif ~ismember(obj.plot_scale, ["nla.ProbPlotMethod.NEGATIVE_LOG_10", "nla.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
-                ~ismember(scale, ["nla.ProbPlotMethod.DEFAULT", "nla.ProbPlotMethod.LOG"])
+            if ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
+                ismember(new_scale, ["nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.LOG"])
+%                 obj.matrix.v = 10.^(-obj.matrix.v);
+                obj.lower_limit = 0;
+                obj.upper_limit = obj.p_value_max;
+            elseif ~ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
+                ~ismember(new_scale, ["nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.LOG"])
                 obj.matrix.v = -log10(obj.matrix.v);
-                lower_limit = 0;
-                upper_limit = 2;
+                obj.lower_limit = 0;
+                obj.upper_limit = 2;
             end
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
 
-            if scale == "nla.ProbPlotMethod.DEFAULT"
-                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, upper_limit, color_map);
-                obj.plot_scale = scale;
-            elseif scale == "nla.ProbPlotMethod.LOG"
-                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, upper_limit, color_map);
-                obj.plot_scale = scale;
+            if new_scale == "nla.gfx.ProbPlotMethod.DEFAULT"
+                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, obj.upper_limit, color_map);
+                obj.plot_scale = new_scale;
+            elseif new_scale == "nla.gfx.ProbPlotMethod.LOG"
+                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, obj.upper_limit, color_map);
+                obj.plot_scale = new_scale;
             else
                 color_map_name = str2func(lower(color_map));
                 new_color_map = color_map_name(discrete_colors);
-                obj.plot_scale = "nla.ProbPlotMethod.NEGATIVE_LOG_10";
+                obj.plot_scale = "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10";
             end
             obj.color_map = new_color_map;
-            obj.embiggenMatrix(lower_limit, upper_limit);
-            obj.createColorbar(lower_limit, upper_limit);
+            obj.embiggenMatrix(obj.lower_limit, obj.upper_limit);
+            obj.createColorbar(obj.lower_limit, obj.upper_limit);
         end
 
         function createLegend(obj)
