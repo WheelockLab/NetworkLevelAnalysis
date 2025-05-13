@@ -37,7 +37,9 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             label_gap = LABEL_GAP;
             h = LABEL_H * 2 + label_gap;
             
-            %% Create label
+            %% NETWORK ATLAS
+
+            % Create label
             if ~isgraphics(obj.label)
                 obj.label = uilabel(parent);
             end
@@ -46,14 +48,14 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             obj.label.HorizontalAlignment = 'left';
             obj.label.Position = [x, y - LABEL_H, label_w + label_gap, LABEL_H];
             
-            %% Create button
+            % Create button
             if ~isgraphics(obj.button)
                 obj.button = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.buttonClickedCallback());
             end
             button_w = 100;
             obj.button.Position = [x + label_w + label_gap, y - LABEL_H, button_w, LABEL_H];
             
-            %% Mesh inflation selector
+            % Mesh inflation selector
             if ~isgraphics(obj.inflation_label)
                 obj.inflation_label = uilabel(parent);
                 obj.inflation_label.HorizontalAlignment = 'right';
@@ -70,7 +72,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             end
             obj.inflation_dropdown.Position = [0, y - LABEL_H, inflation_dropdown_w, LABEL_H];
             
-            %% 'View as surface parcel' checkbox
+            % 'View as surface parcel' checkbox
             checkbox_surface_parcels_w = 108;
             if ~isgraphics(obj.checkbox_surface_parcels)
                 obj.checkbox_surface_parcels = uicheckbox(parent);
@@ -78,7 +80,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             end
             obj.checkbox_surface_parcels.Position = [0, y - LABEL_H, checkbox_surface_parcels_w, LABEL_H];
             
-            %% Create view button
+            % Create view button
             if ~isgraphics(obj.button_view_net_atlas)
                 obj.button_view_net_atlas = uibutton(parent, 'push', 'ButtonPushedFcn',...
                     @(h,e)obj.buttonViewNetAtlasClickedCallback());
@@ -88,8 +90,10 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             obj.button_view_net_atlas.Position = [0, y - LABEL_H, button_view_net_atlas_w, LABEL_H];
             
             w = label_w + label_gap + button_w + label_gap + checkbox_surface_parcels_w + label_gap + button_view_net_atlas_w;
-            
-            %% Create label2
+            %%
+
+            %% FUNCTIONAL CONNECTIVITY
+            % Create label2
             if ~isgraphics(obj.label2)
                 obj.label2 = uilabel(parent);
             end
@@ -98,14 +102,14 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             obj.label2.HorizontalAlignment = 'left';
             obj.label2.Position = [x, y - h, label2_w + label_gap, LABEL_H];
             
-            %% Create button2
+            % Create button2
             if ~isgraphics(obj.button2)
                 obj.button2 = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.button2ClickedCallback());
             end
             button2_w = 100;
             obj.button2.Position = [x + label2_w + label_gap, y - h, button2_w, LABEL_H];
             
-            %% Create view button
+            % Create view button
             if ~isgraphics(obj.button_view_fc_avg)
                 obj.button_view_fc_avg = uibutton(parent, 'push', 'ButtonPushedFcn', @(h,e)obj.buttonViewFCAvgClickedCallback());
             end
@@ -116,6 +120,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             
             w2 = label2_w + label_gap + button2_w + label_gap + button_view_fc_avg_w;
             w = max(w, w2);
+            %%
         end
         
         function undraw(obj)
@@ -204,55 +209,81 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
         end
         
         function button2ClickedCallback(obj, ~)
-            [file, path, idx] = uigetfile({'*.mat', 'Functional connectivity matrix (*.mat)'}, 'Select Functional Connectivity Matrix');
-            if idx == 1
-                prog = uiprogressdlg(obj.fig, 'Title', 'Loading functional connectivity data', 'Message',...
-                    sprintf('Loading %s', file), 'Indeterminate', true);
-                drawnow;
-                    
-                fc_data = load([path file]);
-                fc_unordered = false;
-                if isnumeric(fc_data)
-                    fc_unordered = fc_data;
-                elseif isstruct(fc_data)
-                    if isfield(fc_data, 'functional_connectivity')
-                        fc_unordered = fc_data.functional_connectivity;
-                    elseif isfield(fc_data, 'func_conn')
-                        fc_unordered = fc_data.func_conn;
-                    elseif isfield(fc_data, 'fc')
-                        fc_unordered = fc_data.fc;
-                    else
-                        fn = fieldnames(fc_data);
-                        if numel(fn) == 1
-                            fname = fn{1};
-                            if isnumeric(fc_data.(fname))
-                                fc_unordered = fc_data.(fname);
-                            end
-                        end
-                    end
-                end
+            [file, path, idx] = uigetfile(...
+                {'*.mat', 'MATLAB File (*.mat)'; '*.csv', 'Comma-separated Values (*.csv)'; '*.txt', 'Text file (*.txt)'},...
+                'Select Functional Connectivity Matrix', 'MultiSelect', 'on'...
+            );
+            text_file = file;
+            if iscell(file)
+                text_file = file{1};
+            end
+            prog = uiprogressdlg(obj.fig, 'Title', 'Loading functional connectivity data', 'Message',...
+                    sprintf('Loading %s', text_file), 'Indeterminate', true);
+            drawnow;
 
-                % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
-                if ~islogical(fc_unordered)
-                    obj.func_conn_unordered = double(fc_unordered);
-                    
-                    %% Transform R-values to Z-scores
-                    % If this condition isn't true, it cannot be R values
-                    % If it is true, it is almost certainly R values but might not be
-                    if all(abs(obj.func_conn_unordered(:)) <= 1)
-                        sel = uiconfirm(obj.fig, sprintf('Fisher Z transform functional connectivity data?\n(If you have provided R-values)'), 'Fisher Z transform?');
-                        if strcmp(sel, 'Ok')
-                            obj.func_conn_unordered = nla.fisherR2Z(obj.func_conn_unordered);
-                        end
+            fc_unordered = false;
+            if idx == 1        
+                fc_data = load([path file]);
+            else
+                if iscell(file)
+                    fc_data = readmatrix([path file{1}]);
+                    for current_file = 2:numel(file)
+                        fc_data(:,:,current_file) = readmatrix([path file{current_file}]);
                     end
-                    
-                    obj.update();
-                    close(prog);
                 else
-                    close(prog);
-                    uialert(obj.fig, sprintf('Could not load functional connectivity matrix from %s', file), 'Invalid functional connectivity file');
+                    fc_data = readmatrix([path file]);
+                    fc_data_size = size(fc_data);
+                    if numel(fc_data_size) == 2 && fc_data_size(1) ~= fc_data_size(2)
+                        greater_dimension = fc_data_size(2);
+                        lesser_dimension = fc_data_size(1);
+                        if fc_data_size(1) > fc_data_size(2)
+                            greater_dimension = fc_data_size(1);
+                            lesser_dimension = fc_data_size(2);
+                        end
+                        third_dimension = greater_dimension / lesser_dimension;
+                        fc_data = reshape(fc_data, [lesser_dimension, lesser_dimension, third_dimension]);
+                    end
                 end
             end
+
+            if isnumeric(fc_data)
+                fc_unordered = fc_data;
+            elseif isstruct(fc_data)
+                if isfield(fc_data, 'functional_connectivity')
+                    fc_unordered = fc_data.functional_connectivity;
+                elseif isfield(fc_data, 'func_conn')
+                    fc_unordered = fc_data.func_conn;
+                elseif isfield(fc_data, 'fc')
+                    fc_unordered = fc_data.fc;
+                else
+                    fn = fieldnames(fc_data);
+                    if numel(fn) == 1
+                        fname = fn{1};
+                        if isnumeric(fc_data.(fname))
+                            fc_unordered = fc_data.(fname);
+                        end
+                    end
+                end
+            end
+
+            % functional connectivity matrix (not ordered/trimmed according to network atlas yet)
+            if ~islogical(fc_unordered)
+                obj.func_conn_unordered = double(fc_unordered);
+                
+                %% Transform R-values to Z-scores
+                % If this condition isn't true, it cannot be R values
+                % If it is true, it is almost certainly R values but might not be
+                if all(abs(obj.func_conn_unordered(:)) <= 1)
+                    sel = uiconfirm(obj.fig, sprintf('Fisher Z transform functional connectivity data?\n(If you have provided R-values)'), 'Fisher Z transform?');
+                    if strcmp(sel, 'Ok')
+                        obj.func_conn_unordered = nla.fisherR2Z(obj.func_conn_unordered);
+                    end
+                end
+                obj.update();
+            else
+                uialert(obj.fig, sprintf('Could not load functional connectivity matrix from %s', file), 'Invalid functional connectivity file');
+            end
+            close(prog);
         end
         
         function buttonViewNetAtlasClickedCallback(obj)
