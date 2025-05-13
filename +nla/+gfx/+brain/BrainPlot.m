@@ -332,7 +332,7 @@ classdef BrainPlot < handle
                 edges = [edges, obj.drawEdges(ROI_final_positions, plot_axis)];
             else
                 obj.mesh_alpha = 1;
-                [ROI_final_positions, ROI_colors] = obj.getROIPositions(view_position, nla.gfx.BrainColorMode.COLOR_ROIS);
+                [ROI_final_positions, ROI_colors] = obj.getROIPositions(view_position, nla.gfx.BrainColorMode.COLOR_ROIS, obj.mapColorsToLimits(obj.ROI_values,0));
                 if ~isequal(color_mode, nla.gfx.BrainColorMode.NONE) && obj.surface_parcels && ~islogical(obj.network_atlas.parcels) && isequal(size(obj.network_atlas.parcels.ctx_l,1), size(obj.network_atlas.anat.hemi_l.nodes, 1)) && isequal(size(obj.network_atlas.parcels.ctx_r, 1), size(obj.network_atlas.anat.hemi_r.nodes, 1))
                     ROI_color_map = [0.5 0.5 0.5; ROI_colors];
                     obj.drawCortex(obj.network_atlas.anat, plot_axis, view_position, ROI_color_map(obj.network_atlas.parcels.ctx_l + 1, :), ROI_color_map(obj.network_atlas.parcels.ctx_r + 1, :));
@@ -347,7 +347,8 @@ classdef BrainPlot < handle
                 end
             end
            
-            if (~isfield(obj.edge_test_options, "show_ROI_centroids")) || (isfield(obj.edge_test_options, "show_ROI_centroids") && isequal(obj.edge_test_options.show_ROI_centroids, true))
+            %if (~isfield(obj.edge_test_options, "show_ROI_centroids")) || (isfield(obj.edge_test_options, "show_ROI_centroids") && isequal(obj.edge_test_options.show_ROI_centroids, true))
+            if obj.network_test_options.show_ROI_centroids
                 obj.drawROISpheres(ROI_final_positions, plot_axis, connectivity_map);
             end
 
