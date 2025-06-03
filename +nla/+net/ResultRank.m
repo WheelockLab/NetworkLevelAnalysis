@@ -109,7 +109,12 @@ classdef ResultRank < handle
             % :return: The same NetworkTestResult object with ranking results
 
             winkler_probability = strcat("winkler_", probability);
+            % NET-278: The "max statistic" for hypergeometric is the most significant p-value. Which is the smallest p-value.
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
+            if isequal(ranking.test_name, "hypergeometric")
+                max_statistic_array = min(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
+            end
+            
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
                 if isequal(ranking.test_name, "hypergeometric")
                     ranking.(test_method).(winkler_probability).v(index) = sum(...
@@ -153,14 +158,20 @@ classdef ResultRank < handle
             max_per_permutation_reducing_rows = zeros(...
                 size(permutations_sorted_by_non_permuted, 1), size(permutations_sorted_by_non_permuted, 2)...
             );
-            for row_index = size(permutations_sorted_by_non_permuted, 1):-1:2
-                max_per_permutation_reducing_rows(row_index, :) = max(permutations_sorted_by_non_permuted(1:row_index, :));
-            end
-            max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
-            
             if isequal(ranking.test_name, "hypergeometric")
+                % NET-278: The "max statistic" for hypergeometric is the most significant p-value. Which is the smallest p-value.
+                for row_index = size(permutations_sorted_by_non_permuted, 1):-1:2
+                    max_per_permutation_reducing_rows(row_index, :) = min(permutations_sorted_by_non_permuted(1:row_index, :));
+                end
+                max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
+                
                 ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results > max_per_permutation_reducing_rows, 2);
             else
+                for row_index = size(permutations_sorted_by_non_permuted, 1):-1:2
+                    max_per_permutation_reducing_rows(row_index, :) = max(permutations_sorted_by_non_permuted(1:row_index, :));
+                end
+                max_per_permutation_reducing_rows(1, :) = permutations_sorted_by_non_permuted(1, :);
+                
                 ranking.(test_method).(westfall_young_probability).v = mean(sorted_no_permutation_results < max_per_permutation_reducing_rows, 2);
             end
             
