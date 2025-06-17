@@ -5,36 +5,36 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         UIFigure                        matlab.ui.Figure
         Menu                            matlab.ui.container.Menu
         SaveasMenu                      matlab.ui.container.Menu
-        Panel                           matlab.ui.container.Panel
-        PlotScaleDropDownLabel          matlab.ui.control.Label
-        PlotScaleDropDown               matlab.ui.control.DropDown
-        RankingDropDownLabel            matlab.ui.control.Label
-        RankingDropDown                 matlab.ui.control.DropDown
-        UpperLimitEditFieldLabel        matlab.ui.control.Label
-        UpperLimitEditField             matlab.ui.control.NumericEditField
-        LowerLimitEditFieldLabel        matlab.ui.control.Label
-        LowerLimitEditField             matlab.ui.control.NumericEditField
-        pvalueThresholdEditFieldLabel   matlab.ui.control.Label
-        pvalueThresholdEditField        matlab.ui.control.NumericEditField
-        CohensDThresholdEditFieldLabel  matlab.ui.control.Label
-        CohensDThresholdEditField       matlab.ui.control.NumericEditField
-        ColormapDropDownLabel           matlab.ui.control.Label
-        ColormapDropDown                matlab.ui.control.DropDown
-        LegendVisibleDropDownLabel      matlab.ui.control.Label
-        LegendVisibleDropDown           matlab.ui.control.DropDown
-        MultipleComparisonCorrectionDropDownLabel  matlab.ui.control.Label
-        MultipleComparisonCorrectionDropDown  matlab.ui.control.DropDown
-        CohensDThresholdCheckBox        matlab.ui.control.CheckBox
-        ROIcentroidsonbrainplotsCheckBox  matlab.ui.control.CheckBox
-        ViewChordPlotsButton            matlab.ui.control.Button
-        ViewEdgeChordPlotsButton        matlab.ui.control.Button
-        EdgeChordPlotTypeDropDownLabel  matlab.ui.control.Label
-        EdgeChordPlotTypeDropDown       matlab.ui.control.DropDown
-        ViewConvergenceMapButton        matlab.ui.control.Button
-        ConvergencePlotColorDropDownLabel  matlab.ui.control.Label
-        ConvergencePlotColorDropDown    matlab.ui.control.DropDown
-        ApplyButton                     matlab.ui.control.Button
         Panel_2                         matlab.ui.container.Panel
+        Panel                           matlab.ui.container.Panel
+        ApplyButton                     matlab.ui.control.Button
+        ConvergencePlotColorDropDown    matlab.ui.control.DropDown
+        ConvergencePlotColorDropDownLabel  matlab.ui.control.Label
+        ViewConvergenceMapButton        matlab.ui.control.Button
+        EdgeChordPlotTypeDropDown       matlab.ui.control.DropDown
+        EdgeChordPlotTypeDropDownLabel  matlab.ui.control.Label
+        ViewEdgeChordPlotsButton        matlab.ui.control.Button
+        ViewChordPlotsButton            matlab.ui.control.Button
+        ROIcentroidsonbrainplotsCheckBox  matlab.ui.control.CheckBox
+        CohensDThresholdCheckBox        matlab.ui.control.CheckBox
+        MultipleComparisonCorrectionDropDown  matlab.ui.control.DropDown
+        MultipleComparisonCorrectionDropDownLabel  matlab.ui.control.Label
+        LegendVisibleDropDown           matlab.ui.control.DropDown
+        LegendVisibleDropDownLabel      matlab.ui.control.Label
+        ColormapDropDown                matlab.ui.control.DropDown
+        ColormapDropDownLabel           matlab.ui.control.Label
+        CohensDThresholdEditField       matlab.ui.control.NumericEditField
+        CohensDThresholdEditFieldLabel  matlab.ui.control.Label
+        pvalueThresholdEditField        matlab.ui.control.NumericEditField
+        pvalueThresholdEditFieldLabel   matlab.ui.control.Label
+        LowerLimitEditField             matlab.ui.control.NumericEditField
+        LowerLimitEditFieldLabel        matlab.ui.control.Label
+        UpperLimitEditField             matlab.ui.control.NumericEditField
+        UpperLimitEditFieldLabel        matlab.ui.control.Label
+        RankingDropDown                 matlab.ui.control.DropDown
+        RankingDropDownLabel            matlab.ui.control.Label
+        PlotScaleDropDown               matlab.ui.control.DropDown
+        PlotScaleDropDownLabel          matlab.ui.control.Label
     end
 
     
@@ -273,10 +273,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             chord_plotter.generateChordFigure(probability_parameters, plot_type)
         end
 
-        % Value changed function: ColormapDropDown, 
-        % LegendVisibleDropDown, LowerLimitEditField, 
-        % MultipleComparisonCorrectionDropDown, PlotScaleDropDown, 
-        % RankingDropDown, UpperLimitEditField
+        % Value changed function: ColormapDropDown, LegendVisibleDropDown, 
+        % ...and 5 other components
         function PlotScaleValueChanged(app, event)
             if isequal(app.settings, false)
                 app.settings = struct();
@@ -309,6 +307,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         function ViewEdgeChordPlotsButtonPushed(app, event)
             app.chord_type = "nla.PlotType.CHORD_EDGE";
             app.drawChords(event);
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
+            end
         end
 
         % Value changed function: EdgeChordPlotTypeDropDown
@@ -321,6 +322,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         function ViewChordPlotsButtonPushed(app, event)
             app.chord_type = "nla.PlotType.CHORD";
             app.drawChords(event);
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
+            end
         end
 
         % Button pushed function: ApplyButton
@@ -365,6 +369,10 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
 
             nla.gfx.drawConvergenceMap(app.edge_test_options, app.network_test_options, app.edge_test_options.net_atlas, significance_count_matrix,...
                 test_number, names, app.edge_test_result, color_map);
+
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
+            end
         end
 
         % Menu selected function: SaveasMenu

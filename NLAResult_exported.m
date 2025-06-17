@@ -6,15 +6,15 @@ classdef NLAResult < matlab.apps.AppBase
         FileMenu                   matlab.ui.container.Menu
         SaveButton                 matlab.ui.container.Menu
         SaveSummaryTableMenu       matlab.ui.container.Menu
-        ResultTree                 matlab.ui.container.Tree
-        FlipNestingButton          matlab.ui.control.Button
-        EdgeLevelLabel             matlab.ui.control.Label
-        ViewEdgeLevelButton        matlab.ui.control.Button
-        NetLevelLabel              matlab.ui.control.Label
-        RunButton                  matlab.ui.control.Button
-        BranchLabel                matlab.ui.control.Label
-        OpenTriMatrixPlotButton    matlab.ui.control.Button
         OpenDiagnosticPlotsButton  matlab.ui.control.Button
+        OpenTriMatrixPlotButton    matlab.ui.control.Button
+        BranchLabel                matlab.ui.control.Label
+        RunButton                  matlab.ui.control.Button
+        NetLevelLabel              matlab.ui.control.Label
+        ViewEdgeLevelButton        matlab.ui.control.Button
+        EdgeLevelLabel             matlab.ui.control.Label
+        FlipNestingButton          matlab.ui.control.Button
+        ResultTree                 matlab.ui.container.Tree
     end
 
     
@@ -263,8 +263,8 @@ classdef NLAResult < matlab.apps.AppBase
                     
 %                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
                     nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct, app.old_data)
-                    prog.Value = i / size(selected_nodes, 1);
-%                     app.moveCurrFigToParentLocation();
+                    prog.Value = i / size(selected_nodes, 1);                    
+                    
                 end
             end
             
@@ -394,7 +394,9 @@ classdef NLAResult < matlab.apps.AppBase
             
             close(prog);
             
-%             app.moveCurrFigToParentLocation();
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
+            end
             
         end
 
@@ -416,6 +418,9 @@ classdef NLAResult < matlab.apps.AppBase
                     node_flags = selected_nodes(i).NodeData{2};
                                         
                     result.runDiagnosticPlots(app.input_struct, app.net_input_struct, app.edge_result, app.input_struct.net_atlas, node_flags);
+                    if ispc
+                        nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
+                    end
                     prog.Value = i / size(selected_nodes, 1);
                 end
             end
@@ -482,8 +487,10 @@ classdef NLAResult < matlab.apps.AppBase
             gfx.drawConvergenceMap(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, sig_count_mat, num_tests, names, app.edge_result, color_map);
             
             close(prog);
-            
-%             app.moveCurrFigToParentLocation();
+                        
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
+            end
             %These mlapp files are really just the worst
         end
 
