@@ -13,7 +13,10 @@ procedures that manage multiple comparisons corrections for one or two independe
 
 Hardware and Software Requirements
 ------------------------------------------
-NLA has been tested on MATLAB 2020b on Ubuntu 20.04. Current release of the GUI is not supported for
-Windows. NLA requires the Parallel Processing and Statistics and Machine Learning Toolboxes. Best
+Matlab 2020b and later is recommended. Current release of the GUI is not supported for
+Windows. The development team uses Ubuntu 20.04 with Matlab 2020b and has tested Matlab2024b with
+Ubuntu 20.04 and MacOS
+
+NLA requires the Parallel Processing and Statistics and Machine Learning Toolboxes. Best
 performance will be achieved on a server setup with multiple cores to support parallel processing
 (particularly for the permutation testing portion of the toolbox)
