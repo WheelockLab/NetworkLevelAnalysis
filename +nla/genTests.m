@@ -3,9 +3,14 @@ function tests = genTests(subpackage)
     %   subpackage: dot-seperated subpackage name within NLA namespace, eg.
     %       'net.test' for net-level tests
     root_path = nla.findRootPath();
-    relative_path = strrep(subpackage, '.', '/+');
-    path_to = [root_path '+nla/+' relative_path];
-    network_tests_struct = dir(path_to);
+    subfolders = strsplit(subpackage,'.');
+    %First add '+nla' to root_path, and then add each subpackage as folder
+    path_to_subfolder = fullfile(root_path,'+nla');
+    for i = 1:length(subfolders)
+        path_to_subfolder = fullfile(path_to_subfolder, ['+', subfolders{i}]);
+    end
+    
+    network_tests_struct = dir(path_to_subfolder);
     network_test_folder_contents = {network_tests_struct.name};
     network_test_filenames = network_test_folder_contents(~[network_tests_struct.isdir]);
 
