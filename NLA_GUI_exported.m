@@ -6,25 +6,25 @@ classdef NLA_GUI < matlab.apps.AppBase
         FileMenu                      matlab.ui.container.Menu
         OpenpreviousresultMenu        matlab.ui.container.Menu
         GridLayout                    matlab.ui.container.GridLayout
-        Panel_3                       matlab.ui.container.Panel
-        NoneButton                    matlab.ui.control.Button
-        NetTestSelector               matlab.ui.control.ListBox
-        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
-        BranchLabel                   matlab.ui.control.Label
-        EdgeInputsPanel               matlab.ui.container.Panel
-        NetInputsPanel                matlab.ui.container.Panel
-        Panel                         matlab.ui.container.Panel
-        EdgeTestSelector              matlab.ui.control.DropDown
-        EdgeleveltestDropDownLabel    matlab.ui.control.Label
         Panel_2                       matlab.ui.container.Panel
-        RunButton                     matlab.ui.control.Button
-        MethodsPanel                  matlab.ui.container.Panel
-        NonPermutedCheckBox           matlab.ui.control.CheckBox
-        FullConnCheckBox              matlab.ui.control.CheckBox
-        WithinNetPairCheckBox         matlab.ui.control.CheckBox
-        RunQualityControlButton       matlab.ui.control.Button
-        PermutationcountLabel         matlab.ui.control.Label
         PermutationcountEditField     matlab.ui.control.NumericEditField
+        PermutationcountLabel         matlab.ui.control.Label
+        RunQualityControlButton       matlab.ui.control.Button
+        MethodsPanel                  matlab.ui.container.Panel
+        WithinNetPairCheckBox         matlab.ui.control.CheckBox
+        FullConnCheckBox              matlab.ui.control.CheckBox
+        NonPermutedCheckBox           matlab.ui.control.CheckBox
+        RunButton                     matlab.ui.control.Button
+        Panel                         matlab.ui.container.Panel
+        EdgeleveltestDropDownLabel    matlab.ui.control.Label
+        EdgeTestSelector              matlab.ui.control.DropDown
+        NetInputsPanel                matlab.ui.container.Panel
+        EdgeInputsPanel               matlab.ui.container.Panel
+        Panel_3                       matlab.ui.container.Panel
+        BranchLabel                   matlab.ui.control.Label
+        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
+        NetTestSelector               matlab.ui.control.ListBox
+        NoneButton                    matlab.ui.control.Button
     end
 
     
@@ -106,7 +106,11 @@ classdef NLA_GUI < matlab.apps.AppBase
             root_path = findRootPath();
             
             app.NetworkLevelAnalysisUIFigure.Name = 'NLA';
-            app.NetworkLevelAnalysisUIFigure.Icon = [root_path 'thumb.png'];
+            if ~ispc
+                %Below line throws error on Windows, but fine on Linux/Max
+                %Cause unknown, so live without icon on PC (ADE 20250617)
+                app.NetworkLevelAnalysisUIFigure.Icon = [root_path 'thumb.png'];
+            end
             
             app.BranchLabel.Text = sprintf('gui | %s', helpers.git.commitString());
             
@@ -201,8 +205,8 @@ classdef NLA_GUI < matlab.apps.AppBase
             end
         end
 
-        % Value changed function: FullConnCheckBox, 
-        % NonPermutedCheckBox, WithinNetPairCheckBox
+        % Value changed function: FullConnCheckBox, NonPermutedCheckBox, 
+        % ...and 1 other component
         function MethodButtonGroupSelectionChanged(app, event)
             if ~(app.net_input_struct.full_connectome == app.FullConnCheckBox.Value)
                 app.WithinNetPairCheckBox.Value = false;

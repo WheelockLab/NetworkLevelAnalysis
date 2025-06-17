@@ -21,6 +21,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
         label2 = false
         inflation_label = false
         inflation_dropdown = false
+        UIParent = []
     end
     
     methods
@@ -33,6 +34,7 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             import nla.gfx.MeshType
 
             obj.fig = fig;
+            obj.UIParent = parent;
             
             label_gap = LABEL_GAP;
             h = LABEL_H * 2 + label_gap;
@@ -303,6 +305,9 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
                 nla.gfx.drawNetworkROIs(obj.net_atlas, mesh_inf, 0.8, 4, false);
             end
             
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, obj.UIParent);
+            end
             close(prog);
             drawnow();
         end
@@ -323,6 +328,9 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             fig_l.Position(4) = matrix_plot.image_dimensions("image_height");
             matrix_plot.displayImage();
             
+            if ispc
+                nla.gfx.moveFigToParentUILocation(fig_l, obj.UIParent);
+            end
             close(prog);
             drawnow();
         end
