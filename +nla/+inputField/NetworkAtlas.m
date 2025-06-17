@@ -16,6 +16,7 @@ classdef NetworkAtlas < nla.inputField.InputField
         label = false
         inflation_label = false
         inflation_dropdown = false
+        UIParent = []
     end
     
     methods
@@ -28,6 +29,7 @@ classdef NetworkAtlas < nla.inputField.InputField
             import nla.gfx.MeshType
 
             obj.fig = fig;
+            obj.UIParent = parent;
             
             label_gap = LABEL_GAP;
             h = LABEL_H;
@@ -174,6 +176,9 @@ classdef NetworkAtlas < nla.inputField.InputField
                 nla.gfx.drawNetworkROIs(obj.net_atlas, mesh_inf, 0.8, 4, false);
             end
             
+            if ispc
+                nla.gfx.moveFigToParentUILocation(gcf, obj.UIParent);
+            end
             close(prog);
             drawnow();
         end

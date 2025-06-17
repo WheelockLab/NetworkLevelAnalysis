@@ -22,13 +22,13 @@ function [si_vals] = silhouetteCoeff(fc_avg, networks)
     end
     
     % calculating correlation distance pairwise by ignoring the diagonals
-    corr_distance = lib.calc_correlationdist(fc_included);
+    corr_distance = nla.lib.calc_correlationdist(fc_included);
     
     % all networks are connected to all other networks, but no self-pairing
     net_pair_connected = true(numel(networks));
     net_pair_connected = net_pair_connected - diag(diag(net_pair_connected));
     
     %% Calculate silhouette values
-    si_vals = lib.silhouette_mod(ROI_keys_kept, corr_distance, net_pair_connected);
+    si_vals = nla.lib.silhouette_mod(ROI_keys_kept, corr_distance, net_pair_connected);
 end
 

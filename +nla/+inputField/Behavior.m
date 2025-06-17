@@ -29,6 +29,7 @@ classdef Behavior < nla.inputField.InputField
         button_remove_permutation_level = false
         select_partial_variance_label = false
         select_partial_variance = false
+        UIParent = []
     end
     
     methods
@@ -48,6 +49,7 @@ classdef Behavior < nla.inputField.InputField
             import nla.inputField.LABEL_H nla.inputField.LABEL_GAP
 
             obj.fig = fig;
+            obj.UIParent = parent;
             
             table_w = max(parent.Position(3) - (LABEL_GAP * 4), 500);
             table_h = 300;
@@ -385,6 +387,8 @@ classdef Behavior < nla.inputField.InputField
             if ~islogical(obj.covariates_idx)
                 labels = {obj.table.ColumnName{obj.covariates_idx}};
                 nla.gfx.drawDesignMtx(obj.covariates, labels);
+                
+                    
             end
         end
         
