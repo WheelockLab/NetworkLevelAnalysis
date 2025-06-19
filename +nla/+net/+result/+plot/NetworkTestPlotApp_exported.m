@@ -228,6 +228,19 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             elseif isfield(flags, "show_within_net_pair") && flags.show_within_net_pair
                 test_method = "within_network_pair";
             end
+
+            %If top is offscreen, move down
+            screenResDetails = get(0);
+            displayHeight = screenResDetails.ScreenSize(4);
+            origPos = app.UIFigure.Position;
+            topPos = origPos(2) + origPos(4); %bottom loc + height
+            toolbarHeight = 70; %Height of top windows toolbar
+            if (topPos+toolbarHeight) > displayHeight
+                downOffset = (topPos + toolbarHeight) - displayHeight;
+                app.UIFigure.Position = [origPos(1), origPos(2)-downOffset, origPos(3), origPos(4)];
+            end
+
+            
             
             app.hideCohensDControls(); %keep cohens d controls in code, but hide from user until we get right calcluations - ADE2025MAR24
             
@@ -394,7 +407,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Color = [1 1 1];
-            app.UIFigure.Position = [100 100 674 835];
+            app.UIFigure.Position = [100 100 671 729];
             app.UIFigure.Name = 'MATLAB App';
 
             % Create Menu
@@ -409,12 +422,12 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create Panel
             app.Panel = uipanel(app.UIFigure);
             app.Panel.BackgroundColor = [1 1 1];
-            app.Panel.Position = [141 6 400 330];
+            app.Panel.Position = [12 4 647 226];
 
             % Create PlotScaleDropDownLabel
             app.PlotScaleDropDownLabel = uilabel(app.Panel);
             app.PlotScaleDropDownLabel.HorizontalAlignment = 'right';
-            app.PlotScaleDropDownLabel.Position = [3 297 60 22];
+            app.PlotScaleDropDownLabel.Position = [17 193 60 22];
             app.PlotScaleDropDownLabel.Text = 'Plot Scale';
 
             % Create PlotScaleDropDown
@@ -422,13 +435,13 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.PlotScaleDropDown.Items = {'Linear', 'Log', 'Negative Log10'};
             app.PlotScaleDropDown.ItemsData = {'nla.gfx.ProbPlotMethod.DEFAULT', 'nla.gfx.ProbPlotMethod.LOG', 'nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10'};
             app.PlotScaleDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.PlotScaleDropDown.Position = [78 297 100 22];
+            app.PlotScaleDropDown.Position = [92 193 100 22];
             app.PlotScaleDropDown.Value = 'nla.gfx.ProbPlotMethod.DEFAULT';
 
             % Create RankingDropDownLabel
             app.RankingDropDownLabel = uilabel(app.Panel);
             app.RankingDropDownLabel.HorizontalAlignment = 'right';
-            app.RankingDropDownLabel.Position = [226 297 50 22];
+            app.RankingDropDownLabel.Position = [240 193 50 22];
             app.RankingDropDownLabel.Text = 'Ranking';
 
             % Create RankingDropDown
@@ -436,73 +449,73 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.RankingDropDown.Items = {'Uncorrected', 'Winkler', 'Westfall-Young'};
             app.RankingDropDown.ItemsData = {'nla.RankingMethod.UNCORRECTED', 'nla.RankingMethod.WINKLER', 'nla.RankingMethod.WESTFALL_YOUNG'};
             app.RankingDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.RankingDropDown.Position = [291 297 100 22];
+            app.RankingDropDown.Position = [305 193 100 22];
             app.RankingDropDown.Value = 'nla.RankingMethod.UNCORRECTED';
 
             % Create UpperLimitEditFieldLabel
             app.UpperLimitEditFieldLabel = uilabel(app.Panel);
             app.UpperLimitEditFieldLabel.HorizontalAlignment = 'right';
-            app.UpperLimitEditFieldLabel.Position = [46 267 70 22];
+            app.UpperLimitEditFieldLabel.Position = [60 163 70 22];
             app.UpperLimitEditFieldLabel.Text = 'Upper Limit';
 
             % Create UpperLimitEditField
             app.UpperLimitEditField = uieditfield(app.Panel, 'numeric');
             app.UpperLimitEditField.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.UpperLimitEditField.Position = [126 267 52 22];
+            app.UpperLimitEditField.Position = [140 163 52 22];
             app.UpperLimitEditField.Value = 0.05;
 
             % Create LowerLimitEditFieldLabel
             app.LowerLimitEditFieldLabel = uilabel(app.Panel);
             app.LowerLimitEditFieldLabel.HorizontalAlignment = 'right';
-            app.LowerLimitEditFieldLabel.Position = [259 267 70 22];
+            app.LowerLimitEditFieldLabel.Position = [273 163 70 22];
             app.LowerLimitEditFieldLabel.Text = 'Lower Limit';
 
             % Create LowerLimitEditField
             app.LowerLimitEditField = uieditfield(app.Panel, 'numeric');
             app.LowerLimitEditField.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.LowerLimitEditField.Position = [339 267 52 22];
+            app.LowerLimitEditField.Position = [353 163 52 22];
 
             % Create pvalueThresholdEditFieldLabel
             app.pvalueThresholdEditFieldLabel = uilabel(app.Panel);
             app.pvalueThresholdEditFieldLabel.HorizontalAlignment = 'right';
-            app.pvalueThresholdEditFieldLabel.Position = [14 237 102 22];
+            app.pvalueThresholdEditFieldLabel.Position = [28 133 102 22];
             app.pvalueThresholdEditFieldLabel.Text = 'p-value Threshold';
 
             % Create pvalueThresholdEditField
             app.pvalueThresholdEditField = uieditfield(app.Panel, 'numeric');
             app.pvalueThresholdEditField.ValueChangedFcn = createCallbackFcn(app, @pvalueThresholdEditFieldValueChanged, true);
-            app.pvalueThresholdEditField.Position = [126 237 52 22];
+            app.pvalueThresholdEditField.Position = [140 133 52 22];
             app.pvalueThresholdEditField.Value = 0.05;
 
             % Create CohensDThresholdEditFieldLabel
             app.CohensDThresholdEditFieldLabel = uilabel(app.Panel);
             app.CohensDThresholdEditFieldLabel.HorizontalAlignment = 'right';
             app.CohensDThresholdEditFieldLabel.Enable = 'off';
-            app.CohensDThresholdEditFieldLabel.Position = [195 237 118 22];
+            app.CohensDThresholdEditFieldLabel.Position = [433 102 118 22];
             app.CohensDThresholdEditFieldLabel.Text = 'Cohen''s D Threshold';
 
             % Create CohensDThresholdEditField
             app.CohensDThresholdEditField = uieditfield(app.Panel, 'numeric');
             app.CohensDThresholdEditField.Enable = 'off';
-            app.CohensDThresholdEditField.Position = [339 237 52 22];
+            app.CohensDThresholdEditField.Position = [577 102 52 22];
 
             % Create ColormapDropDownLabel
             app.ColormapDropDownLabel = uilabel(app.Panel);
             app.ColormapDropDownLabel.HorizontalAlignment = 'right';
-            app.ColormapDropDownLabel.Position = [9 177 58 22];
+            app.ColormapDropDownLabel.Position = [433 192 58 22];
             app.ColormapDropDownLabel.Text = 'Colormap';
 
             % Create ColormapDropDown
             app.ColormapDropDown = uidropdown(app.Panel);
             app.ColormapDropDown.Items = {};
             app.ColormapDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.ColormapDropDown.Position = [78 177 100 22];
+            app.ColormapDropDown.Position = [502 192 100 22];
             app.ColormapDropDown.Value = {};
 
             % Create LegendVisibleDropDownLabel
             app.LegendVisibleDropDownLabel = uilabel(app.Panel);
             app.LegendVisibleDropDownLabel.HorizontalAlignment = 'right';
-            app.LegendVisibleDropDownLabel.Position = [233 177 84 22];
+            app.LegendVisibleDropDownLabel.Position = [433 162 84 22];
             app.LegendVisibleDropDownLabel.Text = 'Legend Visible';
 
             % Create LegendVisibleDropDown
@@ -510,88 +523,88 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.LegendVisibleDropDown.Items = {'On', 'Off'};
             app.LegendVisibleDropDown.ItemsData = {'on', 'off'};
             app.LegendVisibleDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.LegendVisibleDropDown.Position = [332 177 59 22];
+            app.LegendVisibleDropDown.Position = [532 162 59 22];
             app.LegendVisibleDropDown.Value = 'on';
 
             % Create MultipleComparisonCorrectionDropDownLabel
             app.MultipleComparisonCorrectionDropDownLabel = uilabel(app.Panel);
             app.MultipleComparisonCorrectionDropDownLabel.HorizontalAlignment = 'right';
-            app.MultipleComparisonCorrectionDropDownLabel.Position = [11 147 178 22];
+            app.MultipleComparisonCorrectionDropDownLabel.Position = [15 102 178 22];
             app.MultipleComparisonCorrectionDropDownLabel.Text = 'Multiple Comparison Correction';
 
             % Create MultipleComparisonCorrectionDropDown
             app.MultipleComparisonCorrectionDropDown = uidropdown(app.Panel);
             app.MultipleComparisonCorrectionDropDown.Items = {'None', 'Bonferroni', 'Benjamini-Hochberg', 'Benjamini-Yekutieli'};
             app.MultipleComparisonCorrectionDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.MultipleComparisonCorrectionDropDown.Position = [226 147 165 22];
+            app.MultipleComparisonCorrectionDropDown.Position = [230 102 165 22];
             app.MultipleComparisonCorrectionDropDown.Value = 'None';
 
             % Create CohensDThresholdCheckBox
             app.CohensDThresholdCheckBox = uicheckbox(app.Panel);
             app.CohensDThresholdCheckBox.Enable = 'off';
             app.CohensDThresholdCheckBox.Text = 'Cohen''s D Threshold';
-            app.CohensDThresholdCheckBox.Position = [257 207 134 22];
+            app.CohensDThresholdCheckBox.Position = [433 72 134 22];
 
             % Create ROIcentroidsonbrainplotsCheckBox
             app.ROIcentroidsonbrainplotsCheckBox = uicheckbox(app.Panel);
             app.ROIcentroidsonbrainplotsCheckBox.ValueChangedFcn = createCallbackFcn(app, @ROIcentroidsonbrainplotsCheckBoxValueChanged, true);
             app.ROIcentroidsonbrainplotsCheckBox.Text = 'ROI centroids on brain plots';
-            app.ROIcentroidsonbrainplotsCheckBox.Position = [7 207 171 22];
+            app.ROIcentroidsonbrainplotsCheckBox.Position = [433 132 171 22];
 
             % Create ViewChordPlotsButton
             app.ViewChordPlotsButton = uibutton(app.Panel, 'push');
             app.ViewChordPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @ViewChordPlotsButtonPushed, true);
-            app.ViewChordPlotsButton.Position = [71 117 107 22];
+            app.ViewChordPlotsButton.Position = [75 72 107 22];
             app.ViewChordPlotsButton.Text = 'View Chord Plots';
 
             % Create ViewEdgeChordPlotsButton
             app.ViewEdgeChordPlotsButton = uibutton(app.Panel, 'push');
             app.ViewEdgeChordPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @ViewEdgeChordPlotsButtonPushed, true);
-            app.ViewEdgeChordPlotsButton.Position = [252 117 139 22];
+            app.ViewEdgeChordPlotsButton.Position = [256 72 139 22];
             app.ViewEdgeChordPlotsButton.Text = 'View Edge Chord Plots';
 
             % Create EdgeChordPlotTypeDropDownLabel
             app.EdgeChordPlotTypeDropDownLabel = uilabel(app.Panel);
             app.EdgeChordPlotTypeDropDownLabel.HorizontalAlignment = 'right';
-            app.EdgeChordPlotTypeDropDownLabel.Position = [71 87 123 22];
+            app.EdgeChordPlotTypeDropDownLabel.Position = [75 42 123 22];
             app.EdgeChordPlotTypeDropDownLabel.Text = 'Edge Chord Plot Type';
 
             % Create EdgeChordPlotTypeDropDown
             app.EdgeChordPlotTypeDropDown = uidropdown(app.Panel);
             app.EdgeChordPlotTypeDropDown.Items = {};
             app.EdgeChordPlotTypeDropDown.ValueChangedFcn = createCallbackFcn(app, @EdgeChordPlotTypeDropDownValueChanged, true);
-            app.EdgeChordPlotTypeDropDown.Position = [226 87 165 22];
+            app.EdgeChordPlotTypeDropDown.Position = [230 42 165 22];
             app.EdgeChordPlotTypeDropDown.Value = {};
 
             % Create ViewConvergenceMapButton
             app.ViewConvergenceMapButton = uibutton(app.Panel, 'push');
             app.ViewConvergenceMapButton.ButtonPushedFcn = createCallbackFcn(app, @ViewConvergenceMapButtonPushed, true);
-            app.ViewConvergenceMapButton.Position = [11 57 143 22];
+            app.ViewConvergenceMapButton.Position = [15 12 143 22];
             app.ViewConvergenceMapButton.Text = 'View Convergence Map';
 
             % Create ConvergencePlotColorDropDownLabel
             app.ConvergencePlotColorDropDownLabel = uilabel(app.Panel);
             app.ConvergencePlotColorDropDownLabel.HorizontalAlignment = 'right';
-            app.ConvergencePlotColorDropDownLabel.Position = [161 57 133 22];
+            app.ConvergencePlotColorDropDownLabel.Position = [165 12 133 22];
             app.ConvergencePlotColorDropDownLabel.Text = 'Convergence Plot Color';
 
             % Create ConvergencePlotColorDropDown
             app.ConvergencePlotColorDropDown = uidropdown(app.Panel);
             app.ConvergencePlotColorDropDown.Items = {'Bone', 'Winter', 'Autumn', 'Copper'};
-            app.ConvergencePlotColorDropDown.Position = [309 57 82 22];
+            app.ConvergencePlotColorDropDown.Position = [313 12 82 22];
             app.ConvergencePlotColorDropDown.Value = 'Autumn';
 
             % Create ApplyButton
             app.ApplyButton = uibutton(app.Panel, 'push');
             app.ApplyButton.ButtonPushedFcn = createCallbackFcn(app, @ApplyButtonPushed, true);
-            app.ApplyButton.Position = [21 27 100 22];
+            app.ApplyButton.Position = [532 12 100 22];
             app.ApplyButton.Text = 'Apply';
 
             % Create Panel_2
             app.Panel_2 = uipanel(app.UIFigure);
             app.Panel_2.AutoResizeChildren = 'off';
             app.Panel_2.BackgroundColor = [1 1 1];
-            app.Panel_2.Position = [86 346 510 480];
+            app.Panel_2.Position = [86 240 510 480];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
