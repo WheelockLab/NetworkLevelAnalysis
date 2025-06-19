@@ -114,6 +114,15 @@ classdef NetworkResultPlotParameter < handle
                 brain_plot.drawBrainPlots()
                 waitbar(0.95);
                 close(wait_popup);
+
+                if ispc
+                    %On windows, plots somehow get drawn offscreen.
+                    %We have a function to pin it to the location of the app window that generates it, but 
+                    %don't have access to the parent figure in this function. 
+                    %So we'll make a mock one with valid position as a temp hack fix for now (ADE 20250619)
+                    mockParentUI = struct('Position', [100 400 100 100]);
+                    nla.gfx.moveFigToParentUILocation(gcf, mockParentUI);
+                end
             end
 
             % Return a struct. It's either this or a long array. Since matlab doesn't do dictionaries, we're doing this
