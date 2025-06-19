@@ -185,7 +185,7 @@ classdef BrainPlot < handle
                 scale_max = str2double(varargin{2});
             end
 
-            color_rows = size(obj.color_map);
+            color_rows = size(obj.color_map,1);
             color_map_positive = obj.color_map(1:(color_rows/2), :);
             color_map_negative = obj.color_map(((color_rows/2) + 1):end, :);
 
@@ -501,7 +501,7 @@ classdef BrainPlot < handle
         end
 
         function value = get.functional_connectivity_exists(obj)
-            value = isfield(obj.edge_test_options, "func_conn");
+            value = isfield(obj.edge_test_options, "func_conn") && (obj.edge_test_options.func_conn ~= 0);
         end
 
         function value = get.color_functional_connectivity(obj)
