@@ -221,10 +221,13 @@ classdef MatrixPlot < handle
                 obj.lower_limit = 0;
                 obj.upper_limit = obj.p_value_max;
             elseif ~ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
-                ~ismember(new_scale, ["nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.LOG"])
-                obj.matrix.v = -log10(obj.matrix.v);
+                ~ismember(new_scale, ["nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.LOG"])                
                 obj.lower_limit = 0;
                 obj.upper_limit = 2;
+            end
+            
+            if ismember(new_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"])
+                obj.matrix.v = -log10(obj.matrix.v);
             end
 
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
