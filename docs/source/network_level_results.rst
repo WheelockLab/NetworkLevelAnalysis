@@ -50,7 +50,7 @@ In NLA this is referred to as "ranking" since it is simply counting values in a 
 ranking is referred to as the "uncorrected" *p*-value. There are two other options for ranking in NLA. These
 account for :abbr:`FWER (family-wise error rate)`. The first method is based off the "randomise" method :cite:p:`FreedmanD,WinklerA`.
 This is referred to as the "Winkler method". The second method is called "Westfall-Young" in NLA described by
-an alogrithm :cite:p:`WestfallP` by Westfall and Young.
+an algorithm :cite:p:`WestfallP` by Westfall and Young.
 
 Result Rank
 ---------------------------------------------
