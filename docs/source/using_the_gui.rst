@@ -18,7 +18,7 @@ Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.m
     Usually there are selectors for functional connectivity, network atlas, and behavior files. There may also be other options depending on the test.
     If "Precalculated data" is selected, there will be selectors for data instead. (See: :ref:`Precalculated data loader <precalculated>`)
 #. Behavior table
-    This will display the table when the behavior file is loaded. The table is used to select the behvaior to test, co-variates used (optional), and 
+    This will display the table when the behavior file is loaded. The table is used to select the behavior to test, co-variates used (optional), and 
     permutation groupings (optional). (See: :doc:`Behavior Table <../behavior_table>`)
 #. Network-level test pane
     Selection of network-level test(s). One can be selected, or multiple with Ctrl/Shift + left click. 

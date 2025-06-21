@@ -483,7 +483,7 @@ classdef MatrixPlot < handle
                     obj.applyColorToData(position_x, position_y, chunk_height, chunk_width, chunk_color);
 
                     if isequal(initial_render, true)
-                        % plot signifance marker
+                        % plot significance marker
                         if ~isequal(obj.marked_networks, false) && isequal(obj.marked_networks(network, x), true)
                             obj.plotSignificanceMark(chunk_width, chunk_height, position_x, position_y);
                         end

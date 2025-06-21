@@ -32,7 +32,7 @@ end
     
 function outVec = getRademacherVector(numPts)
     %Returns a vector [numPts x 1] long of samples from a rademacher
-    %distribution (ie +/-1 with equal probabilty)
+    %distribution (ie +/-1 with equal probability)
     randVec = rand(numPts,1);
     vecIsPos = randVec>0.5;
     outVec = (vecIsPos - 0.5) * 2;

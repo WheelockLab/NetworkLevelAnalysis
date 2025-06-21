@@ -229,7 +229,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 test_method = "within_network_pair";
             end
             
-            app.hideCohensDControls(); %keep cohens d controls in code, but hide from user until we get right calcluations - ADE2025MAR24
+            app.hideCohensDControls(); %keep cohens d controls in code, but hide from user until we get right calculations - ADE2025MAR24
             
             app.network_test_result = network_test_result;
             app.edge_test_result = edge_test_result;

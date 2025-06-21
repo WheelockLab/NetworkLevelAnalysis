@@ -31,7 +31,7 @@ Provided Tests
 
 * **Hypergeomtric**
 
-  * MATLAB's `hypercdf <https://www.mathworks.com/help/stats/hygecdf.html>`_ used to find the probablity
+  * MATLAB's `hypercdf <https://www.mathworks.com/help/stats/hygecdf.html>`_ used to find the probability
 
   *Inputs:*
     * :math:`O_i`: non-permuted, nominally thresholded, and binarized edge-level *p*-values for the network-pair of interest

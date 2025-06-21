@@ -39,7 +39,7 @@ classdef UnconstrainedBlocks_Sparse < nla.helpers.stdError.UnconstrainedBlocks
             %determine which elements of V will be non-zero based on
             %grouping.
             %First reorganize data so that observations within groups are
-            %next to eachother
+            %next to each other
             [pinvDesignMtx_grp, residual_grp, groupIds_grp] = obj.reorderDataByGroup(pinvDesignMtx, residual, groupIds);
             
             
