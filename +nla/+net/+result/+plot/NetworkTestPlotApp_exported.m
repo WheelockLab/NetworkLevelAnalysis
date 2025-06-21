@@ -201,7 +201,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         
         function applyScaleChange(app)
             progress_bar = uiprogressdlg(app.UIFigure, "Title", "Please Wait", "Message", "Applying Changes...", "Indeterminate", true);
-            progress_bar.Message = "Chaning scale of existing TriMatrix...";
+            progress_bar.Message = "Changing scale of existing TriMatrix...";
             app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.settings.prevPlotScale, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value)
             app.UpperLimitEditField.Value = app.matrix_plot.upper_limit;
             app.LowerLimitEditField.Value = app.matrix_plot.lower_limit;
