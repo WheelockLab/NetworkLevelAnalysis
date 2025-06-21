@@ -201,7 +201,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         
         function applyScaleChange(app)
             progress_bar = uiprogressdlg(app.UIFigure, "Title", "Please Wait", "Message", "Applying Changes...", "Indeterminate", true);
-            progress_bar.Message = "Changing scale of existing TriMatrix...";
+            progress_bar.Message = "Chaning scale of existing TriMatrix...";
             app.matrix_plot.applyScale(false, false, app.UpperLimitEditField.Value, app.LowerLimitEditField.Value, app.settings.prevPlotScale, app.PlotScaleDropDown.Value, app.ColormapDropDown.Value)
             app.UpperLimitEditField.Value = app.matrix_plot.upper_limit;
             app.LowerLimitEditField.Value = app.matrix_plot.lower_limit;
@@ -229,7 +229,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 test_method = "within_network_pair";
             end
             
-            app.hideCohensDControls(); %keep cohens d controls in code, but hide from user until we get right calculations - ADE2025MAR24
+            app.hideCohensDControls(); %keep cohens d controls in code, but hide from user until we get right calcluations - ADE2025MAR24
             
             app.network_test_result = network_test_result;
             app.edge_test_result = edge_test_result;
