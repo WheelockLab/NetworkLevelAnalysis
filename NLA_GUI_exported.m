@@ -6,25 +6,25 @@ classdef NLA_GUI < matlab.apps.AppBase
         FileMenu                      matlab.ui.container.Menu
         OpenpreviousresultMenu        matlab.ui.container.Menu
         GridLayout                    matlab.ui.container.GridLayout
-        Panel_2                       matlab.ui.container.Panel
-        PermutationcountEditField     matlab.ui.control.NumericEditField
-        PermutationcountLabel         matlab.ui.control.Label
-        RunQualityControlButton       matlab.ui.control.Button
-        MethodsPanel                  matlab.ui.container.Panel
-        WithinNetPairCheckBox         matlab.ui.control.CheckBox
-        FullConnCheckBox              matlab.ui.control.CheckBox
-        NonPermutedCheckBox           matlab.ui.control.CheckBox
-        RunButton                     matlab.ui.control.Button
-        Panel                         matlab.ui.container.Panel
-        EdgeleveltestDropDownLabel    matlab.ui.control.Label
-        EdgeTestSelector              matlab.ui.control.DropDown
-        NetInputsPanel                matlab.ui.container.Panel
-        EdgeInputsPanel               matlab.ui.container.Panel
         Panel_3                       matlab.ui.container.Panel
-        BranchLabel                   matlab.ui.control.Label
-        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
-        NetTestSelector               matlab.ui.control.ListBox
         NoneButton                    matlab.ui.control.Button
+        NetTestSelector               matlab.ui.control.ListBox
+        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
+        BranchLabel                   matlab.ui.control.Label
+        EdgeInputsPanel               matlab.ui.container.Panel
+        NetInputsPanel                matlab.ui.container.Panel
+        Panel                         matlab.ui.container.Panel
+        EdgeTestSelector              matlab.ui.control.DropDown
+        EdgeleveltestDropDownLabel    matlab.ui.control.Label
+        Panel_2                       matlab.ui.container.Panel
+        RunButton                     matlab.ui.control.Button
+        MethodsPanel                  matlab.ui.container.Panel
+        NonPermutedCheckBox           matlab.ui.control.CheckBox
+        FullConnCheckBox              matlab.ui.control.CheckBox
+        WithinNetPairCheckBox         matlab.ui.control.CheckBox
+        RunQualityControlButton       matlab.ui.control.Button
+        PermutationcountLabel         matlab.ui.control.Label
+        PermutationcountEditField     matlab.ui.control.NumericEditField
     end
 
     
@@ -63,6 +63,13 @@ classdef NLA_GUI < matlab.apps.AppBase
                         error_str = [error_str sprintf('\n - %s: %s', app.net_input_fields{i}.disp_name, error)];
                         errors_found = true;
                     end
+                end
+                % check permutation method
+                if ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
+                    app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
+                else
+                    app.input_struct.permute_method = nla.edge.permutationMethods.MultiLevel();
+                    app.input_struct.permute_method = app.input_struct.permute_method.createPermutationTree(app.input_struct);
                 end
                 
                 if errors_found
@@ -205,8 +212,8 @@ classdef NLA_GUI < matlab.apps.AppBase
             end
         end
 
-        % Value changed function: FullConnCheckBox, NonPermutedCheckBox, 
-        % ...and 1 other component
+        % Value changed function: FullConnCheckBox, 
+        % NonPermutedCheckBox, WithinNetPairCheckBox
         function MethodButtonGroupSelectionChanged(app, event)
             if ~(app.net_input_struct.full_connectome == app.FullConnCheckBox.Value)
                 app.WithinNetPairCheckBox.Value = false;
@@ -238,12 +245,6 @@ classdef NLA_GUI < matlab.apps.AppBase
 
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
-            if ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
-                app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
-            else
-                app.input_struct.permute_method = nla.edge.permutationMethods.MultiLevel();
-                app.input_struct.permute_method = app.input_struct.permute_method.createPermutationTree(app.input_struct);
-            end
             runWithInputs(app, 0);
         end
 
