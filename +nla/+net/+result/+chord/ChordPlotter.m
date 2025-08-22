@@ -42,7 +42,7 @@ classdef ChordPlotter < handle
             % Check if it's an edge chord plot, and if so, do we plot positive and negative separately
             if isfield(parameters, 'edge_chord_plot_method')
                 obj.edge_plot_type = parameters.edge_chord_plot_method;
-                if obj.edge_plot_type == "nla.gfx/EdgeChordPlotMethod.COEFF_SPLIT" || obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"
+                if obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_SPLIT" || obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"
                     obj.split_plot = true;
                 end
             end
