@@ -32,7 +32,7 @@ classdef MultiLevel < nla.edge.permutationMethods.Base
                 input_struct.permutation_groups = [];
             end
             obj.permutation_tree = nla.edge.permutationMethods.tree.PermutationTree(...
-                input_struct.func_conn.v, input_struct.permutation_groups...
+                input_struct.behavior, input_struct.permutation_groups...
             );
             tree_root = obj.permutation_tree.root_node;
             obj = obj.depthFirstSearch(tree_root);
@@ -40,23 +40,33 @@ classdef MultiLevel < nla.edge.permutationMethods.Base
 
         function permuted_input_struct = permute(obj, orig_input_struct)
             permuted_input_struct = orig_input_struct;
-            permuted_transposed_functional_connectivity = zeros(size(orig_input_struct.func_conn.v'));
-
+            permuted_behavior = orig_input_struct.behavior(:,:);
             for node_index = 1:numel(obj.terminal_nodes)
                 node = obj.terminal_nodes(node_index);
                 current_indexes = node.data_with_indexes{2};
-                original_indexes = node.data_with_indexes{3};
-                data = node.data_with_indexes{1}'; % transpose to match dimensions of indexes
-                
+                data = node.data_with_indexes{1};
                 permuted_indexes = nla.helpers.permuteVector(current_indexes);
-                sorted_original_indexes = sort(original_indexes, 2);
-                original_indexes = original_indexes(permuted_indexes);
-                data = data(permuted_indexes, :);
-                node.data_with_indexes = {data', current_indexes, original_indexes};
-                permuted_transposed_functional_connectivity(sorted_original_indexes, :) = data;
+                permuted_behavior(current_indexes) = data(permuted_indexes);
             end
+            permuted_input_struct.behavior = permuted_behavior;
+            % permuted_transposed_functional_connectivity = zeros(size(orig_input_struct.func_conn.v'));
 
-            permuted_input_struct.func_conn.v = permuted_transposed_functional_connectivity';
+            % for node_index = 1:numel(obj.terminal_nodes)
+            %     node = obj.terminal_nodes(node_index);
+            %     current_indexes = node.data_with_indexes{2};
+            %     original_indexes = node.data_with_indexes{3};
+            %     data = node.data_with_indexes{1}'; % transpose to match dimensions of indexes
+                
+            %     permuted_indexes = nla.helpers.permuteVector(current_indexes);
+            %     sorted_original_indexes = sort(original_indexes, 2);
+            %     original_indexes = original_indexes(permuted_indexes);
+            %     data = data(permuted_indexes, :);
+            %     node.data_with_indexes = {data', current_indexes, original_indexes};
+            %     permuted_transposed_functional_connectivity(sorted_original_indexes, :) = data;
+            % end
+
+            % permuted_input_struct.func_conn.v = permuted_transposed_functional_connectivity';
+            
         end
 
         function obj = depthFirstSearch(obj, node_input)
