@@ -131,14 +131,7 @@ classdef NetworkTestPlot < handle
             end
             obj.getPlotTitle();
 
-            switch obj.current_settings.mcc
-                case "Benjamini-Hochberg"
-                    mcc = "BenjaminiHochberg";
-                case "Benjamini-Yekutieli"
-                    mcc = "BenjaminiYekutieli";
-                otherwise
-                    mcc = obj.current_settings.mcc;
-            end
+            mcc = obj.current_settings.(erase(mcc, "-"));
 
             probability = NetworkTestResult().getPValueNames(obj.test_method, obj.network_test_result.test_name);
 
