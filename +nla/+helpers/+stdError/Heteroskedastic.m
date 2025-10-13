@@ -1,4 +1,8 @@
 classdef Heteroskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
+    
+    properties (SetAccess = protected)
+        REQUIRES_GROUP = true;
+    end
 
     methods
         

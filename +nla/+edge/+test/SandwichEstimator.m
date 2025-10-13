@@ -1,7 +1,7 @@
 classdef SandwichEstimator < nla.edge.BaseTest
     %SANDWICHESTIMATOR Summary of this class goes here
     %   Detailed explanation goes here
-    properties (Constant)
+    properties
         name = "Sandwich Estimator"
         coeff_name = 'SwE Contrast T-value'
     end
@@ -53,7 +53,12 @@ classdef SandwichEstimator < nla.edge.BaseTest
             
             % build scanMetadata object from inputs
             %scanMetadata = nlaEckDev.swedata.ScanMetadata();
-            sweInputStruct.subjId = input_struct.subjId;
+            if isfield(input_struct, 'subjId')
+                sweInputStruct.subjId = input_struct.subjId;
+            else
+                numObs = size(input_struct.covariates,1);
+                sweInputStruct.subjId = (1:numObs)';
+            end
             
             if isfield(input_struct, 'groupId')
                 sweInputStruct.groupId = input_struct.groupId;
@@ -64,11 +69,15 @@ classdef SandwichEstimator < nla.edge.BaseTest
             if isfield(input_struct, 'visitId')
                 sweInputStruct.visitId = input_struct.visitId;
             else
-                sweInputStruct.visitId = ones(length(input_struct.subjId),1);
+                sweInputStruct.visitId = ones(length(sweInputStruct.subjId),1);
             end
             
             sweInputStruct.fcData = input_struct.func_conn.v';
-            sweInputStruct.covariates = [input_struct.behavior, input_struct.covariates];
+            if isfield(input_struct, 'behavior') & (input_struct.behavior ~= 0)
+                sweInputStruct.covariates = [input_struct.behavior, input_struct.covariates];
+            else
+                sweInputStruct.covariates = input_struct.covariates;
+            end
             %sweInput.scanMetadata = scanMetadata;
             sweInputStruct.prob_max = input_struct.prob_max;
             sweInputStruct.contrasts = input_struct.contrasts;
@@ -95,11 +104,7 @@ classdef SandwichEstimator < nla.edge.BaseTest
                 %linear model
                 numObs = size(sweInput.covariates,1);
                 sweInput.covariates = [sweInput.covariates, ones(numObs,1)];
-                sweInput.contrasts = [input_struct.contrasts, 0];
-                
-                fprintf(['NOTICE: Now adding column of 1''s to covariates in order to fit an intercept.\n',...
-                        'To fit a model with no intercept, set or add ''fit_intercept'' field ',...
-                        'of input struct passed to edge test''s ''run''function with value false or zero']);
+                sweInput.contrasts = [sweInput.contrasts, 0];
                 
             end
                 
@@ -236,5 +241,12 @@ classdef SandwichEstimator < nla.edge.BaseTest
         
         
     end % end private methods
+    
+    methods (Static)
+        function inputs = requiredInputs()
+            inputs = {nla.inputField.Number('prob_max', 'Edge-level P threshold <', 0, 0.05, 1),...
+                nla.inputField.NetworkAtlasFuncConn(), nla.inputField.SandwichEstimator()};
+        end
+    end
 end
 
