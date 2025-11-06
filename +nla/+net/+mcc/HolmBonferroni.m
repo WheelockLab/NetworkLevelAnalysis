@@ -5,8 +5,8 @@ classdef HolmBonferroni < nla.net.mcc.Base
 
     methods
         function p_max = correct(obj, net_atlas, input_struct, prob)
-            [~, adjusted_pvals, ~] = nla.lib.bonferroni_holm(prob.v);
-            p_max = max(adjusted_pvals);
+            [is_significant, adjusted_pvals, ~] = nla.lib.bonferroni_holm(prob.v, input_struct.prob_max);
+            p_max = max(is_significant .* adjusted_pvals);
         end
         function correction_label = createLabel(obj, net_atlas, input_struct, prob)
             p_max = obj.correct(net_atlas, input_struct, prob);
