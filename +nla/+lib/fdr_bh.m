@@ -94,7 +94,7 @@
 %  if ~isnan(adj_ci_cvrg),
 %     sigIds=find(h);
 %     fcr_adj_cis(:,sigIds)=tCIs(data(:,sigIds),adj_ci_cvrg); % tCIs.m is available on the
-%     %Mathworks File Exchagne
+%     %Mathworks File Exchange
 %  end
 %
 %

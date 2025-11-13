@@ -18,7 +18,7 @@ If you do the following:
     newStruct.scanData.id = randperm(1:100);
 
 that second line changes the id of scanData in both newStruct and origStruct, 
-since they both have just a reference to the scanData obejct rather than a unique copy
+since they both have just a reference to the scanData object rather than a unique copy
 
 SOLUTION
 If you do want to permute data that is in a class that inherits from handle, 
