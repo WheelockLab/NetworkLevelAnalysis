@@ -383,12 +383,12 @@ classdef Behavior < nla.inputField.InputField
         end
         
         function button_view_design_mtxClickedCallback(obj)
-            
+            labels = [obj.behavior_full.Properties.VariableNames(obj.behavior_idx)];
             if ~islogical(obj.covariates_idx)
-                labels = {obj.table.ColumnName{obj.covariates_idx}};
-                nla.gfx.drawDesignMtx(obj.covariates, labels);
-                
-                    
+                labels = [labels; obj.table.ColumnName(obj.covariates_idx)];
+                nla.gfx.drawDesignMtx([obj.behavior, obj.covariates], labels);
+            else
+                nla.gfx.drawDesignMtx(obj.behavior, labels);
             end
         end
         
