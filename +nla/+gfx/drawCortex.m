@@ -19,7 +19,7 @@ function drawCortex(ax, anat, ctx, mesh_alpha, view_pos, color_l, color_r)
     % Re-position meshes for standard transverse orientation etc.
     [mesh_l, mesh_r] = nla.gfx.anatToMesh(anat, ctx, view_pos);
 
-    % Set lighting and persepctive
+    % Set lighting and perspective
     if view_pos == ViewPos.LAT || view_pos == ViewPos.MED
         view(ax, [-90,0]);
         light(ax, 'Position', [-100,200,0], 'Style', 'local');

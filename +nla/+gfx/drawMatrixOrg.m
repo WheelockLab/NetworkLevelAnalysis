@@ -16,7 +16,7 @@ function [width, height] = drawMatrixOrg(fig, axes_loc_x, axes_loc_y, name, matr
     %   draw_colorbar: Whether to display a colorbar
     %   color_map: color map to use for the matrix
     %   marked_networks: networks to mark with a symbol
-    %   discrete_colorbar: whether to display the colorbar as continous or
+    %   discrete_colorbar: whether to display the colorbar as continuous or
     %   discrete.
     %   net_clicked_callback: button function to add to each network, for clickable
     %   networks.
