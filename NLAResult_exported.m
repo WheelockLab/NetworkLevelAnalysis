@@ -16,6 +16,8 @@ classdef NLAResult < matlab.apps.AppBase
         BranchLabel                matlab.ui.control.Label
         OpenTriMatrixPlotButton    matlab.ui.control.Button
         OpenDiagnosticPlotsButton  matlab.ui.control.Button
+        SelectContrastLabel        matlab.ui.control.Label
+        SelectContrastDropdown     matlab.ui.control.DropDown
     end
 
     
@@ -30,6 +32,10 @@ classdef NLAResult < matlab.apps.AppBase
         net_adjustable_fields
         cur_iter = 0
         old_data = false
+        
+        multi_contrast_edge_result = false
+        multi_contrast_net_result = false
+        selected_contrast_name = ''
     end
     
     methods (Access = private)
@@ -237,6 +243,18 @@ classdef NLAResult < matlab.apps.AppBase
             
             app.edge_result = test_pool.runEdgeTest(input_struct);
             
+            if app.edgeResultIsMultiContrast(app.edge_result)
+                app.multi_contrast_edge_result = app.edge_result;
+                app.initializeContrastSelectorFromResult(app.multi_contrast_edge_result);
+                
+                %set edge result to the one corresponding to the first
+                %contrast
+                all_contrast_names = app.multi_contrast_edge_result.contrastsAsStrings();
+                app.edge_result = app.multi_contrast_edge_result.getNamedResult(all_contrast_names{1});                
+                
+            end
+            
+            
             app.input_struct = input_struct;
             app.net_input_struct = net_input_struct;
             app.test_pool = test_pool;
@@ -275,6 +293,17 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
             end
             
+            if app.edgeResultIsMultiContrast(app.edge_result)
+                app.multi_contrast_edge_result = app.edge_result;
+                app.initializeContrastSelectorFromResult(app.multi_contrast_edge_result);
+                
+                %set edge result to the one corresponding to the first
+                %contrast
+                all_contrast_names = app.multi_contrast_edge_result.contrastsAsStrings();
+                app.edge_result = app.multi_contrast_edge_result.getNamedResult(all_contrast_names{1});                
+                
+            end
+            
             app.results = result;
             app.old_data = old_data;
        
@@ -283,7 +312,7 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Enable = false;
             app.RunButton.Visible = false;
             
-            enableNetButtons(app, ~islogical(result.network_test_results));
+            app.enableNetButtons(~islogical(result.network_test_results));
             
             drawnow();
             
@@ -294,6 +323,36 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             
+        end
+        
+        function enableContrastSelector(app, val)
+            %For special case of SandwichEstimator with multiple contrasts,
+            %only enable buttons if a contrast from the dropdown is
+            %selected.
+            
+        
+        end
+        
+        function initializeContrastSelectorFromResult(app, edge_result)
+            if app.edgeResultIsMultiContrast(edge_result)
+                app.SelectContrastDropdown.Items = edge_result.contrastsAsStrings();
+                app.SelectContrastDropdown.Enable = true;
+                app.SelectContrastDropdown.Value = app.SelectContrastDropdown.Items{1};
+                app.SelectContrastLabel.Enable = true;
+            else
+                app.SelectContrastDropdown.Enable = false;
+                app.SelectContrastLabel.Enable = false;
+                app.SelectContrastDropdown.Items = {};
+                app.SelectContrastDropdown.Value = {};
+            end
+        
+        end
+        function is_multi_contrast = edgeResultIsMultiContrast(app, edge_result)
+            if isa(edge_result, 'nla.edge.result.MultiContrast')
+                is_multi_contrast = true;
+            else
+                is_multi_contrast = false;
+            end
         end
         
         function enableNetButtons(app, val)
@@ -409,7 +468,7 @@ classdef NLAResult < matlab.apps.AppBase
             app.RunButton.Enable = false;
             app.RunButton.Visible = false;
             
-            enableNetButtons(app, true);
+            app.enableNetButtons(true);
             
             drawnow();
             
@@ -629,6 +688,12 @@ classdef NLAResult < matlab.apps.AppBase
             d_thresh = app.CohensDthresholdchordplotsCheckBox.Value;
             app.net_input_struct.d_thresh_chord_plot = d_thresh;
         end
+
+        % Value changed function: SelectContrastDropdown
+        function SelectContrastDropdownValueChanged(app, event)
+            app.selected_contrast_name = app.SelectContrastDropdown.Value;
+            app.edge_result = app.multi_contrast_edge_result.getNamedResult(app.selected_contrast_name);
+        end
     end
 
     % Component initialization
@@ -715,6 +780,20 @@ classdef NLAResult < matlab.apps.AppBase
             app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
             app.OpenDiagnosticPlotsButton.Position = [435 98 147 22];
             app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
+
+            % Create SelectContrastLabel
+            app.SelectContrastLabel = uilabel(app.UIFigure);
+            app.SelectContrastLabel.Enable = 'off';
+            app.SelectContrastLabel.Position = [194 634 152 22];
+            app.SelectContrastLabel.Text = 'Select Contrast';
+
+            % Create SelectContrastDropdown
+            app.SelectContrastDropdown = uidropdown(app.UIFigure);
+            app.SelectContrastDropdown.Items = {};
+            app.SelectContrastDropdown.ValueChangedFcn = createCallbackFcn(app, @SelectContrastDropdownValueChanged, true);
+            app.SelectContrastDropdown.Enable = 'off';
+            app.SelectContrastDropdown.Position = [192 611 154 22];
+            app.SelectContrastDropdown.Value = {};
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
