@@ -8,7 +8,7 @@ classdef Heteroskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
         
         function stdErr = calculate(obj, sweStdErrInput)
             
-            validateattributes(sweStdErrInput, 'nlaEckDev.sweStdError.SwEStdErrorInput', {});
+            
             %Calculation of standard error assuming heteroskedascticity
             %consistent errors
             [numCovariates, numObs] = size(sweStdErrInput.pinvDesignMtx);

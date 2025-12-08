@@ -214,7 +214,33 @@ classdef TestPool < nla.DeepCopyable
                 input_struct.iteration = 0;
             end
             
-            edge_result = obj.edge_test.run(input_struct);
+            is_multicontrast = isfield(input_struct, 'contrasts') && (size(input_struct.contrasts,1)>1);
+            
+            if ~is_multicontrast
+                edge_result = obj.edge_test.run(input_struct);                  
+            else
+                %Generate edge results for all contrasts
+                num_contrasts = size(input_struct.contrasts,1);
+                edge_result = nla.edge.result.MultiContrast();
+                has_contrast_names = isfield(input_struct,'contrastNames') & ~isempty(input_struct.contrastNames);
+                for contrast_idx = 1:num_contrasts
+                    
+                    this_contrast = input_struct.contrasts(contrast_idx,:);
+                    if has_contrast_names
+                        this_contrast_name = input_struct.contrastNames{contrast_idx};
+                    else
+                        this_contrast_name = ['contrast', num2str(contrast_idx)];
+                    end
+                    
+                    input_struct_this_contrast = input_struct;
+                    input_struct_this_contrast.contrasts = this_contrast;
+                    input_struct_this_contrast.contrastNames = this_contrast_name;
+                    edge_result_this_contrast = obj.edge_test.run(input_struct_this_contrast);
+                    edge_result.addNamedResult(this_contrast_name, edge_result_this_contrast);
+                end
+            end
+            
+            
         end
 
         function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, perm_edge_results)

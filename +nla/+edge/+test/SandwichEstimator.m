@@ -9,6 +9,9 @@ classdef SandwichEstimator < nla.edge.BaseTest
     properties
         % test specific properties go here (things that will persist
         % over multiple runs) + aren't specific to a given data set)
+        
+        nonpermRegressCoeffs
+        nonpermResiduals
     end
     
     methods
@@ -172,6 +175,7 @@ classdef SandwichEstimator < nla.edge.BaseTest
             sweRes.prob.v = contrastPVal';
             sweRes.prob_sig.v = (sweRes.prob.v < input.prob_max);            
             sweRes.avg_prob_sig = sum(sweRes.prob_sig.v) ./ numel(sweRes.prob_sig.v);
+            sweRes.contrasts = input.contrasts;
             
             %Change expected coefficient range to be more accurate to Sandwich
             %Estimator ranges

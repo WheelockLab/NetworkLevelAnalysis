@@ -11,6 +11,7 @@ classdef SandwichEstimatorInput < handle
         behavior % nx1 vector (combine into covariates/variables)
         covariates % nxp matrix
         contrasts % c x (p+1) matrix
+        contrastNames % c x 1 cell of strings of names
         FORCE_ORDINARY_LEAST_SQUARES = false
     end 
     
