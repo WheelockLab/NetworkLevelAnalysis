@@ -13,6 +13,8 @@ classdef SandwichEstimatorInput < handle
         contrasts % c x (p+1) matrix
         contrastNames % c x 1 cell of strings of names
         FORCE_ORDINARY_LEAST_SQUARES = false
+        
+        inputGuiSettingsStruct = []%struct to hold state of input GUI for re-loading input settings
     end 
     
     
