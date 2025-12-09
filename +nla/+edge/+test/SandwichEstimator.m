@@ -54,8 +54,6 @@ classdef SandwichEstimator < nla.edge.BaseTest
             
             sweInputStruct = struct();
             
-            % build scanMetadata object from inputs
-            %scanMetadata = nlaEckDev.swedata.ScanMetadata();
             if isfield(input_struct, 'subjId')
                 sweInputStruct.subjId = input_struct.subjId;
             else
@@ -88,7 +86,7 @@ classdef SandwichEstimator < nla.edge.BaseTest
             if isfield(input_struct, 'stdErrCalcObj')
                 sweInputStruct.stdErrCalcObj = input_struct.stdErrCalcObj; %How will this really be passed in?
             else
-                sweInputStruct.stdErrCalcObj = nlaEckDev.sweStdError.UnconstrainedBlocks();
+                sweInputStruct.stdErrCalcObj = nla.helpers.stdError.UnconstrainedBlocks();
             end
             
             if isfield(input_struct, 'fit_intercept')
