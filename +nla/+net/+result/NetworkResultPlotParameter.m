@@ -56,12 +56,22 @@ classdef NetworkResultPlotParameter < handle
             p_value_max = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);
+            
+            if isa(fdr_correction,'nla.net.mcc.HolmBonferroni')
+                %Holm Bonferroni does not have a single static p threshold,
+                %so use the custom label for this FDR that only includes
+                %the alpha (original p_max from input struct), and not any
+                %other p threshold
+                name_label = sprintf("%s %s\n%s", obj.network_test_results.test_display_name, plot_title,...
+                p_value_breakdown_label);
+            else
 
-            name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
-                p_value_max, p_value_breakdown_label);
-            if p_value_max == 0
-                name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
+                name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
                     p_value_max, p_value_breakdown_label);
+                if p_value_max == 0
+                    name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
+                        p_value_max, p_value_breakdown_label);
+                end
             end
 
             % Filtering if there's a filter provided 
