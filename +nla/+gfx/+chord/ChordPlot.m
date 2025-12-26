@@ -392,7 +392,7 @@ classdef ChordPlot < handle
 
                         inner = obj.generateArcSegmentWithCatch(chord_inner_radius, chord_inner_start_end_radian,...
                             chord_inner_origin, chord2_start_cartesian, chord2_end_cartesian, 50);
-                        % We reverse the end and start because we want them to be a continuous shape, not two seperate shapes
+                        % We reverse the end and start because we want them to be a continuous shape, not two separate shapes
                         % Without this, the arcs that are close to a straight line will be a straight line, and the other half of
                         % it will be an arc. Putting two chords (half the size) in place of one
                         outer = obj.generateArcSegmentWithCatch(chord_outer_radius, [chord_outer_start_end_radian(2),...

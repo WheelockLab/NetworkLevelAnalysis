@@ -2,7 +2,7 @@ classdef ChordPlotter < handle
 % CHORDPLOTTER Draws network test results in Chord Figures
 %   Object takes the brain network atlas and the edge test results to initialize
 %   generateChordFigure creates the chord plots for the network test results
-%   The parameters used as an input are fron NetworkResultPlotParameter
+%   The parameters used as an input are from NetworkResultPlotParameter
 %   Chord type is coming from the test options/input_struct.
 
     properties (Constant)

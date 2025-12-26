@@ -7,7 +7,7 @@ Running with example data
 1. First, open the NLA software (as described in :doc:`setup`). Select ``Pearson's r`` as the edge-level
    test from the edge-level test dropdown.
 
-2. Click :guilabel:`Select` to choose a network atlas, navigating to the ``support_files`` folder withing your
+2. Click :guilabel:`Select` to choose a network atlas, navigating to the ``support_files`` folder within your
    NetworkLevelAnalysis installation and selecting ``Wheelock_2020_CerebralCortex_15nets_288ROI_on_MNI.mat``.
    This file is used to parcellate the data. 
 
