@@ -49,7 +49,7 @@ number of points above or below (depending on the test used) the non-permuted (o
 In NLA this is referred to as "ranking" since it is simply counting values in a sorted list. This basic
 ranking is referred to as the "uncorrected" *p*-value. There are two other options for ranking in NLA. These
 account for :abbr:`FWER (family-wise error rate)`. The first method is based off the "randomise" method :cite:p:`FreedmanD,WinklerA`.
-This is referred to as the "Winkler method". The second method is called "Westfall-Young" in NLA described by
+The second method is called "Westfall-Young" in NLA described by
 an alogrithm :cite:p:`WestfallP` by Westfall and Young.
 
 Result Rank
@@ -66,7 +66,7 @@ Result Rank
 
     .. mat:automethod:: uncorrectedRank
 
-    .. mat:automethod:: winklerMethodRank
+    .. mat:automethod:: freedmanLaneMethodRank
 
     .. mat:automethod:: westfallYoungMethodRank
 

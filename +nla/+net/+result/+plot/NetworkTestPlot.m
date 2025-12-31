@@ -89,8 +89,8 @@ classdef NetworkTestPlot < handle
                 obj.title = sprintf("%s (D > %g)", obj.title, obj.network_test_options.d_max);
             end
             if ~isequal(obj.test_method, "no_permutations")
-                if isequal(obj.current_settings.ranking, nla.RankingMethod.WINKLER) 
-                    obj.title = strcat(obj.title, "\nRanking by Winkler Method");
+                if isequal(obj.current_settings.ranking, nla.RankingMethod.FREEDMAN_LANE) 
+                    obj.title = strcat(obj.title, "\nRanking by Freedman-Lane Method");
                 elseif isequal(obj.current_settings.ranking, nla.RankingMethod.WESTFALL_YOUNG)
                     obj.title = strcat(obj.title, "\nRanking by Westfall-Young Method");
                 else
@@ -228,8 +228,8 @@ classdef NetworkTestPlot < handle
             % All the options (buttons, pulldowns, checkboxes)
             scale_option = PullDown("plot_scale", "Plot Scale", ["Linear", "Log", "Negative Log10"],...
                 [ProbPlotMethod.DEFAULT, ProbPlotMethod.LOG, ProbPlotMethod.NEGATIVE_LOG_10]);
-            ranking_method = PullDown("ranking", "Ranking", ["Uncorrected", "Winkler", "Westfall-Young"],...
-                [RankingMethod.UNCORRECTED, RankingMethod.WINKLER, RankingMethod.WESTFALL_YOUNG]);
+            ranking_method = PullDown("ranking", "Ranking", ["Uncorrected", "Freedman-Lane", "Westfall-Young"],...
+                [RankingMethod.UNCORRECTED, RankingMethod.FREEDMAN_LANE, RankingMethod.WESTFALL_YOUNG]);
             cohens_d = CheckBox("cohens_d", "Cohen's D Threshold", true);
             centroids = CheckBox("centroids", "ROI Centroids in brain plots", false);
             multiple_comparison_correction = PullDown("mcc", "Multiple Comparison Correction",...

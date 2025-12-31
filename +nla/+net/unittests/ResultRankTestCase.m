@@ -114,11 +114,11 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.verifyEqual(uncorrected_results, expected_uncorrected);
         end
 
-        function fullConnectomeWinklerRankingTest(testCase)
-            winkler_results = testCase.rank.full_connectome.winkler_two_sample_p_value.v;
-            expected_winkler = testCase.rank_results.full_connectome.winkler_two_sample_p_value.v;
+        function fullConnectomeFreedmanLaneRankingTest(testCase)
+            freedman_lane_results = testCase.rank.full_connectome.freedman_lane_two_sample_p_value.v;
+            expected_freedman_lane = testCase.rank_results.full_connectome.freedman_lane_two_sample_p_value.v;
 
-            testCase.verifyEqual(winkler_results, expected_winkler);
+            testCase.verifyEqual(freedman_lane_results, expected_freedman_lane);
         end
 
         function fullConnectomeWestfallYoungRankingTest(testCase)
@@ -140,11 +140,11 @@ classdef ResultRankTestCase < matlab.unittest.TestCase
             testCase.verifyEqual(uncorrected_results, expected_uncorrected);           
         end
 
-        function withinNetworkPairWinklerRankingTest(testCase)
-            winkler_results = testCase.rank.within_network_pair.winkler_single_sample_p_value.v;
-            expected_winkler = testCase.rank_results.within_network_pair.winkler_single_sample_p_value.v;
+        function withinNetworkPairFreedmanLaneRankingTest(testCase)
+            freedman_lane_results = testCase.rank.within_network_pair.freedman_lane_single_sample_p_value.v;
+            expected_freedman_lane = testCase.rank_results.within_network_pair.freedman_lane_single_sample_p_value.v;
 
-            testCase.verifyEqual(winkler_results, expected_winkler);
+            testCase.verifyEqual(freedman_lane_results, expected_freedman_lane);
         end
 
         function withinNetworkPairWestfallYoungRankingTest(testCase)

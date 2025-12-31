@@ -45,10 +45,6 @@ Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :c
     functional connectivity data are not shuffled in order to preserve the inherent covariant structure of the
     data across permutations
 
-.. note::
-    Freedman-Lane FWER correction is referred to as Winkler in NLA. Implementation was modeled after the algorithm described in the paper
-    by Winkler.
-
 Brain Network Map Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

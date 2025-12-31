@@ -195,8 +195,8 @@ classdef NetworkResultPlotParameter < handle
             end
 
             switch ranking_method
-                case "nla.RankingMethod.WINKLER"
-                    ranking = "winkler_";
+                case "nla.RankingMethod.FREEDMAN_LANE"
+                    ranking = "freedman_lane_";
                 case "nla.RankingMethod.WESTFALL_YOUNG"
                     ranking = "westfall_young_";
                 otherwise
