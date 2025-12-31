@@ -242,7 +242,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             non_correlation_test = any(strcmp(obj.test_name, obj.noncorrelation_input_tests));
             uncorrected_names = ["uncorrected_", "legacy_"];
-            corrected_names = ["winkler_", "westfall_young_"];
+            corrected_names = ["freedman_lane_", "westfall_young_"];
 
             switch test_method
                 case "no_permutations"

@@ -42,8 +42,8 @@ classdef ResultRank < handle
                     ranking_result = obj.uncorrectedRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, ranking_result);
 
-                    % Winkler Method ranking
-                    ranking_result = obj.winklerMethodRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
+                    % Freedman-Lane Method ranking
+                    ranking_result = obj.freedmanLaneMethodRank(test_method, permutation_results, no_permutation_results, ranking_statistic,...
                         probability, ranking_result);
 
                     % Westfall Young ranking
@@ -96,7 +96,7 @@ classdef ResultRank < handle
         end
 
 
-        function ranking = winklerMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
+        function ranking = freedmanLaneMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
             probability, ranking)
             % Ranks the observed result using method described by Winkler to correct for FWER
             %
@@ -108,7 +108,7 @@ classdef ResultRank < handle
             % :param ranking: The NetworkTestResult object to place the results
             % :return: The same NetworkTestResult object with ranking results
 
-            winkler_probability = strcat("winkler_", probability);
+            freedman_lane_probability = strcat("freedman_lane_", probability);
             % NET-278: The "max statistic" for hypergeometric is the most significant p-value. Which is the smallest p-value.
             max_statistic_array = max(abs(permutation_results.(strcat(ranking_statistic, "_permutations")).v));
             if isequal(ranking.test_name, "hypergeometric")
@@ -117,16 +117,16 @@ classdef ResultRank < handle
             
             for index = 1:numel(no_permutation_results.(strcat("uncorrected_", probability)).v)
                 if isequal(ranking.test_name, "hypergeometric")
-                    ranking.(test_method).(winkler_probability).v(index) = sum(...
+                    ranking.(test_method).(freedman_lane_probability).v(index) = sum(...
                         squeeze(max_statistic_array) <= abs(no_permutation_results.(ranking_statistic).v(index))...
                     );
                 else
-                    ranking.(test_method).(winkler_probability).v(index) = sum(...
+                    ranking.(test_method).(freedman_lane_probability).v(index) = sum(...
                         squeeze(max_statistic_array) >= abs(no_permutation_results.(ranking_statistic).v(index))...
                     );
                 end
             end
-            ranking.(test_method).(winkler_probability).v = ranking.(test_method).(winkler_probability).v ./ obj.permutations;
+            ranking.(test_method).(freedman_lane_probability).v = ranking.(test_method).(freedman_lane_probability).v ./ obj.permutations;
         end
 
         function ranking = westfallYoungMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
