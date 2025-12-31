@@ -69,7 +69,10 @@ classdef NLA_GUI < matlab.apps.AppBase
                     app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
                 else
                     app.input_struct.permute_method = nla.edge.permutationMethods.Quickperms();
+                    d = uiprogressdlg(app.NetworkLevelAnalysisUIFigure, "Title", "Computing permutations", "Indeterminate","on");
+                    drawnow
                     app.input_struct = app.input_struct.permute_method.createPermutations(app.input_struct, app.net_input_struct.perm_count);
+                    close(d)
                 end
                 
                 if errors_found
