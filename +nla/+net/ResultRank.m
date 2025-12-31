@@ -96,7 +96,7 @@ classdef ResultRank < handle
         end
 
 
-        function ranking = freedmanLane(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
+        function ranking = freedmanLaneMethodRank(obj, test_method, permutation_results, no_permutation_results, ranking_statistic,...
             probability, ranking)
             % Ranks the observed result using method described by Winkler to correct for FWER
             %
