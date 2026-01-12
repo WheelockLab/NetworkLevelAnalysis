@@ -135,7 +135,7 @@ classdef TestPool < nla.DeepCopyable
         
             for iteration = block_start:block_end - 1
                 rng(iteration);
-                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
+                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct, iteration);
                 permuted_input.iteration = iteration;
                 
                 single_edge_result = obj.runEdgeTest(permuted_input);

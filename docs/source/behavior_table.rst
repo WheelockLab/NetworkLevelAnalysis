@@ -33,11 +33,16 @@ Covariates can also be unselected. These actions are done by highlighting a colu
 Setting Permutation Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Permutation groups can also be set. This allows permutation of the data and tests to be run in user-set blocks instead of
-the entire dataset.
+Exchangability blocks can be defind as permutation groups. These allow subsets of data to be permuted within their block. 
 
-To do this a column should be added to the behavior file. This column should be filled with non-negative whole numbers that are the same
-per group. For example, one group would be 0, all of the subjects in this group should have a 0 in this column. The next group
-would be 1, each subject in this group should have a 1. Continue this for the number of groups desired. 
+To do this a column(s) should be added to the behavior file. This column should be filled with non-negative whole numbers that are the same
+per group. For example, one group would be 1, all of the subjects in this group should have a 1 in this column. The next group
+would be 2, each subject in this group should have a 2. Continue this for the number of groups desired. This can be extended by adding/selecting
+additional permutation group columns.
 
 This column can then be selected by pushing the blue buttons (marked: :guilabel:`Add Permutation Group Level` and :guilabel:`Remove Last Permutation Group`).
+
+*Permutation grouping is implemented using Dr. Anderson Winkler's PALM software* :cite:p:`WinklerA:2015` `github`_, `FSL`_
+
+.. _github: https://github.com/andersonwinkler/PALM
+.. _FSL: https://fsl.fmrib.ox.ac.uk/fsl/docs/statistics/palm/index.html

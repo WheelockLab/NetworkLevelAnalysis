@@ -28,7 +28,7 @@ error terms don't change with the permutation.
 
 NLA performs the permutation testing by shuffling the behavior vector labels and computing the selected statistic(s) many
 times to produce a null distribution for each network. Family-wise error rate (FWER) can be corrected via Bonferroni, Benjamini-Yekutieli,
-Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :cite:p:`WinklerA`. 
+Benjamini-Hochberg, Westfall and Young :cite:p:`WestfallP`, and Freedman-Lane :cite:p:`WinklerA:2014`. 
 
 .. NLA then conducts data-driven permutation testing to establish significance. In the NLA toolbox, network
 .. level significance is determined by comparing each measured enrichment statistic to permuted
