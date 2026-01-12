@@ -17,23 +17,30 @@ classdef Quickperms < nla.edge.permutationMethods.Base
 
         function orig_input_struct = createPermutations(obj, orig_input_struct, number_permutations)
             [rows, columns] = size(orig_input_struct.permutation_groups);
-            unique_values = unique(orig_input_struct.permutation_groups(:, columns));
-            if ismember(0, unique_values)
-                orig_input_struct.permutation_groups(:, columns) = orig_input_struct.permutation_groups(:, columns) + 1;
-                unique_values = unique(orig_input_struct.permutation_groups(:, columns));
+            palm_permutation_groups = [];
+            all_negative_ones = -1 .* ones(rows, 1);
+            for column = 1:columns
+                current_column = orig_input_struct.permutation_groups(:, column);
+                unique_values = unique(current_column);
+                % PALM/quickperm does not like '0' being a member of the groups. If it is, we just increment all the numbers
+                if ismember(0, unique_values)
+                    current_column = current_column + 1;
+                    unique_values = unique(current_column);
+                end
+
+                % PALM/quickperm needs each grouping to have a running tally of all the numbers
+                counts = containers.Map(unique_values, ones(1, numel(unique_values)));
+                tally_column = zeros(rows, 1);
+                for row_num = 1:rows
+                    tally_column(row_num) = counts(current_column(row_num));
+                    counts(current_column(row_num)) = counts(current_column(row_num)) + 1;
+                end
+
+                palm_permutation_groups = [palm_permutation_groups all_negative_ones];
+                palm_permutation_groups = [palm_permutation_groups current_column];
+                palm_permutation_groups = [palm_permutation_groups tally_column];
             end
-            counts = containers.Map(unique_values, ones(1, numel(unique_values)));
-            last_column = zeros(rows, 1);
-            for row_num = 1:rows
-                last_column(row_num) = counts(orig_input_struct.permutation_groups(row_num, columns));
-                counts(orig_input_struct.permutation_groups(row_num, columns)) = counts(orig_input_struct.permutation_groups(row_num, columns)) + 1;
-            end
-            % Check if all values in first column of permutation struct are single value
-            if ~all(orig_input_struct.permutation_groups(:, 1) == orig_input_struct.permutation_groups(1, 1))
-                all_ones = -1 .* ones(rows, 1);
-                orig_input_struct.permutation_groups = [all_ones orig_input_struct.permutation_groups];
-            end
-            orig_input_struct.permutation_groups = [orig_input_struct.permutation_groups last_column];
+            orig_input_struct.permutation_groups = palm_permutation_groups;
             [permutations, ~] = nla.lib.palm_quickperms(orig_input_struct.behavior, orig_input_struct.permutation_groups, number_permutations);
             orig_input_struct.permutations = permutations;
         end
