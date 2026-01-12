@@ -42,7 +42,7 @@ additional permutation group columns.
 
 This column can then be selected by pushing the blue buttons (marked: :guilabel:`Add Permutation Group Level` and :guilabel:`Remove Last Permutation Group`).
 
-*Permutation grouping is implemented using Dr. Anderson Winkler's PALM software `PALM github`_ and `PALM FSL`_ :cite:p:`WinklerA:2015`*
+*Permutation grouping is implemented using Dr. Anderson Winkler's PALM software* :cite:p:`WinklerA:2015` `github`_, `FSL`_
 
-.. _PALM github: https://github.com/andersonwinkler/PALM
-.. _PALM FSL: https://fsl.fmrib.ox.ac.uk/fsl/docs/statistics/palm/index.html
+.. _github: https://github.com/andersonwinkler/PALM
+.. _FSL: https://fsl.fmrib.ox.ac.uk/fsl/docs/statistics/palm/index.html
