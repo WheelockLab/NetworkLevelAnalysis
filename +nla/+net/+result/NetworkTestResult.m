@@ -337,11 +337,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % :return: The full name of the p-value. (example: "single_sammple_p_value")
 
             import nla.NetworkLevelMethod
-            noncorrelation_input_tests = ["chi_squared", "hypergeometric"];
-            non_correlation_test = any(strcmp(test_name, noncorrelation_input_tests));
+            reference_distribution_tests = ["chi_squared", "hypergeometric"];
+            reference_distribution_test = any(strcmp(test_name, reference_distribution_tests));
 
             probability = "two_sample_p_value";
-            if isequal(non_correlation_test, false)
+            if isequal(reference_distribution_test, false)
                 if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
                     probability = "single_sample_p_value";
                 end
