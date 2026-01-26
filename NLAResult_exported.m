@@ -6,15 +6,17 @@ classdef NLAResult < matlab.apps.AppBase
         FileMenu                   matlab.ui.container.Menu
         SaveButton                 matlab.ui.container.Menu
         SaveSummaryTableMenu       matlab.ui.container.Menu
-        OpenDiagnosticPlotsButton  matlab.ui.control.Button
-        OpenTriMatrixPlotButton    matlab.ui.control.Button
-        BranchLabel                matlab.ui.control.Label
-        RunButton                  matlab.ui.control.Button
-        NetLevelLabel              matlab.ui.control.Label
-        ViewEdgeLevelButton        matlab.ui.control.Button
-        EdgeLevelLabel             matlab.ui.control.Label
-        FlipNestingButton          matlab.ui.control.Button
         ResultTree                 matlab.ui.container.Tree
+        FlipNestingButton          matlab.ui.control.Button
+        EdgeLevelLabel             matlab.ui.control.Label
+        ViewEdgeLevelButton        matlab.ui.control.Button
+        NetLevelLabel              matlab.ui.control.Label
+        RunButton                  matlab.ui.control.Button
+        BranchLabel                matlab.ui.control.Label
+        OpenTriMatrixPlotButton    matlab.ui.control.Button
+        OpenDiagnosticPlotsButton  matlab.ui.control.Button
+        SelectContrastLabel        matlab.ui.control.Label
+        SelectContrastDropdown     matlab.ui.control.DropDown
     end
 
     
@@ -29,6 +31,10 @@ classdef NLAResult < matlab.apps.AppBase
         net_adjustable_fields
         cur_iter = 0
         old_data = false % data from old result objects, not NetworkTestResult
+        
+        multi_contrast_edge_result = false
+        multi_contrast_net_result = false
+        selected_contrast_name = ''
     end
     
     methods (Access = private)
@@ -174,6 +180,17 @@ classdef NLAResult < matlab.apps.AppBase
             
             app.edge_result = test_pool.runEdgeTest(input_struct);
             
+            if app.edgeResultIsMultiContrast(app.edge_result)
+                app.multi_contrast_edge_result = app.edge_result;
+                app.initializeContrastSelectorFromResult(app.multi_contrast_edge_result);
+                
+                %set edge result to the one corresponding to the first
+                %contrast
+                all_contrast_names = app.multi_contrast_edge_result.contrastsAsStrings();
+                app.edge_result = app.multi_contrast_edge_result.getNamedResult(all_contrast_names{1});                
+                
+            end
+            
             app.input_struct = input_struct;
             app.net_input_struct = net_input_struct;
             app.test_pool = test_pool;
@@ -212,6 +229,17 @@ classdef NLAResult < matlab.apps.AppBase
                 app.net_input_struct.prob_max = app.net_input_struct.prob_max_original;
             end
             
+            if app.edgeResultIsMultiContrast(app.edge_result)
+                app.multi_contrast_edge_result = app.edge_result;
+                app.initializeContrastSelectorFromResult(app.multi_contrast_edge_result);
+                
+                %set edge result to the one corresponding to the first
+                %contrast
+                all_contrast_names = app.multi_contrast_edge_result.contrastsAsStrings();
+                app.edge_result = app.multi_contrast_edge_result.getNamedResult(all_contrast_names{1});                
+                
+            end
+            
             app.results = result;
             app.old_data = old_data;
        
@@ -231,6 +259,37 @@ classdef NLAResult < matlab.apps.AppBase
             end
             
             
+        end
+        
+        function initializeContrastSelectorFromResult(app, edge_result)
+            if app.edgeResultIsMultiContrast(edge_result)
+                app.SelectContrastDropdown.Items = edge_result.contrastsAsStrings();
+                app.SelectContrastDropdown.Enable = true;
+                app.SelectContrastDropdown.Value = app.SelectContrastDropdown.Items{1};
+                app.SelectContrastLabel.Enable = true;
+            else
+                app.SelectContrastDropdown.Enable = false;
+                app.SelectContrastLabel.Enable = false;
+                app.SelectContrastDropdown.Items = {};
+                app.SelectContrastDropdown.Value = {};
+            end
+        
+        end
+        
+        function is_multi_contrast = edgeResultIsMultiContrast(app, edge_result)
+            if isa(edge_result, 'nla.edge.result.MultiContrast')
+                is_multi_contrast = true;
+            else
+                is_multi_contrast = false;
+            end
+        end
+        
+        function is_multi_contrast = resultPoolIsMultiContrast(app, result_pool)
+            if isa(result_pool, 'nla.MultiContrastResult')
+                is_multi_contrast = true;
+            else
+                is_multi_contrast = false;
+            end        
         end
         
         function enableNetButtons(app, val)
@@ -300,7 +359,19 @@ classdef NLAResult < matlab.apps.AppBase
             prog.Value = 0.02;
             drawnow;
             
-            net_results = app.test_pool.runNetTests(app.net_input_struct, app.edge_result, app.input_struct.net_atlas, false);
+            if app.multi_contrast_edge_result == false
+                edge_result = app.edge_result;
+            else
+                %If multiple contrast result exists, we'll
+                %run all of them, rather than just the currently selected
+                %one
+                edge_result = app.multi_contrast_edge_result;
+            end
+                
+                
+            
+            net_results = app.test_pool.runNetTests(app.net_input_struct, edge_result, app.input_struct.net_atlas, false);
+            
             
             if app.net_input_struct.full_connectome
                 prog.Message = 'Starting parallel pool...';
@@ -322,7 +393,16 @@ classdef NLAResult < matlab.apps.AppBase
 
                 % Run permuted statistics
                 app.test_pool.data_queue = data_queue;
-                app.results = app.test_pool.runPerm(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, net_results, app.net_input_struct.perm_count);
+                resultPool = app.test_pool.runPerm(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, edge_result, net_results, app.net_input_struct.perm_count);
+                
+                if ~app.resultPoolIsMultiContrast(resultPool)
+                    app.results = resultPool;
+                else
+                    app.multi_contrast_net_result = resultPool;
+                    contrastName = app.SelectContrastDropdown.Value;
+                    app.results = app.multi_contrast_net_result.getNamedResult(contrastName);
+                end
+                
                 
                 % Delete the data queue
                 delete(data_queue);
@@ -330,7 +410,7 @@ classdef NLAResult < matlab.apps.AppBase
                 % Unset handle reference
                 app.prog_bar = false;
             else
-                app.results = ResultPool(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, net_results, false, false);
+                app.results = ResultPool(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, edge_result, net_results, false, false);
             end
             
             prog.Value = 0.98;
@@ -561,6 +641,16 @@ classdef NLAResult < matlab.apps.AppBase
             d_thresh = app.CohensDthresholdchordplotsCheckBox.Value;
             app.net_input_struct.d_thresh_chord_plot = d_thresh;
         end
+
+        % Value changed function: SelectContrastDropdown
+        function SelectContrastDropdownValueChanged(app, event)
+            app.selected_contrast_name = app.SelectContrastDropdown.Value;
+            app.edge_result = app.multi_contrast_edge_result.getNamedResult(app.selected_contrast_name);
+            if app.resultPoolIsMultiContrast(app.multi_contrast_net_result)
+                app.results = app.multi_contrast_net_result.getNamedResult(app.selected_contrast_name);
+                app.setNesting();
+            end
+        end
     end
 
     % Component initialization
@@ -642,6 +732,20 @@ classdef NLAResult < matlab.apps.AppBase
             app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
             app.OpenDiagnosticPlotsButton.Position = [11 28 147 22];
             app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
+
+            % Create SelectContrastLabel
+            app.SelectContrastLabel = uilabel(app.UIFigure);
+            app.SelectContrastLabel.Enable = 'off';
+            app.SelectContrastLabel.Position = [143 633 152 22];
+            app.SelectContrastLabel.Text = 'Select Contrast';
+
+            % Create SelectContrastDropdown
+            app.SelectContrastDropdown = uidropdown(app.UIFigure);
+            app.SelectContrastDropdown.Items = {};
+            app.SelectContrastDropdown.ValueChangedFcn = createCallbackFcn(app, @SelectContrastDropdownValueChanged, true);
+            app.SelectContrastDropdown.Enable = 'off';
+            app.SelectContrastDropdown.Position = [141 610 154 22];
+            app.SelectContrastDropdown.Value = {};
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
