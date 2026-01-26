@@ -88,8 +88,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.title = sprintf("%s (D > %g)", app.title, app.CohensDThresholdEditField.Value);
             end
             if ~isequal(app.test_method, "no_permutations")
-                if isequal(app.RankingDropDown.Value, "nla.RankingMethod.WINKLER") % Look at me, I'm MATLAB. I have no idea why enums are beneficial or how to use them
-                    app.title = strcat(app.title, "\nRanking by Winkler Method");
+                if isequal(app.RankingDropDown.Value, "nla.RankingMethod.FREEDMAN_LANE") % Look at me, I'm MATLAB. I have no idea why enums are beneficial or how to use them
+                    app.title = strcat(app.title, "\nRanking by Freedman-Lane Method");
                 elseif isequal(app.RankingDropDown.Value, "nla.RankingMethod.WESTFALL_YOUNG")
                     app.title = strcat(app.title, "\nRanking by Westfall-Young Method");
                 else
@@ -439,8 +439,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
 
             % Create RankingDropDown
             app.RankingDropDown = uidropdown(app.Panel);
-            app.RankingDropDown.Items = {'Uncorrected', 'Winkler', 'Westfall-Young'};
-            app.RankingDropDown.ItemsData = {'nla.RankingMethod.UNCORRECTED', 'nla.RankingMethod.WINKLER', 'nla.RankingMethod.WESTFALL_YOUNG'};
+            app.RankingDropDown.Items = {'Uncorrected', 'Freedman-Lane', 'Westfall-Young'};
+            app.RankingDropDown.ItemsData = {'nla.RankingMethod.UNCORRECTED', 'nla.RankingMethod.FREEDMAN_LANE', 'nla.RankingMethod.WESTFALL_YOUNG'};
             app.RankingDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
             app.RankingDropDown.Position = [291 297 100 22];
             app.RankingDropDown.Value = 'nla.RankingMethod.UNCORRECTED';

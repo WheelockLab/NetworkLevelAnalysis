@@ -1,5 +1,5 @@
 classdef RankingMethod
     enumeration
-        UNCORRECTED, WINKLER, WESTFALL_YOUNG
+        UNCORRECTED, FREEDMAN_LANE, WESTFALL_YOUNG
     end
 end

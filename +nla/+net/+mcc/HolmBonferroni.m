@@ -4,22 +4,16 @@ classdef HolmBonferroni < nla.net.mcc.Base
     end
 
     methods
-        function p_max = correct(obj, net_atlas, input_struct, prob)
-            [is_significant, adjusted_pvals, ~] = nla.lib.bonferroni_holm(prob.v, input_struct.prob_max);
-            p_max = max(is_significant .* adjusted_pvals);
+        function [is_sig_vector, p_max] = correct(obj, net_atlas, input_struct, prob)
+            [is_sig_vector, adjusted_pvals, ~] = nla.lib.bonferroni_holm(prob.v, input_struct.prob_max);
+                        
+            p_max = max(is_sig_vector .* prob.v);
         end
         function correction_label = createLabel(obj, net_atlas, input_struct, prob)
-            p_max = obj.correct(net_atlas, input_struct, prob);
-            if p_max == 0
-                correction_label = sprintf('Holm-Bonferroni produced no significant networks');
-            else
-                format_specs = "%g/%d tests";
-                if isequal(input_struct.behavior_count, 1)
-                    format_specs = "%g/%d test";
-                end
-                correction_label = sprintf(strcat("Holm-Bonferroni(", format_specs, ")"), input_struct.prob_max * input_struct.behavior_count,...
-                    input_struct.behavior_count);
-            end
+            correction_label = sprintf("Holm-Bonferroni (alpha = %g)",input_struct.prob_max);
+            
+            %Since p threshold is variable with this test, exclude it and
+            %just use the initial 'alpha' term used in the algorithm.
         end
     end
 end

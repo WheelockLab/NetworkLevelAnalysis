@@ -27,7 +27,7 @@ classdef NetworkResultPlotParameter < handle
         end
 
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
-                plot_title, fdr_correction, significance_filter, ranking_method)
+                plot_title, fdr_correction, effect_size_filter, ranking_method)
             % plot_title - this will be a string
             % plot_statistic - this is the stat that will be plotted
             % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
@@ -36,9 +36,9 @@ classdef NetworkResultPlotParameter < handle
 
             import nla.TriMatrix nla.TriMatrixDiag
             % We're going to use a default filter here
-            if isequal(significance_filter, false)
-                significance_filter = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
-                significance_filter.v = true(numel(significance_filter.v), 1);
+            if isequal(effect_size_filter, false)
+                effect_size_filter = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
+                effect_size_filter.v = true(numel(effect_size_filter.v), 1);
             end
 
             % Adding on to the plot title if it's a -log10 plot
@@ -53,20 +53,26 @@ classdef NetworkResultPlotParameter < handle
             if isstring(fdr_correction) || ischar(fdr_correction)
                 fdr_correction = nla.net.mcc.(erase(fdr_correction, "-"))();
             end
-            p_value_max = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
+            
+            [is_sig_vector, p_value_max] = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
+            
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
                 statistic_input);
-
-            name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
-                p_value_max, p_value_breakdown_label);
-            if p_value_max == 0
-                name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
-                    p_value_max, p_value_breakdown_label);
-            end
+            name_label = sprintf("%s %s\n%s", obj.network_test_results.test_display_name, plot_title,...
+                p_value_breakdown_label);
+%             else
+% 
+%                 name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
+%                     p_value_max, p_value_breakdown_label);
+%                 if p_value_max == 0
+%                     name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
+%                         p_value_max, p_value_breakdown_label);
+%                 end
+%             end
 
             % Filtering if there's a filter provided 
             significance_plot = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
-            significance_plot.v = (statistic_input.v < p_value_max) & significance_filter.v;
+            significance_plot.v = is_sig_vector & effect_size_filter.v;
 
             % scale values very slightly for display so numbers just below
             % the threshold don't show up white but marked significant
@@ -195,8 +201,8 @@ classdef NetworkResultPlotParameter < handle
             end
 
             switch ranking_method
-                case "nla.RankingMethod.WINKLER"
-                    ranking = "winkler_";
+                case "nla.RankingMethod.FREEDMAN_LANE"
+                    ranking = "freedman_lane_";
                 case "nla.RankingMethod.WESTFALL_YOUNG"
                     ranking = "westfall_young_";
                 otherwise

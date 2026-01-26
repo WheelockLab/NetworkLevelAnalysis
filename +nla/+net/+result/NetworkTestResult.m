@@ -242,7 +242,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
 
             non_correlation_test = any(strcmp(obj.test_name, obj.noncorrelation_input_tests));
             uncorrected_names = ["uncorrected_", "legacy_"];
-            corrected_names = ["winkler_", "westfall_young_"];
+            corrected_names = ["freedman_lane_", "westfall_young_"];
 
             switch test_method
                 case "no_permutations"
@@ -285,15 +285,15 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         % I don't really know what these do and haven't really thought about it. Hence the bad naming.
         function [sig, name] = singleSigMat(obj, network_atlas, edge_test_options, p_value, mcc_method, title_prefix)
             mcc_method = nla.net.mcc.(mcc_method)();
-            p_value_max = mcc_method.correct(network_atlas, edge_test_options, p_value);
+            [is_sig_vector, p_value_max] = mcc_method.correct(network_atlas, edge_test_options, p_value);
             p_breakdown_labels = mcc_method.createLabel(network_atlas, edge_test_options, p_value);
 
             sig = nla.TriMatrix(network_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
-            sig.v = (p_value.v < p_value_max);
-            name = sprintf("%s %s P < %.2g (%s)", title_prefix, obj.test_display_name, p_value_max, p_breakdown_labels);
-            if p_value_max == 0
-                name = sprintf("%s %s P = 0 (%s)", title_prefix, obj.test_display_name, p_breakdown_labels);
-            end
+            sig.v = is_sig_vector;
+            name = sprintf("%s %s %s", title_prefix, obj.test_display_name, p_value_max, p_breakdown_labels);
+%             if p_value_max == 0
+%                 name = sprintf("%s %s P = 0 (%s)", title_prefix, obj.test_display_name, p_breakdown_labels);
+%             end
         end
 
         function [number_of_tests, sig_count_mat, names] = appendSignificanceMatrix(...
@@ -337,11 +337,11 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             % :return: The full name of the p-value. (example: "single_sammple_p_value")
 
             import nla.NetworkLevelMethod
-            noncorrelation_input_tests = ["chi_squared", "hypergeometric"];
-            non_correlation_test = any(strcmp(test_name, noncorrelation_input_tests));
+            reference_distribution_tests = ["chi_squared", "hypergeometric"];
+            reference_distribution_test = any(strcmp(test_name, reference_distribution_tests));
 
             probability = "two_sample_p_value";
-            if isequal(non_correlation_test, false)
+            if isequal(reference_distribution_test, false)
                 if isequal(test_method, "no_permutations") || isequal(test_method, "within_network_pair")
                     probability = "single_sample_p_value";
                 end
