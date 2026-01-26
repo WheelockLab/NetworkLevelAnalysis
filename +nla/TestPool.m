@@ -36,29 +36,86 @@ classdef TestPool < nla.DeepCopyable
         
         function result = runPerm(obj, edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
             nonpermuted_network_test_results, num_perms, perm_seed, separate_network_and_edge_tests)
-            
+        
             if ~exist('perm_seed', 'var')
                 perm_seed = false;
             end
-            
+
             if ~exist('separate_network_and_edge_tests', 'var')
                 separate_network_and_edge_tests = false;
-            end
+            end                
+        
+%             if isa(nonpermuted_edge_test_results,'nla.edge.result.MultiContrast')
+%                 %If result has multiple contrasts, call the wrapper
+%                 %function that handles running them one at a time
+%                 result = obj.runPermMultiContrast(edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
+%                     nonpermuted_network_test_results, num_perms, perm_seed, separate_network_and_edge_tests);
+%             else
 
-            if isequal(separate_network_and_edge_tests, false)
-                [permuted_edge_test_results, permuted_network_test_results] = obj.runEdgeAndNetPerm(edge_input_struct,...
-                    net_input_struct, network_atlas, nonpermuted_edge_test_results, num_perms, perm_seed);
-            else
-                [permuted_edge_test_results, permuted_network_test_results] = obj.runPermSeparateEdgeAndNet(edge_input_struct,...
-                    net_input_struct, network_atlas, num_perms, perm_seed);
-            end
-            
-            ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(nonpermuted_edge_test_results, network_atlas,...
-                nonpermuted_network_test_results, permuted_network_test_results, net_input_struct);
+                if isequal(separate_network_and_edge_tests, false)
+                    [permuted_edge_test_results, permuted_network_test_results] = obj.runEdgeAndNetPerm(edge_input_struct,...
+                        net_input_struct, network_atlas, nonpermuted_edge_test_results, num_perms, perm_seed);
+                else
+                    [permuted_edge_test_results, permuted_network_test_results] = obj.runPermSeparateEdgeAndNet(edge_input_struct,...
+                        net_input_struct, network_atlas, num_perms, perm_seed);
+                end
 
-            result = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
-                nonpermuted_network_test_results, permuted_edge_test_results, ranked_permuted_network_test_results);
+                if ~isa(permuted_network_test_results, 'nla.MultiContrastResult')
+                    ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(nonpermuted_edge_test_results, network_atlas,...
+                        nonpermuted_network_test_results, permuted_network_test_results, net_input_struct);
+
+                    result = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
+                        nonpermuted_network_test_results, permuted_edge_test_results, ranked_permuted_network_test_results);
+                else
+                    
+                    result = nla.MultiContrastResult();
+                    contrastNames = nonpermuted_edge_test_results.contrastNames;
+
+                    for i = 1:length(contrastNames)
+                        this_contrast_name = contrastNames{i};
+
+                        this_nonperm_edge_result = nonpermuted_edge_test_results.getNamedResult(this_contrast_name);
+                        this_nonperm_network_result = nonpermuted_network_test_results.getNamedResult(this_contrast_name);
+                        this_perm_network_result = permuted_network_test_results.getNamedResult(this_contrast_name);
+
+                        this_ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(this_nonperm_edge_result, network_atlas,...
+                                            this_nonperm_network_result, this_perm_network_result, net_input_struct);
+
+                        this_result_pool = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, this_nonperm_edge_result,...
+                                            this_nonperm_network_result, this_perm_network_result, this_ranked_permuted_network_test_results);
+
+                        result.addNamedResult(this_contrast_name, this_result_pool);
+                    end
+                    
+                    
+                end
             
+            %end
+            
+        end
+        
+        function multi_contrast_result = runPermMultiContrast(obj, edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
+            nonpermuted_network_test_results, num_perms, perm_seed, separate_network_and_edge_tests)
+            %If the input is multi contrast, this will generate result pools for the edge and
+            %net results one at a time via loop
+            
+            contrast_names = nonpermuted_edge_test_results.contrastsAsStrings();
+            num_contrasts = length(contrast_names);
+            
+            multi_contrast_result = nla.MultiContrastResult();
+            
+            for i = 1:num_contrasts
+                this_contrast_name = contrast_names{i};
+                this_nonperm_edge_result = nonpermuted_edge_test_results.getNamedResult(this_contrast_name);
+                this_nonperm_net_results = nonpermuted_network_test_results.getNamedResult(this_contrast_name);
+                
+                this_contrast_result_pool = obj.runPerm(edge_input_struct, net_input_struct, network_atlas, this_nonperm_edge_result,...
+                    this_nonperm_net_results, num_perms, perm_seed, separate_network_and_edge_tests);
+                
+                multi_contrast_result.addNamedResult(this_contrast_result_pool);
+                
+            end
+        
         end
         
         function ranked_results = collateNetworkPermutationResults(obj, nonpermuted_edge_test_results, network_atlas, nonpermuted_network_test_results,...
@@ -111,7 +168,8 @@ classdef TestPool < nla.DeepCopyable
             % get current parallel pool or start a new one
             [number_of_processes, blocks] = obj.initializeParallelPool(num_perms);
             
-            parfor process = 1:number_of_processes
+            for process = 1:number_of_processes
+            %parfor process = 1:number_of_processes
                 network_result_block = obj.runEdgeAndNetPermBlock(edge_input_struct, net_input_struct, net_atlas,...
                     blocks(process), blocks(process+1), perm_seed);
                 network_result_blocks{process} = network_result_block;
@@ -123,9 +181,13 @@ classdef TestPool < nla.DeepCopyable
             permuted_network_results = network_result_blocks{1};
             for process = 2:number_of_processes
                 current_network_test_results = network_result_blocks{process};
-                for test_index = 1:numNetTests(obj)
-                    current_test_network_result = current_network_test_results(test_index);
-                    permuted_network_results{test_index}.merge(current_test_network_result);
+                if ~isa(current_network_test_results, 'nla.MultiContrastResult')
+                    for test_index = 1:numNetTests(obj)
+                        current_test_network_result = current_network_test_results(test_index);
+                        permuted_network_results{test_index}.merge(current_test_network_result);
+                    end
+                else
+                    permuted_network_results.merge(current_network_test_results);
                 end
             end
         end
@@ -143,13 +205,21 @@ classdef TestPool < nla.DeepCopyable
                 
                 % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
                 % indexes
-                if iteration - block_start + 1 == 1
-                    for test = 1:numNetTests(obj)
-                        network_result_block{test} = copy(network_results{test});
+                if isa(network_results, 'nla.MultiContrastResult')
+                    if iteration - block_start + 1 == 1
+                        network_result_block = network_results;
+                    else
+                        network_result_block.merge(network_results);
                     end
-                else
-                    for test = 1:numNetTests(obj)
-                        network_result_block{test}.merge(network_results{test});
+                else                    
+                    if iteration - block_start + 1 == 1
+                        for test = 1:numNetTests(obj)
+                            network_result_block{test} = copy(network_results{test});
+                        end
+                    else
+                        for test = 1:numNetTests(obj)
+                            network_result_block{test}.merge(network_results{test});
+                        end
                     end
                 end
 
@@ -214,7 +284,31 @@ classdef TestPool < nla.DeepCopyable
                 input_struct.iteration = 0;
             end
             
-            edge_result = obj.edge_test.run(input_struct);
+            is_multicontrast = isfield(input_struct, 'contrasts') && (size(input_struct.contrasts,1)>1);
+            
+            if ~is_multicontrast
+                edge_result = obj.edge_test.run(input_struct);                  
+            else
+                %Generate edge results for all contrasts
+                num_contrasts = size(input_struct.contrasts,1);
+                edge_result = nla.edge.result.MultiContrast();
+                has_contrast_names = isfield(input_struct,'contrastNames') & ~isempty(input_struct.contrastNames);
+                for contrast_idx = 1:num_contrasts
+                    
+                    this_contrast = input_struct.contrasts(contrast_idx,:);
+                    if has_contrast_names
+                        this_contrast_name = input_struct.contrastNames{contrast_idx};
+                    else
+                        this_contrast_name = ['contrast', num2str(contrast_idx)];
+                    end
+                    
+                    input_struct_this_contrast = input_struct;
+                    input_struct_this_contrast.contrasts = this_contrast;
+                    input_struct_this_contrast.contrastNames = this_contrast_name;
+                    edge_result_this_contrast = obj.edge_test.run(input_struct_this_contrast);
+                    edge_result.addNamedResult(this_contrast_name, edge_result_this_contrast);
+                end
+            end
         end
 
         function net_level_results = runNetTestsPerm(obj, net_input_struct, net_atlas, perm_edge_results)
@@ -267,9 +361,25 @@ classdef TestPool < nla.DeepCopyable
         end
         
         function net_results = runNetTests(obj, input_struct, edge_result, net_atlas, permutations)
-            net_results = {};
-            for i = 1:numNetTests(obj)
-                net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas, permutations);
+            
+            if ~isa(edge_result, 'nla.edge.result.MultiContrast')                              
+                net_results = {};
+                for i = 1:numNetTests(obj)
+                    net_results{i} = obj.net_tests{i}.run(input_struct, edge_result, net_atlas, permutations);
+                end            
+            else
+                net_results = nla.MultiContrastResult();
+                contrast_names = edge_result.contrastsAsStrings();
+                num_contrasts = length(contrast_names);
+                for contrastIdx = 1:num_contrasts
+                    this_contrast_name = contrast_names{contrastIdx};
+                    this_contrast_edge_result = edge_result.getNamedResult(this_contrast_name);
+                    this_contrast_net_results = {};
+                    for i = 1:numNetTests(obj)
+                        this_contrast_net_result{i} = obj.net_tests{i}.run(input_struct, this_contrast_edge_result, net_atlas, permutations);
+                    end
+                	net_results.addNamedResult(this_contrast_name,this_contrast_net_result)
+                end
             end
         end
         
