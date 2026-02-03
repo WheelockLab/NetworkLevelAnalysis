@@ -12,7 +12,7 @@ function checkNormalityWithKS(fig, input_struct, test_pool)
     ks_result = runKolmogorovSmirnovTest(input_struct, edge_test_result);
 
     prog.Value = 0.75;
-    qcKSOutput(ks_result, struct(), input_struct)
+    qcKSOutput(ks_result, edge_test_result, struct(), input_struct)
 
 end
 
@@ -35,21 +35,24 @@ function ks_result = runKolmogorovSmirnovTest(input_struct, edge_result)
     end
 end
 
-function qcKSOutput(ks_result, flags, edge_test_options)
+function qcKSOutput(ks_result, edge_test_result, flags, edge_test_options)
     
     network_test_options = nla.net.genBaseInputs();
     network_test_options.full_connectome = false;
     network_test_options.within_network_pair = false;
     network_test_options.fdr_correction = nla.net.mcc.None();
     edge_test_options.prob_max = 0.05;
+    default_discrete_colors = 1000;
 
     p_value_max = network_test_options.fdr_correction.correct(edge_test_options.net_atlas,...
         edge_test_options, '');
 
+    color_map = nla.net.result.NetworkResultPlotParameter.getColormap(default_discrete_colors,...
+        p_value_max);
 
     fig = nla.gfx.createFigure();
-    matrix_plot = nla.gfx.plots.MatrixPlot(fig, '', ks_result.p, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
-        'lower_limit', -0.03, 'upper_limit', p_value_max);
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test Significance"), ks_result.p, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
+        'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions('image_width');
     height = matrix_plot.image_dimensions('image_height');
@@ -58,14 +61,16 @@ function qcKSOutput(ks_result, flags, edge_test_options)
         flags.display_sig = true;
     end
 
-    matrix_plot2 = nla.gfx.plots.MatrixPlot(fig, '', ks_result.ks, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
-        'draw_legend', false, 'x_position', width, 'lower_limit', min(ks_result.ks.v), 'upper_limit', max(ks_result.ks.v));
-    width2 = matrix_plot2.image_dimensions('image_width');
-    height2 = matrix_plot2.image_dimensions('image_height');
-    matrix_plot2.displayImage();
+    % This is for plotting the KS stat and has been decided that we do not need this
 
-    width = width + width2;
-    height = max(height, height2);
+    % matrix_plot2 = nla.gfx.plots.MatrixPlot(fig, '', ks_result.ks, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
+    %     'draw_legend', false, 'x_position', width, 'lower_limit', min(ks_result.ks.v), 'upper_limit', max(ks_result.ks.v));
+    % width2 = matrix_plot2.image_dimensions('image_width');
+    % height2 = matrix_plot2.image_dimensions('image_height');
+    % matrix_plot2.displayImage();
+
+    % width = width + width2;
+    % height = max(height, height2);
     fig.Position(3) = width;
     fig.Position(4) = height;
 end
