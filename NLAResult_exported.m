@@ -6,15 +6,15 @@ classdef NLAResult < matlab.apps.AppBase
         FileMenu                   matlab.ui.container.Menu
         SaveButton                 matlab.ui.container.Menu
         SaveSummaryTableMenu       matlab.ui.container.Menu
-        OpenDiagnosticPlotsButton  matlab.ui.control.Button
-        OpenTriMatrixPlotButton    matlab.ui.control.Button
-        BranchLabel                matlab.ui.control.Label
-        RunButton                  matlab.ui.control.Button
-        NetLevelLabel              matlab.ui.control.Label
-        ViewEdgeLevelButton        matlab.ui.control.Button
-        EdgeLevelLabel             matlab.ui.control.Label
-        FlipNestingButton          matlab.ui.control.Button
         ResultTree                 matlab.ui.container.Tree
+        FlipNestingButton          matlab.ui.control.Button
+        EdgeLevelLabel             matlab.ui.control.Label
+        ViewEdgeLevelButton        matlab.ui.control.Button
+        NetLevelLabel              matlab.ui.control.Label
+        RunButton                  matlab.ui.control.Button
+        BranchLabel                matlab.ui.control.Label
+        OpenTriMatrixPlotButton    matlab.ui.control.Button
+        OpenDiagnosticPlotsButton  matlab.ui.control.Button
     end
 
     
