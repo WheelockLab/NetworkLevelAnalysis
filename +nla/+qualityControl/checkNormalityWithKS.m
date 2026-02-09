@@ -12,7 +12,7 @@ function checkNormalityWithKS(fig, input_struct, test_pool)
     ks_result = runKolmogorovSmirnovTest(input_struct, edge_test_result);
 
     prog.Value = 0.75;
-    qcKSOutput(ks_result, edge_test_result, struct(), input_struct)
+    qcKSOutput(ks_result.p, input_struct)
 
 end
 
@@ -35,7 +35,8 @@ function ks_result = runKolmogorovSmirnovTest(input_struct, edge_result)
     end
 end
 
-function qcKSOutput(ks_result, edge_test_result, flags, edge_test_options)
+function qcKSOutput(ks_result_p_value, edge_test_options)
+    % This will open the qc figure for the KS test
     
     network_test_options = nla.net.genBaseInputs();
     network_test_options.full_connectome = false;
@@ -51,26 +52,12 @@ function qcKSOutput(ks_result, edge_test_result, flags, edge_test_options)
         p_value_max);
 
     fig = nla.gfx.createFigure();
-    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test Significance"), ks_result.p, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test Significance"), ks_result_p_value, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
         'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions('image_width');
     height = matrix_plot.image_dimensions('image_height');
 
-    if ~isfield(flags, 'display_sig')
-        flags.display_sig = true;
-    end
-
-    % This is for plotting the KS stat and has been decided that we do not need this
-
-    % matrix_plot2 = nla.gfx.plots.MatrixPlot(fig, '', ks_result.ks, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
-    %     'draw_legend', false, 'x_position', width, 'lower_limit', min(ks_result.ks.v), 'upper_limit', max(ks_result.ks.v));
-    % width2 = matrix_plot2.image_dimensions('image_width');
-    % height2 = matrix_plot2.image_dimensions('image_height');
-    % matrix_plot2.displayImage();
-
-    % width = width + width2;
-    % height = max(height, height2);
     fig.Position(3) = width;
     fig.Position(4) = height;
 end
