@@ -15,11 +15,8 @@ classdef NLAResult < matlab.apps.AppBase
         BranchLabel                matlab.ui.control.Label
         OpenTriMatrixPlotButton    matlab.ui.control.Button
         OpenDiagnosticPlotsButton  matlab.ui.control.Button
-<<<<<<< HEAD
-=======
         SelectContrastLabel        matlab.ui.control.Label
         SelectContrastDropdown     matlab.ui.control.DropDown
->>>>>>> master
     end
 
     
