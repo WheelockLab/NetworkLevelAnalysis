@@ -1,4 +1,8 @@
 classdef Homoskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
+    
+    properties (SetAccess = protected)
+        REQUIRES_GROUP = false;
+    end
 
     methods
         

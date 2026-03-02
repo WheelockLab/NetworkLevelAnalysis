@@ -9,6 +9,9 @@ classdef Guillaume < nla.helpers.stdError.AbstractSwEStdErrStrategy
     properties
         totalSpectralCorrections;
     end
+    properties (SetAccess = protected)
+        REQUIRES_GROUP = true;
+    end
     
     methods
         

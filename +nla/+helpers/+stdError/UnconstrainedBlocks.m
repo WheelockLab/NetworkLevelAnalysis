@@ -5,6 +5,9 @@ classdef UnconstrainedBlocks < nla.helpers.stdError.AbstractSwEStdErrStrategy
         SPARSITY_THRESHOLD = 0.2;
         
     end
+    properties (SetAccess = protected)
+        REQUIRES_GROUP = true;
+    end
     
     methods
         
@@ -27,11 +30,11 @@ classdef UnconstrainedBlocks < nla.helpers.stdError.AbstractSwEStdErrStrategy
             FORCE_HALF_SW_ALGO = true;
             
             if FORCE_HALF_SW_ALGO
-                stdErrStrategy = nlaEckDev.sweStdError.UnconstrainedBlocks_BenKay();            
+                stdErrStrategy = nla.helpers.stdError.UnconstrainedBlocks_BenKay();            
             elseif vSparsity <= obj.SPARSITY_THRESHOLD
-                stdErrStrategy = nlaEckDev.sweStdError.UnconstrainedBlocks_Sparse();
+                stdErrStrategy = nla.helpers.stdError.UnconstrainedBlocks_Sparse();
             else
-                stdErrStrategy = nlaEckDev.sweStdError.UnconstrainedBlocks_Dense();
+                stdErrStrategy = nla.helpers.stdError.UnconstrainedBlocks_Dense();
             end
             
             stdErr = stdErrStrategy.calculate(sweStdErrInput);

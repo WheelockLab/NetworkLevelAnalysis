@@ -4,7 +4,12 @@ classdef FCWildBootstrap < nla.edge.permutationMethods.Base
             permuted_input_struct = orig_input_struct;
             permuted_input_struct.func_conn = orig_input_struct.func_conn.copy();
             fcData = permuted_input_struct.func_conn.v';
-            permuted_fcData = nla.helpers.wildBootstrap(fcData, [orig_input_struct.behavior, orig_input_struct.covariates], orig_input_struct.contrasts);
+            if isfield(orig_input_struct,'behavior') && (orig_input_struct.behavior ~= 0)
+                allCovariates = [orig_input_struct.behavior, orig_input_struct.covariates];
+            else
+                allCovariates = orig_input_struct.covariates;
+            end
+            permuted_fcData = nla.helpers.wildBootstrap(fcData, allCovariates, orig_input_struct.contrasts);
             permuted_input_struct.func_conn.v = permuted_fcData';
         end
     end
