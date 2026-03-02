@@ -52,7 +52,8 @@ function qcKSOutput(ks_result_p_value, edge_test_options)
         p_value_max);
 
     fig = nla.gfx.createFigure();
-    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test Significance"), ks_result_p_value, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
+    % Also remember to move this in read the docs
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test p-value\nSmaller values are less normal"), ks_result_p_value, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
         'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions('image_width');

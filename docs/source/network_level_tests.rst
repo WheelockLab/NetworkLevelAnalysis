@@ -53,16 +53,6 @@ Provided Tests
     * :math:`\textstyle E_i = \sum_{}\frac{\text{thresholded & binarized ROIs}}{\text{number of ROIs}} \scriptstyle * (\text{number of ROIs in the network-pair of interest})`
     * :math:`O_i`: non-permuted, nominally thresholded, and binarized edge-level *p*-values for the network-pair of interest
 
-* **Kolmogorov-Smirnov**
-  
-  * MATLAB `kstest2 <https://www.mathworks.com/help/stats/kstest2.html>`_ function.
-  
-  *Inputs:*
-    * Edge-level correlation coefficients for the network-pair of interest
-    * Edge-level correlation coefficients across the full connectome
-      
-      * **Note**: This input is not used for single-sample tests
-
 * **Wilcoxon rank-sum test**
   
   * MATLAB `ranksum <https://www.mathworks.com/help/stats/ranksum.html>`_ function.
