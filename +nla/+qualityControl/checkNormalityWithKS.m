@@ -1,0 +1,64 @@
+function checkNormalityWithKS(fig, input_struct, test_pool)
+
+    prog = uiprogressdlg(...
+        fig, 'Title', 'Checking Normaility', 'Message', 'Running Kolmogorov-Smirnov Test'...
+    );
+    prog.Value = 0.02;
+    
+    prog.Value = 0.25;
+    edge_test_result = test_pool.runEdgeTest(input_struct);
+
+    prog.Value = 0.5;
+    ks_result = runKolmogorovSmirnovTest(input_struct, edge_test_result);
+
+    prog.Value = 0.75;
+    qcKSOutput(ks_result.p, input_struct)
+
+end
+
+function ks_result = runKolmogorovSmirnovTest(input_struct, edge_result)
+    import nla.TriMatrix nla.TriMatrixDiag
+
+    ks_result = struct();
+    number_of_networks = input_struct.net_atlas.numNets();
+    ks_result.p = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+    ks_result.ks = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
+
+    for network1 = 1:number_of_networks
+        for network2 = 1:network1
+            network_rho = edge_result.coeff.get(input_struct.net_atlas.nets(network1).indexes,...
+                input_struct.net_atlas.nets(network2).indexes);
+            [~, p, ks] = kstest(network_rho);
+            ks_result.p.set(network1, network2, p);
+            ks_result.ks.set(network1, network2, ks);
+        end
+    end
+end
+
+function qcKSOutput(ks_result_p_value, edge_test_options)
+    % This will open the qc figure for the KS test
+    
+    network_test_options = nla.net.genBaseInputs();
+    network_test_options.full_connectome = false;
+    network_test_options.within_network_pair = false;
+    network_test_options.fdr_correction = nla.net.mcc.None();
+    edge_test_options.prob_max = 0.05;
+    default_discrete_colors = 1000;
+
+    p_value_max = network_test_options.fdr_correction.correct(edge_test_options.net_atlas,...
+        edge_test_options, '');
+
+    color_map = nla.net.result.NetworkResultPlotParameter.getColormap(default_discrete_colors,...
+        p_value_max);
+
+    fig = nla.gfx.createFigure();
+    % Also remember to move this in read the docs
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test p-value\nSmaller values are less normal"), ks_result_p_value, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
+        'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map);
+    matrix_plot.displayImage();
+    width = matrix_plot.image_dimensions('image_width');
+    height = matrix_plot.image_dimensions('image_height');
+
+    fig.Position(3) = width;
+    fig.Position(4) = height;
+end
