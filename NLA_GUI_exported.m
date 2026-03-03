@@ -6,24 +6,25 @@ classdef NLA_GUI < matlab.apps.AppBase
         FileMenu                      matlab.ui.container.Menu
         OpenpreviousresultMenu        matlab.ui.container.Menu
         GridLayout                    matlab.ui.container.GridLayout
-        Panel_3                       matlab.ui.container.Panel
-        NoneButton                    matlab.ui.control.Button
-        NetTestSelector               matlab.ui.control.ListBox
-        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
-        BranchLabel                   matlab.ui.control.Label
-        EdgeInputsPanel               matlab.ui.container.Panel
-        NetInputsPanel                matlab.ui.container.Panel
-        Panel                         matlab.ui.container.Panel
-        EdgeTestSelector              matlab.ui.control.DropDown
-        EdgeleveltestDropDownLabel    matlab.ui.control.Label
-        Panel_2                       matlab.ui.container.Panel
-        RunButton                     matlab.ui.control.Button
+        Panel_7                       matlab.ui.container.Panel
+        RunQualityControlButton       matlab.ui.control.Button
         MethodsPanel                  matlab.ui.container.Panel
         NonPermutedCheckBox           matlab.ui.control.CheckBox
         FullConnCheckBox              matlab.ui.control.CheckBox
         WithinNetPairCheckBox         matlab.ui.control.CheckBox
-        RunQualityControlButton       matlab.ui.control.Button
-        PermutationcountLabel         matlab.ui.control.Label
+        NetInputsPanel                matlab.ui.container.Panel
+        Panel_3                       matlab.ui.container.Panel
+        NoneButton                    matlab.ui.control.Button
+        NetTestSelector               matlab.ui.control.ListBox
+        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
+        EdgeInputsPanel               matlab.ui.container.Panel
+        Panel                         matlab.ui.container.Panel
+        EdgeTestSelector              matlab.ui.control.DropDown
+        EdgeleveltestDropDownLabel    matlab.ui.control.Label
+        BranchLabel                   matlab.ui.control.Label
+        Panel_5                       matlab.ui.container.Panel
+        RunButton                     matlab.ui.control.Button
+        PermutationcountEditField_2Label  matlab.ui.control.Label
         PermutationcountEditField     matlab.ui.control.NumericEditField
     end
 
@@ -304,7 +305,7 @@ classdef NLA_GUI < matlab.apps.AppBase
 
             % Create NetworkLevelAnalysisUIFigure and hide until all components are created
             app.NetworkLevelAnalysisUIFigure = uifigure('Visible', 'off');
-            app.NetworkLevelAnalysisUIFigure.Position = [100 100 1151 718];
+            app.NetworkLevelAnalysisUIFigure.Position = [100 100 786 620];
             app.NetworkLevelAnalysisUIFigure.Name = 'NetworkLevelAnalysis';
 
             % Create FileMenu
@@ -319,11 +320,58 @@ classdef NLA_GUI < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.NetworkLevelAnalysisUIFigure);
-            app.GridLayout.ColumnWidth = {'1x', 598};
-            app.GridLayout.RowHeight = {38, 100, '1x', 53, 1};
+            app.GridLayout.ColumnWidth = {'4x', '2x'};
+            app.GridLayout.RowHeight = {38, 200, '1x', 40};
             app.GridLayout.ColumnSpacing = 8.66666666666667;
             app.GridLayout.RowSpacing = 3.4;
             app.GridLayout.Padding = [8.66666666666667 3.4 8.66666666666667 3.4];
+
+            % Create Panel_7
+            app.Panel_7 = uipanel(app.GridLayout);
+            app.Panel_7.BorderType = 'none';
+            app.Panel_7.Layout.Row = 3;
+            app.Panel_7.Layout.Column = 2;
+
+            % Create RunQualityControlButton
+            app.RunQualityControlButton = uibutton(app.Panel_7, 'push');
+            app.RunQualityControlButton.ButtonPushedFcn = createCallbackFcn(app, @RunQualityControlButtonPushed, true);
+            app.RunQualityControlButton.Position = [107 8 138 24];
+            app.RunQualityControlButton.Text = 'Run Quality Control';
+
+            % Create MethodsPanel
+            app.MethodsPanel = uipanel(app.Panel_7);
+            app.MethodsPanel.Title = 'MethodsPanel';
+            app.MethodsPanel.Position = [1 39 253 112];
+
+            % Create NonPermutedCheckBox
+            app.NonPermutedCheckBox = uicheckbox(app.MethodsPanel);
+            app.NonPermutedCheckBox.ValueChangedFcn = createCallbackFcn(app, @MethodButtonGroupSelectionChanged, true);
+            app.NonPermutedCheckBox.Tag = 'nonpermuted';
+            app.NonPermutedCheckBox.Enable = 'off';
+            app.NonPermutedCheckBox.Text = 'Non-permuted';
+            app.NonPermutedCheckBox.Position = [9 65 99 22];
+            app.NonPermutedCheckBox.Value = true;
+
+            % Create FullConnCheckBox
+            app.FullConnCheckBox = uicheckbox(app.MethodsPanel);
+            app.FullConnCheckBox.ValueChangedFcn = createCallbackFcn(app, @MethodButtonGroupSelectionChanged, true);
+            app.FullConnCheckBox.Tag = 'full_con';
+            app.FullConnCheckBox.Text = 'Full connectome';
+            app.FullConnCheckBox.Position = [9 35 110 22];
+            app.FullConnCheckBox.Value = true;
+
+            % Create WithinNetPairCheckBox
+            app.WithinNetPairCheckBox = uicheckbox(app.MethodsPanel);
+            app.WithinNetPairCheckBox.ValueChangedFcn = createCallbackFcn(app, @MethodButtonGroupSelectionChanged, true);
+            app.WithinNetPairCheckBox.Tag = 'within_net_pair';
+            app.WithinNetPairCheckBox.Text = 'Within Net-pair';
+            app.WithinNetPairCheckBox.Position = [9 5 101 22];
+            app.WithinNetPairCheckBox.Value = true;
+
+            % Create NetInputsPanel
+            app.NetInputsPanel = uipanel(app.Panel_7);
+            app.NetInputsPanel.Title = 'NetInputsPanel';
+            app.NetInputsPanel.Position = [1 164 253 162];
 
             % Create Panel_3
             app.Panel_3 = uipanel(app.GridLayout);
@@ -334,7 +382,7 @@ classdef NLA_GUI < matlab.apps.AppBase
             % Create NoneButton
             app.NoneButton = uibutton(app.Panel_3, 'push');
             app.NoneButton.ButtonPushedFcn = createCallbackFcn(app, @NoneButtonPushed, true);
-            app.NoneButton.Position = [85 80 48 21];
+            app.NoneButton.Position = [145 206 48 21];
             app.NoneButton.Text = 'None';
 
             % Create NetTestSelector
@@ -342,33 +390,20 @@ classdef NLA_GUI < matlab.apps.AppBase
             app.NetTestSelector.Items = {};
             app.NetTestSelector.Multiselect = 'on';
             app.NetTestSelector.ValueChangedFcn = createCallbackFcn(app, @NetTestSelectorValueChanged, true);
-            app.NetTestSelector.Position = [146 2 182 138];
+            app.NetTestSelector.Position = [1 8 193 192];
             app.NetTestSelector.Value = {};
 
             % Create NetworkleveltestsCtrlclickformultipleLabel
             app.NetworkleveltestsCtrlclickformultipleLabel = uilabel(app.Panel_3);
             app.NetworkleveltestsCtrlclickformultipleLabel.HorizontalAlignment = 'right';
-            app.NetworkleveltestsCtrlclickformultipleLabel.Position = [6 110 125 28];
+            app.NetworkleveltestsCtrlclickformultipleLabel.Position = [1 205 125 28];
             app.NetworkleveltestsCtrlclickformultipleLabel.Text = {'Network-level tests'; '(Ctrl+click for multiple)'};
-
-            % Create BranchLabel
-            app.BranchLabel = uilabel(app.Panel_3);
-            app.BranchLabel.HorizontalAlignment = 'right';
-            app.BranchLabel.FontColor = [0.8 0.8 0.8];
-            app.BranchLabel.Position = [336 123 263 22];
-            app.BranchLabel.Text = 'gui | unknown_branch:0000000';
 
             % Create EdgeInputsPanel
             app.EdgeInputsPanel = uipanel(app.GridLayout);
             app.EdgeInputsPanel.Title = 'Edge-level inputs';
-            app.EdgeInputsPanel.Layout.Row = [2 4];
+            app.EdgeInputsPanel.Layout.Row = [2 3];
             app.EdgeInputsPanel.Layout.Column = 1;
-
-            % Create NetInputsPanel
-            app.NetInputsPanel = uipanel(app.GridLayout);
-            app.NetInputsPanel.Title = 'Network-level inputs';
-            app.NetInputsPanel.Layout.Row = 3;
-            app.NetInputsPanel.Layout.Column = 2;
 
             % Create Panel
             app.Panel = uipanel(app.GridLayout);
@@ -390,69 +425,39 @@ classdef NLA_GUI < matlab.apps.AppBase
             app.EdgeleveltestDropDownLabel.Position = [1 8 85 22];
             app.EdgeleveltestDropDownLabel.Text = 'Edge-level test';
 
-            % Create Panel_2
-            app.Panel_2 = uipanel(app.GridLayout);
-            app.Panel_2.AutoResizeChildren = 'off';
-            app.Panel_2.BorderType = 'none';
-            app.Panel_2.Layout.Row = 4;
-            app.Panel_2.Layout.Column = 2;
+            % Create BranchLabel
+            app.BranchLabel = uilabel(app.GridLayout);
+            app.BranchLabel.FontColor = [0.8 0.8 0.8];
+            app.BranchLabel.Layout.Row = 4;
+            app.BranchLabel.Layout.Column = 1;
+            app.BranchLabel.Text = 'gui | unknown_branch:0000000';
+
+            % Create Panel_5
+            app.Panel_5 = uipanel(app.GridLayout);
+            app.Panel_5.BorderType = 'none';
+            app.Panel_5.Layout.Row = 4;
+            app.Panel_5.Layout.Column = 2;
 
             % Create RunButton
-            app.RunButton = uibutton(app.Panel_2, 'push');
+            app.RunButton = uibutton(app.Panel_5, 'push');
             app.RunButton.ButtonPushedFcn = createCallbackFcn(app, @RunButtonPushed, true);
-            app.RunButton.Position = [544 3 53 20];
+            app.RunButton.BackgroundColor = [0.8902 0.9882 0.851];
+            app.RunButton.Position = [191 6 53 30];
             app.RunButton.Text = 'Run';
 
-            % Create MethodsPanel
-            app.MethodsPanel = uipanel(app.Panel_2);
-            app.MethodsPanel.AutoResizeChildren = 'off';
-            app.MethodsPanel.Title = 'Methods';
-            app.MethodsPanel.Position = [1 2 345 48];
-
-            % Create NonPermutedCheckBox
-            app.NonPermutedCheckBox = uicheckbox(app.MethodsPanel);
-            app.NonPermutedCheckBox.ValueChangedFcn = createCallbackFcn(app, @MethodButtonGroupSelectionChanged, true);
-            app.NonPermutedCheckBox.Tag = 'nonpermuted';
-            app.NonPermutedCheckBox.Enable = 'off';
-            app.NonPermutedCheckBox.Text = 'Non-permuted';
-            app.NonPermutedCheckBox.Position = [10 3 99 22];
-            app.NonPermutedCheckBox.Value = true;
-
-            % Create FullConnCheckBox
-            app.FullConnCheckBox = uicheckbox(app.MethodsPanel);
-            app.FullConnCheckBox.ValueChangedFcn = createCallbackFcn(app, @MethodButtonGroupSelectionChanged, true);
-            app.FullConnCheckBox.Tag = 'full_con';
-            app.FullConnCheckBox.Text = 'Full connectome';
-            app.FullConnCheckBox.Position = [118 3 110 22];
-            app.FullConnCheckBox.Value = true;
-
-            % Create WithinNetPairCheckBox
-            app.WithinNetPairCheckBox = uicheckbox(app.MethodsPanel);
-            app.WithinNetPairCheckBox.ValueChangedFcn = createCallbackFcn(app, @MethodButtonGroupSelectionChanged, true);
-            app.WithinNetPairCheckBox.Tag = 'within_net_pair';
-            app.WithinNetPairCheckBox.Text = 'Within Net-pair';
-            app.WithinNetPairCheckBox.Position = [236 3 101 22];
-            app.WithinNetPairCheckBox.Value = true;
-
-            % Create RunQualityControlButton
-            app.RunQualityControlButton = uibutton(app.Panel_2, 'push');
-            app.RunQualityControlButton.ButtonPushedFcn = createCallbackFcn(app, @RunQualityControlButtonPushed, true);
-            app.RunQualityControlButton.Position = [472 29 125 21];
-            app.RunQualityControlButton.Text = 'Run Quality Control';
-
-            % Create PermutationcountLabel
-            app.PermutationcountLabel = uilabel(app.Panel_2);
-            app.PermutationcountLabel.HorizontalAlignment = 'right';
-            app.PermutationcountLabel.Position = [359 2 106 22];
-            app.PermutationcountLabel.Text = 'Permutation count:';
+            % Create PermutationcountEditField_2Label
+            app.PermutationcountEditField_2Label = uilabel(app.Panel_5);
+            app.PermutationcountEditField_2Label.HorizontalAlignment = 'right';
+            app.PermutationcountEditField_2Label.Position = [6 8 106 26];
+            app.PermutationcountEditField_2Label.Text = 'Permutation count:';
 
             % Create PermutationcountEditField
-            app.PermutationcountEditField = uieditfield(app.Panel_2, 'numeric');
+            app.PermutationcountEditField = uieditfield(app.Panel_5, 'numeric');
             app.PermutationcountEditField.Limits = [0 Inf];
             app.PermutationcountEditField.RoundFractionalValues = 'on';
             app.PermutationcountEditField.ValueDisplayFormat = '%11d';
             app.PermutationcountEditField.ValueChangedFcn = createCallbackFcn(app, @PermutationcountEditFieldValueChanged, true);
-            app.PermutationcountEditField.Position = [480 2 53 22];
+            app.PermutationcountEditField.Position = [127 7 53 27];
             app.PermutationcountEditField.Value = 10000;
 
             % Show the figure after all components are created
