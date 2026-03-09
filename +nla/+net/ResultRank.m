@@ -32,7 +32,17 @@ classdef ResultRank < handle
             
             for test_method = obj.permuted_network_results.test_methods
                 if ~isequal(test_method, "no_permutations") && ~isequal(obj.permuted_network_results.test_display_name, "Cohen's D")
-
+                    if ~isstruct(obj.permuted_network_results.(test_method))
+                        %If the test method was run, the corresponding
+                        %field for the test method will be a struct with
+                        %the result.
+                        %If the test method was not run, it will be 0.
+                        %For some reason, trying to compare a struct to 0
+                        %with == throws an error, so doing it this way.
+                        %It it's not a struct, the test_method was not run,
+                        %so skip to the next test method. ADE 20260306
+                        continue;
+                    end
                     ranking_statistic = obj.getTestParameters(test_method);
                     probability = NetworkTestResult().getPValueNames(test_method, obj.permuted_network_results.test_name);
                     permutation_results = obj.permuted_network_results.permutation_results;
