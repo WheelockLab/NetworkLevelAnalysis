@@ -295,7 +295,14 @@ classdef NLAResult < matlab.apps.AppBase
 
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
-            import nla.* % required due to matlab package system quirks
+            
+            if isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
+                app.input_struct.permute_method = nla.edge.permutationMethods.Quickperms();
+                d = uiprogressdlg(app.UIFigure, "Title", "Computing permutations", "Indeterminate","on");
+                drawnow
+                app.input_struct = app.input_struct.permute_method.createPermutations(app.input_struct, app.net_input_struct.perm_count);
+                close(d)
+            end
             prog = uiprogressdlg(app.UIFigure, 'Title', 'Running statistics', 'Message', 'Running net-level statistics', 'Cancelable', 'on');
             prog.Value = 0.02;
             drawnow;

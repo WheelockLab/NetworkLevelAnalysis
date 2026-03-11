@@ -67,12 +67,7 @@ classdef NLA_GUI < matlab.apps.AppBase
                 % check permutation method
                 if ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
                     app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
-                else
-                    app.input_struct.permute_method = nla.edge.permutationMethods.Quickperms();
-                    d = uiprogressdlg(app.NetworkLevelAnalysisUIFigure, "Title", "Computing permutations", "Indeterminate","on");
-                    drawnow
-                    app.input_struct = app.input_struct.permute_method.createPermutations(app.input_struct, app.net_input_struct.perm_count);
-                    close(d)
+
                 end
                 
                 if errors_found
