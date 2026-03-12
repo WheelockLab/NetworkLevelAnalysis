@@ -215,18 +215,18 @@ classdef MatrixPlot < handle
             end
             
             obj.matrix = obj.original_matrix;
-            if ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
+            if ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10"]) &&...
                 ismember(new_scale, ["nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.LOG"])
 %                 obj.matrix.v = 10.^(-obj.matrix.v);
                 obj.lower_limit = 0;
                 obj.upper_limit = obj.p_value_max;
-            elseif ~ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"]) &&...
+            elseif ~ismember(old_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10"]) &&...
                 ~ismember(new_scale, ["nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.LOG"])                
                 obj.lower_limit = 0;
                 obj.upper_limit = 2;
             end
             
-            if ismember(new_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10", "nla.gfx.ProbPlotMethod.NEGATIVE_LOG_STATISTIC"])
+            if ismember(new_scale, ["nla.gfx.ProbPlotMethod.NEGATIVE_LOG_10"])
                 obj.matrix.v = -log10(obj.matrix.v);
             end
 
