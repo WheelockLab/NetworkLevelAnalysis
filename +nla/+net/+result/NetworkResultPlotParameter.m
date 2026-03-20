@@ -56,8 +56,7 @@ classdef NetworkResultPlotParameter < handle
             
             [is_sig_vector, p_value_max] = fdr_correction.correct(obj.network_atlas, obj.updated_test_options, statistic_input);
             
-            p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options,...
-                statistic_input);
+            p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options);
             name_label = sprintf("%s %s\n%s", obj.network_test_results.test_display_name, plot_title,...
                 p_value_breakdown_label);
 %             else

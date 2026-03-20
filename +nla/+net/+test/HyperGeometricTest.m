@@ -68,7 +68,11 @@ classdef HyperGeometricTest < handle
 
     methods (Static)
         function inputs = requiredInputs()
-            inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
+            %Remove required inputs from NLA_GUI and set test count and p max threshold to default values. ADE 20260320
+            inputs = {};            
+            
+            %If we need to designate required inputs, here's an exampe that worked previously:
+            %inputs = {nla.inputField.Integer('behavior_count', 'Test count:', 1, 1, Inf), nla.inputField.Number('prob_max', 'Net-level P threshold <', 0, 0.05, 1)};
         end
     end
 end

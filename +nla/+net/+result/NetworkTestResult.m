@@ -286,7 +286,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         function [sig, name] = singleSigMat(obj, network_atlas, edge_test_options, p_value, mcc_method, title_prefix)
             mcc_method = nla.net.mcc.(mcc_method)();
             [is_sig_vector, p_value_max] = mcc_method.correct(network_atlas, edge_test_options, p_value);
-            p_breakdown_labels = mcc_method.createLabel(network_atlas, edge_test_options, p_value);
+            p_breakdown_labels = mcc_method.createLabel(network_atlas, edge_test_options);
 
             sig = nla.TriMatrix(network_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
             sig.v = is_sig_vector;

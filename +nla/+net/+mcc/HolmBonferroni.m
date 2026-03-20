@@ -9,7 +9,7 @@ classdef HolmBonferroni < nla.net.mcc.Base
                         
             p_max = max(is_sig_vector .* prob.v);
         end
-        function correction_label = createLabel(obj, net_atlas, input_struct, prob)
+        function correction_label = createLabel(obj, net_atlas, input_struct)
             correction_label = sprintf("Holm-Bonferroni (alpha = %g)",input_struct.prob_max);
             
             %Since p threshold is variable with this test, exclude it and
