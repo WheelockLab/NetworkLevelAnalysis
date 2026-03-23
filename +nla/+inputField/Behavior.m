@@ -296,6 +296,12 @@ classdef Behavior < nla.inputField.InputField
                         obj.behavior_full(:, non_numerical_indexes) = [];
                     end
                     
+                    label_logicals = true(1, numel(labels));
+                    for i=1:numel(non_numerical_indexes)
+                        label_logicals(non_numerical_indexes(i)) = false;
+                    end
+                    labels = labels(label_logicals);
+                    
                     vals = table2array(obj.behavior_full);
 
                     containsNaN = sum(isnan(vals)) > 0;
