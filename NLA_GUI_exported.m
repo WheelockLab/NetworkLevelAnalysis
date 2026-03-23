@@ -12,7 +12,8 @@ classdef NLA_GUI < matlab.apps.AppBase
         NonPermutedCheckBox           matlab.ui.control.CheckBox
         FullConnCheckBox              matlab.ui.control.CheckBox
         WithinNetPairCheckBox         matlab.ui.control.CheckBox
-        NetInputsPanel                matlab.ui.container.Panel
+        PermutationcountEditField_2Label  matlab.ui.control.Label
+        PermutationcountEditField     matlab.ui.control.NumericEditField
         Panel_3                       matlab.ui.container.Panel
         NoneButton                    matlab.ui.control.Button
         NetTestSelector               matlab.ui.control.ListBox
@@ -24,8 +25,6 @@ classdef NLA_GUI < matlab.apps.AppBase
         BranchLabel                   matlab.ui.control.Label
         Panel_5                       matlab.ui.container.Panel
         RunButton                     matlab.ui.control.Button
-        PermutationcountEditField_2Label  matlab.ui.control.Label
-        PermutationcountEditField     matlab.ui.control.NumericEditField
     end
 
     
@@ -58,11 +57,22 @@ classdef NLA_GUI < matlab.apps.AppBase
                     end
                 end
                 % store input fields
-                for i = 1:numel(app.net_input_fields)
-                    [app.net_input_struct, error] = app.net_input_fields{i}.store(app.net_input_struct);
-                    if ~islogical(error)
-                        error_str = [error_str sprintf('\n - %s: %s', app.net_input_fields{i}.disp_name, error)];
-                        errors_found = true;
+                % removing net input fields and using default values for
+                % behavior_count and prob_max (ADE20260320)
+                if numel(app.net_input_fields) == 0
+                    app.net_input_struct.behavior_count = 1;
+                    app.net_input_struct.prob_max = 0.05;
+                else
+                    %This block is if we need to re-add required inputs for
+                    %net tests into the NLA GUI, and will only be hit if
+                    %any selected net tests have required inputs
+                
+                    for i = 1:numel(app.net_input_fields)
+                        [app.net_input_struct, error] = app.net_input_fields{i}.store(app.net_input_struct);
+                        if ~islogical(error)
+                            error_str = [error_str sprintf('\n - %s: %s', app.net_input_fields{i}.disp_name, error)];
+                            errors_found = true;
+                        end
                     end
                 end
                 % check permutation method
@@ -202,14 +212,23 @@ classdef NLA_GUI < matlab.apps.AppBase
             end
             app.net_input_fields = inputField.reduce(inputs);
             
-            % display input fields
-            x = inputField.LABEL_GAP * 2;
-            y = app.NetInputsPanel.InnerPosition(4);
-            for i = 1:numel(app.net_input_fields)
-                y = y - inputField.LABEL_GAP;
-                [w, h] = app.net_input_fields{i}.draw(x, y, app.NetInputsPanel, app.NetworkLevelAnalysisUIFigure);
-                app.net_input_fields{i}.read(app.net_input_struct);
-                y = y - h;
+            if numel(app.net_input_fields) > 0
+                %Removed net inputs panel from GUI and just use default values
+                %for pmax and test_count for net tests, so this block will
+                %not be entered if there are no net test settings inputs.
+                %
+                %If need to re-implement net tests, re-add a panel called
+                %'NetInputsPanel' back to GUI to make this block functional
+                %again (ADE 20260320).
+                
+                x = inputField.LABEL_GAP * 2;
+                y = app.NetInputsPanel.InnerPosition(4);
+                for i = 1:numel(app.net_input_fields)
+                    y = y - inputField.LABEL_GAP;
+                    [w, h] = app.net_input_fields{i}.draw(x, y, app.NetInputsPanel, app.NetworkLevelAnalysisUIFigure);
+                    app.net_input_fields{i}.read(app.net_input_struct);
+                    y = y - h;
+                end
             end
         end
 
@@ -305,7 +324,7 @@ classdef NLA_GUI < matlab.apps.AppBase
 
             % Create NetworkLevelAnalysisUIFigure and hide until all components are created
             app.NetworkLevelAnalysisUIFigure = uifigure('Visible', 'off');
-            app.NetworkLevelAnalysisUIFigure.Position = [100 100 786 620];
+            app.NetworkLevelAnalysisUIFigure.Position = [100 100 747 620];
             app.NetworkLevelAnalysisUIFigure.Name = 'NetworkLevelAnalysis';
 
             % Create FileMenu
@@ -320,7 +339,7 @@ classdef NLA_GUI < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.NetworkLevelAnalysisUIFigure);
-            app.GridLayout.ColumnWidth = {'4x', '2x'};
+            app.GridLayout.ColumnWidth = {'5x', '2x'};
             app.GridLayout.RowHeight = {38, 200, '1x', 40};
             app.GridLayout.ColumnSpacing = 8.66666666666667;
             app.GridLayout.RowSpacing = 3.4;
@@ -335,13 +354,13 @@ classdef NLA_GUI < matlab.apps.AppBase
             % Create RunQualityControlButton
             app.RunQualityControlButton = uibutton(app.Panel_7, 'push');
             app.RunQualityControlButton.ButtonPushedFcn = createCallbackFcn(app, @RunQualityControlButtonPushed, true);
-            app.RunQualityControlButton.Position = [107 8 138 24];
+            app.RunQualityControlButton.Position = [6 273 138 40];
             app.RunQualityControlButton.Text = 'Run Quality Control';
 
             % Create MethodsPanel
             app.MethodsPanel = uipanel(app.Panel_7);
             app.MethodsPanel.Title = 'MethodsPanel';
-            app.MethodsPanel.Position = [1 39 253 112];
+            app.MethodsPanel.Position = [6 143 190 112];
 
             % Create NonPermutedCheckBox
             app.NonPermutedCheckBox = uicheckbox(app.MethodsPanel);
@@ -368,10 +387,20 @@ classdef NLA_GUI < matlab.apps.AppBase
             app.WithinNetPairCheckBox.Position = [9 5 101 22];
             app.WithinNetPairCheckBox.Value = true;
 
-            % Create NetInputsPanel
-            app.NetInputsPanel = uipanel(app.Panel_7);
-            app.NetInputsPanel.Title = 'NetInputsPanel';
-            app.NetInputsPanel.Position = [1 164 253 162];
+            % Create PermutationcountEditField_2Label
+            app.PermutationcountEditField_2Label = uilabel(app.Panel_7);
+            app.PermutationcountEditField_2Label.HorizontalAlignment = 'right';
+            app.PermutationcountEditField_2Label.Position = [6 2 106 26];
+            app.PermutationcountEditField_2Label.Text = 'Permutation count:';
+
+            % Create PermutationcountEditField
+            app.PermutationcountEditField = uieditfield(app.Panel_7, 'numeric');
+            app.PermutationcountEditField.Limits = [0 Inf];
+            app.PermutationcountEditField.RoundFractionalValues = 'on';
+            app.PermutationcountEditField.ValueDisplayFormat = '%11d';
+            app.PermutationcountEditField.ValueChangedFcn = createCallbackFcn(app, @PermutationcountEditFieldValueChanged, true);
+            app.PermutationcountEditField.Position = [127 1 63 27];
+            app.PermutationcountEditField.Value = 10000;
 
             % Create Panel_3
             app.Panel_3 = uipanel(app.GridLayout);
@@ -442,23 +471,8 @@ classdef NLA_GUI < matlab.apps.AppBase
             app.RunButton = uibutton(app.Panel_5, 'push');
             app.RunButton.ButtonPushedFcn = createCallbackFcn(app, @RunButtonPushed, true);
             app.RunButton.BackgroundColor = [0.8902 0.9882 0.851];
-            app.RunButton.Position = [191 6 53 30];
+            app.RunButton.Position = [127 6 63 30];
             app.RunButton.Text = 'Run';
-
-            % Create PermutationcountEditField_2Label
-            app.PermutationcountEditField_2Label = uilabel(app.Panel_5);
-            app.PermutationcountEditField_2Label.HorizontalAlignment = 'right';
-            app.PermutationcountEditField_2Label.Position = [6 8 106 26];
-            app.PermutationcountEditField_2Label.Text = 'Permutation count:';
-
-            % Create PermutationcountEditField
-            app.PermutationcountEditField = uieditfield(app.Panel_5, 'numeric');
-            app.PermutationcountEditField.Limits = [0 Inf];
-            app.PermutationcountEditField.RoundFractionalValues = 'on';
-            app.PermutationcountEditField.ValueDisplayFormat = '%11d';
-            app.PermutationcountEditField.ValueChangedFcn = createCallbackFcn(app, @PermutationcountEditFieldValueChanged, true);
-            app.PermutationcountEditField.Position = [127 7 53 27];
-            app.PermutationcountEditField.Value = 10000;
 
             % Show the figure after all components are created
             app.NetworkLevelAnalysisUIFigure.Visible = 'on';

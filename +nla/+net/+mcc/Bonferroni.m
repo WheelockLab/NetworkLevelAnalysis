@@ -9,14 +9,11 @@ classdef Bonferroni < nla.net.mcc.Base
             p_max = input_struct.prob_max / net_atlas.numNetPairs();
             is_sig_vector = prob.v < p_max;
         end
-        function correction_label = createLabel(obj, net_atlas, input_struct, prob)
-            format_specs_tests = "%d tests)";
-            if isequal(input_struct.behavior_count, 1)
-                format_specs_tests = "%d test)";
-            end
+        function correction_label = createLabel(obj, net_atlas, input_struct)
+            
             p_max = input_struct.prob_max / net_atlas.numNetPairs();
-            correction_label = sprintf(strcat("P < %.2g (%.2g/%d net-pairs/", format_specs_tests), p_max, input_struct.prob_max * input_struct.behavior_count,...
-                net_atlas.numNetPairs(), input_struct.behavior_count);
+            correction_label = sprintf("P < %.2g (%.2g/%d net-pairs)", p_max, input_struct.prob_max,...
+                net_atlas.numNetPairs());
         end
     end
 end
