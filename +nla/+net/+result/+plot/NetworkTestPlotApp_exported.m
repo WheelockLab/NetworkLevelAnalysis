@@ -34,6 +34,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         ConvergencePlotColorDropDownLabel  matlab.ui.control.Label
         ConvergencePlotColorDropDown    matlab.ui.control.DropDown
         ApplyButton                     matlab.ui.control.Button
+        PlotValueDropDownLabel          matlab.ui.control.Label
+        PlotValueDropDown               matlab.ui.control.DropDown
         Panel_2                         matlab.ui.container.Panel
     end
 
@@ -102,18 +104,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             import nla.net.result.NetworkTestResult
             
             if ~isequal(app.matrix_plot, false)
-                app.settings = struct();
-                app.settings.upperLimit = app.UpperLimitEditField.Value;
-                app.settings.lowerLimit = app.LowerLimitEditField.Value;
-                app.settings.prevPlotScale = app.matrix_plot.plot_scale;
-                app.settings.plotScale = app.PlotScaleDropDown.Value;
-                app.settings.pValueThreshold = app.pvalueThresholdEditField.Value;
-                app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
-                app.settings.cohensDValue = app.CohensDThresholdEditField.Value;
-                app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
-                app.matrix_plot.plot_title.String = {};
-                app.network_test_options.prob_max = app.pvalueThresholdEditField.Value;
-                app.settings.ranking = app.RankingDropDown.Value;
+                app.save_plot_settings();
             end
             
             if isfield(app.settings, "ranking") 
@@ -146,30 +137,24 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             end
             
             probability = NetworkTestResult().getPValueNames(app.test_method, app.network_test_result.test_name);
-            
-            app.network_test_options.show_ROI_centroids = app.ROIcentroidsonbrainplotsCheckBox.Value;
-            
-            app.parameters = nla.net.result.NetworkResultPlotParameter(app.network_test_result, app.edge_test_options.net_atlas,...
-                app.network_test_options);
-            
+            app.parameters = nla.net.result.NetworkResultPlotParameter(app.network_test_result,...
+                app.edge_test_options.net_atlas, app.network_test_options);
             probability_parameters = app.parameters.plotProbabilityParameters(app.edge_test_options, app.edge_test_result,...
-                app.test_method, probability, sprintf(app.title), mcc, app.createSignificanceFilter(),...
-                app.RankingDropDown.Value);
+                app.test_method, probability, sprintf(app.title), mcc, app.createEffectSizeFilter(),...
+                app.RankingDropDown.Value, app.PlotValueDropDown.Value);
             
 %             if ~isequal(app.UpperLimitEditField.Value, 0.3) && ~isequal(app.LowerLimitEditField.Value, 0.3)
-            probability_parameters.p_value_plot_max = app.pvalueThresholdEditField.Value;
+            probability_parameters.plot_max = app.pvalueThresholdEditField.Value;
 %             end
             
+            app.network_test_options.show_ROI_centroids = app.ROIcentroidsonbrainplotsCheckBox.Value;
+
             plotter = nla.net.result.plot.PermutationTestPlotter(app.edge_test_options.net_atlas);
-            [width, height, app.matrix_plot] = plotter.plotProbability(app.Panel_2, probability_parameters, nla.inputField.LABEL_GAP, -50);
+            [width, height, app.matrix_plot] = plotter.plotProbability(app.Panel_2, probability_parameters,...
+                nla.inputField.LABEL_GAP, -50);
+            
             if ~isequal(app.settings, false)
-                app.PlotScaleDropDown.Value = app.settings.plotScale;
-                app.UpperLimitEditField.Value = app.settings.upperLimit;
-                app.LowerLimitEditField.Value = app.settings.lowerLimit;               
-                app.pvalueThresholdEditField.Value = app.settings.pValueThreshold;
-                app.CohensDThresholdCheckBox.Value = app.settings.cohensD;
-                app.CohensDThresholdEditField.Value = app.settings.cohensDValue;
-                app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
+                app.load_plot_settings();
                 app.applyScaleChange();
             end
         end
@@ -177,7 +162,53 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
     
     methods (Access = private)
         
-        function cohens_d_filter = createSignificanceFilter(app)
+        function save_plot_settings(app)
+            if isequal(app.settings, false)
+               app.settings = struct();
+               app.settings.statValueLimits = struct();
+               app.settings.pValueLimits = struct();
+            end        
+            if ~isfield(app.settings, "plotValue") 
+                app.settings.pValueLimits.upperLimit = app.UpperLimitEditField.Value;
+                app.settings.pValueLimits.lowerLimit = app.LowerLimitEditField.Value;
+                app.settings.statValueLimits.upperLimit = max(app.network_test_result.no_permutations.(app.network_test_result.ranking_statistic).v);
+                app.settings.statValueLimits.lowerLimit = min(app.network_test_result.no_permutations.(app.network_test_result.ranking_statistic).v);
+            elseif isequal(app.settings.plotValue, "nla.gfx.PlotValue.PVALUE")
+                app.settings.pValueLimits.upperLimit = app.UpperLimitEditField.Value;
+                app.settings.pValueLimits.lowerLimit = app.LowerLimitEditField.Value;
+            else
+                app.settings.statValueLimits.upperLimit = app.UpperLimitEditField.Value;
+                app.settings.statValueLimits.lowerLimit = app.LowerLimitEditField.Value;
+            end
+            app.settings.plotValue = app.PlotValueDropDown.Value;
+            app.settings.prevPlotScale = app.matrix_plot.plot_scale;
+            app.settings.plotScale = app.PlotScaleDropDown.Value;
+            app.settings.pValueThreshold = app.pvalueThresholdEditField.Value;
+            app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
+            app.settings.cohensDValue = app.CohensDThresholdEditField.Value;
+            app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
+            app.matrix_plot.plot_title.String = {};
+            app.network_test_options.prob_max = app.pvalueThresholdEditField.Value;
+            app.settings.ranking = app.RankingDropDown.Value;
+        end
+        
+        function load_plot_settings(app)
+            app.PlotScaleDropDown.Value = app.settings.plotScale;
+            if isequal(app.PlotValueDropDown.Value, "nla.gfx.PlotValue.PVALUE")
+                app.UpperLimitEditField.Value = app.settings.pValueLimits.upperLimit;
+                app.LowerLimitEditField.Value = app.settings.pValueLimits.lowerLimit; 
+            else
+                app.UpperLimitEditField.Value = app.settings.statValueLimits.upperLimit;
+                app.LowerLimitEditField.Value = app.settings.statValueLimits.lowerLimit;
+            end          
+            app.PlotValueDropDown.Value = app.settings.plotValue;
+            app.pvalueThresholdEditField.Value = app.settings.pValueThreshold;
+            app.CohensDThresholdCheckBox.Value = app.settings.cohensD;
+            app.CohensDThresholdEditField.Value = app.settings.cohensDValue;
+            app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
+        end
+        
+        function cohens_d_filter = createEffectSizeFilter(app)
             %REMOVE COHENS D FILTERING UNTIL WE DETERMINE CORRECT CALCULATION FOR IT - ADE 2025MAR24
             num_nets = app.edge_test_options.net_atlas.numNets;
             cohens_d_filter = nla.TriMatrix(num_nets, "logical", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -266,7 +297,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             probability = NetworkTestResult().getPValueNames(app.test_method, app.network_test_result.test_name);
             p_value = strcat("uncorrected_", probability);
             probability_parameters = app.parameters.plotProbabilityParameters(app.edge_test_options, app.edge_test_result,...
-                app.test_method, p_value, sprintf(app.title), app.MultipleComparisonCorrectionDropDown.Value, app.createSignificanceFilter(),...
+                app.test_method, p_value, sprintf(app.title), app.MultipleComparisonCorrectionDropDown.Value, app.createEffectSizeFilter(),...
                 app.RankingDropDown.Value);
             
             chord_plotter = nla.net.result.chord.ChordPlotter(app.edge_test_options.net_atlas, app.edge_test_result);
@@ -282,9 +313,17 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         function PlotScaleValueChanged(app, event)
             if isequal(app.settings, false)
                 app.settings = struct();
+                app.settings.pValueLimits = struct();
+                app.settings.statValueLimits = struct();
             end
-            app.settings.upperLimit = app.UpperLimitEditField.Value;
-            app.settings.lowerLimit = app.LowerLimitEditField.Value;
+            if isequal(app.PlotValueDropDown.Value, "nla.gfx.PlotValue.PVALUE")
+                app.settings.pValueLimits.upperLimit = app.UpperLimitEditField.Value;
+                app.settings.pValueLimits.lowerLimit = app.LowerLimitEditField.Value;
+            else
+                app.settings.statValueLimits.upperLimit = app.UpperLimitEditField.Value;
+                app.settings.statValueLimits.lowerLimit = app.LowerLimitEditField.Value;
+            end
+            app.settings.plotValue = app.PlotValueDropDown.Value;
             app.settings.plotScale = app.PlotScaleDropDown.Value;
             app.settings.pValueThreshold = app.pvalueThresholdEditField.Value;
             app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
@@ -448,36 +487,36 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create UpperLimitEditFieldLabel
             app.UpperLimitEditFieldLabel = uilabel(app.Panel);
             app.UpperLimitEditFieldLabel.HorizontalAlignment = 'right';
-            app.UpperLimitEditFieldLabel.Position = [46 267 70 22];
+            app.UpperLimitEditFieldLabel.Position = [46 236 70 22];
             app.UpperLimitEditFieldLabel.Text = 'Upper Limit';
 
             % Create UpperLimitEditField
             app.UpperLimitEditField = uieditfield(app.Panel, 'numeric');
             app.UpperLimitEditField.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.UpperLimitEditField.Position = [126 267 52 22];
+            app.UpperLimitEditField.Position = [126 236 52 22];
             app.UpperLimitEditField.Value = 0.05;
 
             % Create LowerLimitEditFieldLabel
             app.LowerLimitEditFieldLabel = uilabel(app.Panel);
             app.LowerLimitEditFieldLabel.HorizontalAlignment = 'right';
-            app.LowerLimitEditFieldLabel.Position = [259 267 70 22];
+            app.LowerLimitEditFieldLabel.Position = [46 206 70 22];
             app.LowerLimitEditFieldLabel.Text = 'Lower Limit';
 
             % Create LowerLimitEditField
             app.LowerLimitEditField = uieditfield(app.Panel, 'numeric');
             app.LowerLimitEditField.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.LowerLimitEditField.Position = [339 267 52 22];
+            app.LowerLimitEditField.Position = [126 206 52 22];
 
             % Create pvalueThresholdEditFieldLabel
             app.pvalueThresholdEditFieldLabel = uilabel(app.Panel);
             app.pvalueThresholdEditFieldLabel.HorizontalAlignment = 'right';
-            app.pvalueThresholdEditFieldLabel.Position = [14 237 102 22];
+            app.pvalueThresholdEditFieldLabel.Position = [227 267 102 22];
             app.pvalueThresholdEditFieldLabel.Text = 'p-value Threshold';
 
             % Create pvalueThresholdEditField
             app.pvalueThresholdEditField = uieditfield(app.Panel, 'numeric');
             app.pvalueThresholdEditField.ValueChangedFcn = createCallbackFcn(app, @pvalueThresholdEditFieldValueChanged, true);
-            app.pvalueThresholdEditField.Position = [126 237 52 22];
+            app.pvalueThresholdEditField.Position = [339 267 52 22];
             app.pvalueThresholdEditField.Value = 0.05;
 
             % Create CohensDThresholdEditFieldLabel
@@ -542,7 +581,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.ROIcentroidsonbrainplotsCheckBox = uicheckbox(app.Panel);
             app.ROIcentroidsonbrainplotsCheckBox.ValueChangedFcn = createCallbackFcn(app, @ROIcentroidsonbrainplotsCheckBoxValueChanged, true);
             app.ROIcentroidsonbrainplotsCheckBox.Text = 'ROI centroids on brain plots';
-            app.ROIcentroidsonbrainplotsCheckBox.Position = [7 207 171 22];
+            app.ROIcentroidsonbrainplotsCheckBox.Position = [221 27 171 22];
 
             % Create ViewChordPlotsButton
             app.ViewChordPlotsButton = uibutton(app.Panel, 'push');
@@ -592,6 +631,19 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.ApplyButton.ButtonPushedFcn = createCallbackFcn(app, @ApplyButtonPushed, true);
             app.ApplyButton.Position = [21 27 100 22];
             app.ApplyButton.Text = 'Apply';
+
+            % Create PlotValueDropDownLabel
+            app.PlotValueDropDownLabel = uilabel(app.Panel);
+            app.PlotValueDropDownLabel.HorizontalAlignment = 'right';
+            app.PlotValueDropDownLabel.Position = [-2 270 65 22];
+            app.PlotValueDropDownLabel.Text = 'Plot Value';
+
+            % Create PlotValueDropDown
+            app.PlotValueDropDown = uidropdown(app.Panel);
+            app.PlotValueDropDown.Items = {'p-value', 'Test Statistic'};
+            app.PlotValueDropDown.ItemsData = {'nla.gfx.PlotValue.PVALUE', 'nla.gfx.PlotValue.STATISTIC', ''};
+            app.PlotValueDropDown.Position = [80 270 98 20];
+            app.PlotValueDropDown.Value = 'nla.gfx.PlotValue.PVALUE';
 
             % Create Panel_2
             app.Panel_2 = uipanel(app.UIFigure);
