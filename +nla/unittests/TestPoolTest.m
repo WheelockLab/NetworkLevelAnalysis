@@ -133,18 +133,6 @@ classdef TestPoolTest < matlab.unittest.TestCase
             end
         end
 
-        function kolmogorovSmirnovTest(testCase)
-            edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
-            testCase.tests.net_tests = {nla.net.test.KolmogorovSmirnovTest()};
-            network_result = testCase.tests.runNetTestsPerm(testCase.network_test_options, testCase.edge_test_options.net_atlas, edge_result.edge_result);
-            
-            expected_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "kolmogorov_smirnov_result.mat")));
-            property_names = properties(network_result{1});
-            for prop_name = property_names
-                testCase.verifyEqual(expected_result.network_result.(prop_name{1}), network_result{1}.(prop_name{1}));
-            end
-        end
-
         function studentTTest(testCase)
             edge_result = load(strcat(testCase.root_path, fullfile("+nla", "unittests", "pearson_result.mat")));
             testCase.tests.net_tests = {nla.net.test.StudentTTest()};

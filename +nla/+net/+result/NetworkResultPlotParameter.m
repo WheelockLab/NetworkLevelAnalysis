@@ -27,12 +27,13 @@ classdef NetworkResultPlotParameter < handle
         end
 
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
-                plot_title, fdr_correction, effect_size_filter, ranking_method)
+                plot_title, fdr_correction, effect_size_filter, ranking_method, plot_value)
             % plot_title - this will be a string
             % plot_statistic - this is the stat that will be plotted
-            % significance filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
+            % effect_size_filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
             % fdr_correction - a struct of fdr_correction (found in nla.net.mcc)
             % test_method - 'no permutations', 'within network pair', 'full connectome'
+            % plot_value - nla.gfx.PlotValue.PVALUE or nla.gfx.PlotValue.STATISTIC
 
             import nla.TriMatrix nla.TriMatrixDiag
             % We're going to use a default filter here
@@ -76,33 +77,49 @@ classdef NetworkResultPlotParameter < handle
             % scale values very slightly for display so numbers just below
             % the threshold don't show up white but marked significant
             statistic_input_scaled = TriMatrix(obj.number_of_networks, "double", TriMatrixDiag.KEEP_DIAGONAL);
-            statistic_input_scaled.v = statistic_input.v .* (obj.default_discrete_colors / (obj.default_discrete_colors + 1));
-
-            % default values for plotting
-            statistic_plot_matrix = statistic_input_scaled;
             p_value_plot_max = p_value_max;
-            significance_type = "nla.gfx.SigType.DECREASING";
-            % determine colormap and operate on values if it's -log10
-            switch obj.updated_test_options.prob_plot_method
-                case "LOG" % FUCK Matlab and their enums
-                    color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
-                        statistic_input, p_value_max);
-                % Here we take a -log10 and change the maximum value to show on the plot
-                case "NEGATIVE_LOG_10"
-                    color_map = parula(obj.default_discrete_colors);
+            
+            if isequal(plot_value, "nla.gfx.PlotValue.PVALUE")
+                statistic_input_scaled.v = statistic_input.v .* (obj.default_discrete_colors / (obj.default_discrete_colors + 1));
 
-                    statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
-                    statistic_matrix.v = -log10(statistic_input.v);
-                    statistic_plot_matrix = statistic_matrix;
-                    if strcmp(test_method, "full_connectome") || strcmp(test_method, "within_network_pair")
-                        p_value_plot_max = 2;
-                    else
-                        p_value_plot_max = 40;
-                    end
-                    significance_type = "nla.gfx.SigType.INCREASING";
-                otherwise
-                    color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
-                        p_value_max);
+                % default values for plotting
+                statistic_plot_matrix = statistic_input_scaled;
+                significance_type = "nla.gfx.SigType.DECREASING";
+                % determine colormap and operate on values if it's -log10
+                switch obj.updated_test_options.prob_plot_method
+                    case "LOG" % FUCK Matlab and their enums
+                        color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
+                            statistic_input, p_value_max);
+                    % Here we take a -log10 and change the maximum value to show on the plot
+                    case "NEGATIVE_LOG_10"
+                        color_map = parula(obj.default_discrete_colors);
+
+                        statistic_matrix = nla.TriMatrix(obj.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
+                        statistic_matrix.v = -log10(statistic_input.v);
+                        statistic_plot_matrix = statistic_matrix;
+                        if strcmp(test_method, "full_connectome") || strcmp(test_method, "within_network_pair")
+                            p_value_plot_max = 2;
+                        else
+                            p_value_plot_max = 40;
+                        end
+                        significance_type = "nla.gfx.SigType.INCREASING";
+                    otherwise
+                        color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
+                            p_value_max);
+                end
+            else
+                ranking_statistic = obj.network_test_results.ranking_statistic;
+                statistic_input_scaled.v = obj.network_test_results.no_permutations.(ranking_statistic).v .* (...
+                    obj.default_discrete_colors / (obj.default_discrete_colors + 1)...
+                );
+
+                statistic_plot_matrix = statistic_input_scaled;
+                % switch obj.updated_test_options.prob_plot_method
+                %     case "LOG"
+                %         color_map
+                significance_type = "nla.gfx.SigType.DECREASING";
+                color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
+                    p_value_plot_max);
             end
 
             % callback function for brain image. 
