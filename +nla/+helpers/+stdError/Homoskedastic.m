@@ -6,7 +6,7 @@ classdef Homoskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
 
     methods
         
-        function stdErr = calculate(obj, sweStdErrInput)
+        function contrastStdErr = calculate(obj, sweStdErrInput)
             
             %Calculation of standard error assuming homoskedasticity
             %(errors are independent and identically distributed iid)
@@ -20,7 +20,9 @@ classdef Homoskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
             meanSqErr = sum(residual.^2) ./ degOfFree; %In regression, divide by dof instead of number of data points (per wikipedia)
             
             
-            stdErr = sqrt(diag(pinvDesignMtx * pinvDesignMtx')*meanSqErr);            
+            stdErr = sqrt(diag(pinvDesignMtx * pinvDesignMtx')*meanSqErr);
+
+            contrastStdErr = sqrt((sweStdErrInput.contrasts.^2) * (stdErr.^2));
             
 
         end

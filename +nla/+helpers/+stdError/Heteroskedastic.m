@@ -6,7 +6,16 @@ classdef Heteroskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
 
     methods
         
-        function stdErr = calculate(obj, sweStdErrInput)
+        function contrastStdErr = calculate(obj, sweStdErrInput)
+
+            FORCE_USE_FAST_ALGO = true;
+            if FORCE_USE_FAST_ALGO
+                %There is a faster, but possibly larger memory
+                %implementation of this algorithm. Don't 
+                fastAlgoObj = nla.helpers.stdError.Heteroskedastic_FAST();
+                contrastStdErr = fastAlgoObj.calculate(sweStdErrInput);
+                return;
+            end
             
             
             %Calculation of standard error assuming heteroskedascticity
@@ -31,6 +40,8 @@ classdef Heteroskedastic < nla.helpers.stdError.AbstractSwEStdErrStrategy
                 stdErr(:,fcEdgeIdx) = sqrt(correctionFactor * diag(betaCovariance));
                 
             end
+            
+            contrastStdErr = sqrt((sweStdErrInput.contrasts.^2) * (stdErr.^2));
 
         end
         
