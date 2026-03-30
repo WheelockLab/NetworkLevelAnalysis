@@ -1,4 +1,8 @@
-classdef UnconstrainedBlocks_BenKay < nla.helpers.stdError.UnconstrainedBlocks
+classdef UnconstrainedBlocks < nla.helpers.stdError.AbstractSwEStdErrStrategy
+
+    properties (SetAccess = protected)
+        REQUIRES_GROUP = true;
+    end
     
     methods
         
