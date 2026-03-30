@@ -150,13 +150,14 @@ classdef SandwichEstimator < nla.edge.BaseTest
             stdErrInput.scanMetadata = scanMetadata;
             stdErrInput.residual = residual;
             stdErrInput.pinvDesignMtx = pinv(designMtx);
-            
-            %sweRes.stdError = stdErrCalcObj.calculate(stdErrInput);
-            stdError = stdErrCalcObj.calculate(stdErrInput);
+            stdErrInput.contrasts = input.contrasts;
+                        
+            %change stdError to compute contrast SE
+            contrastSE = stdErrCalcObj.calculate(stdErrInput);
             
             
             contrastCalc = input.contrasts * regressCoeffs;
-            contrastSE = sqrt((input.contrasts.^2) * (stdError.^2));
+            
             
             dof = obj.calcDegreesOfFreedom(designMtx);
             

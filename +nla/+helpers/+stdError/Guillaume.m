@@ -15,7 +15,7 @@ classdef Guillaume < nla.helpers.stdError.AbstractSwEStdErrStrategy
     
     methods
         
-        function stdError = calculate(obj, sweStdErrInput)
+        function contrastStdError = calculate(obj, sweStdErrInput)
             
             
                   
@@ -61,7 +61,9 @@ classdef Guillaume < nla.helpers.stdError.AbstractSwEStdErrStrategy
                 
             end
             
-            stdError = sqrt(betaCovar.v(betaCovar.getDiagElemIdxs,:));
+            stdErr = sqrt(betaCovar.v(betaCovar.getDiagElemIdxs,:));
+
+            contrastStdError = sqrt((sweStdErrInput.contrasts.^2) * (stdErr.^2));
         
         
         end

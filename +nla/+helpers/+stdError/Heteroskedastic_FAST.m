@@ -6,7 +6,7 @@ classdef Heteroskedastic_FAST < nla.helpers.stdError.AbstractSwEStdErrStrategy
 
     methods
         
-        function stdErr = calculate(obj, sweStdErrInput)
+        function contrastStdErr = calculate(obj, sweStdErrInput)
             %Computes Standard Error, but accelerated using assumption of
             %heteroskeadisticity for quicker computation
             %
@@ -50,6 +50,8 @@ classdef Heteroskedastic_FAST < nla.helpers.stdError.AbstractSwEStdErrStrategy
             %Get square root of diagonal elements to compute std error
             diagElemIdxsInFlatArr = 1:(numCovariates+1):numCovariates^2;            
             stdErr = sqrt(betaCovarianceFlat(diagElemIdxsInFlatArr,:));
+
+            contrastStdErr = sqrt((sweStdErrInput.contrasts.^2) * (stdErr.^2));
 
         end
         
