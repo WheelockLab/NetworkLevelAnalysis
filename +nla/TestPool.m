@@ -45,52 +45,45 @@ classdef TestPool < nla.DeepCopyable
                 separate_network_and_edge_tests = false;
             end                
         
-%             if isa(nonpermuted_edge_test_results,'nla.edge.result.MultiContrast')
-%                 %If result has multiple contrasts, call the wrapper
-%                 %function that handles running them one at a time
-%                 result = obj.runPermMultiContrast(edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
-%                     nonpermuted_network_test_results, num_perms, perm_seed, separate_network_and_edge_tests);
-%             else
 
-                if isequal(separate_network_and_edge_tests, false)
-                    [permuted_edge_test_results, permuted_network_test_results] = obj.runEdgeAndNetPerm(edge_input_struct,...
-                        net_input_struct, network_atlas, nonpermuted_edge_test_results, num_perms, perm_seed);
-                else
-                    [permuted_edge_test_results, permuted_network_test_results] = obj.runPermSeparateEdgeAndNet(edge_input_struct,...
-                        net_input_struct, network_atlas, num_perms, perm_seed);
+            if isequal(separate_network_and_edge_tests, false)
+                [permuted_edge_test_results, permuted_network_test_results] = obj.runEdgeAndNetPerm(edge_input_struct,...
+                    net_input_struct, network_atlas, nonpermuted_edge_test_results, num_perms, perm_seed);
+            else
+                [permuted_edge_test_results, permuted_network_test_results] = obj.runPermSeparateEdgeAndNet(edge_input_struct,...
+                    net_input_struct, network_atlas, num_perms, perm_seed);
+            end
+
+            if ~isa(permuted_network_test_results, 'nla.MultiContrastResult')
+                ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(nonpermuted_edge_test_results, network_atlas,...
+                    nonpermuted_network_test_results, permuted_network_test_results, net_input_struct);
+
+                result = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
+                    nonpermuted_network_test_results, permuted_edge_test_results, ranked_permuted_network_test_results);
+            else
+
+                result = nla.MultiContrastResult();
+                contrastNames = nonpermuted_edge_test_results.contrastNames;
+
+                for i = 1:length(contrastNames)
+                    this_contrast_name = contrastNames{i};
+
+                    this_nonperm_edge_result = nonpermuted_edge_test_results.getNamedResult(this_contrast_name);
+                    this_nonperm_network_result = nonpermuted_network_test_results.getNamedResult(this_contrast_name);
+                    this_perm_network_result = permuted_network_test_results.getNamedResult(this_contrast_name);
+
+                    this_ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(this_nonperm_edge_result, network_atlas,...
+                                        this_nonperm_network_result, this_perm_network_result, net_input_struct);
+
+                    this_result_pool = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, this_nonperm_edge_result,...
+                                        this_nonperm_network_result, this_perm_network_result, this_ranked_permuted_network_test_results);
+
+                    result.addNamedResult(this_contrast_name, this_result_pool);
                 end
 
-                if ~isa(permuted_network_test_results, 'nla.MultiContrastResult')
-                    ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(nonpermuted_edge_test_results, network_atlas,...
-                        nonpermuted_network_test_results, permuted_network_test_results, net_input_struct);
 
-                    result = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, nonpermuted_edge_test_results,...
-                        nonpermuted_network_test_results, permuted_edge_test_results, ranked_permuted_network_test_results);
-                else
-                    
-                    result = nla.MultiContrastResult();
-                    contrastNames = nonpermuted_edge_test_results.contrastNames;
-
-                    for i = 1:length(contrastNames)
-                        this_contrast_name = contrastNames{i};
-
-                        this_nonperm_edge_result = nonpermuted_edge_test_results.getNamedResult(this_contrast_name);
-                        this_nonperm_network_result = nonpermuted_network_test_results.getNamedResult(this_contrast_name);
-                        this_perm_network_result = permuted_network_test_results.getNamedResult(this_contrast_name);
-
-                        this_ranked_permuted_network_test_results = obj.collateNetworkPermutationResults(this_nonperm_edge_result, network_atlas,...
-                                            this_nonperm_network_result, this_perm_network_result, net_input_struct);
-
-                        this_result_pool = nla.ResultPool(edge_input_struct, net_input_struct, network_atlas, this_nonperm_edge_result,...
-                                            this_nonperm_network_result, this_perm_network_result, this_ranked_permuted_network_test_results);
-
-                        result.addNamedResult(this_contrast_name, this_result_pool);
-                    end
-                    
-                    
-                end
+            end
             
-            %end
             
         end
         
