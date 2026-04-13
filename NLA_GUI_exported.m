@@ -76,7 +76,11 @@ classdef NLA_GUI < matlab.apps.AppBase
                     end
                 end
                 % check permutation method
-                if ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
+                if isa(app.test_pool.edge_test, 'nla.edge.test.SandwichEstimator')
+                    %Leave the permute_method to what was selected before,
+                    %which should be
+                    %nla.edge.permuteMethods.FCWildBootstrap();
+                elseif ~isfield(app.input_struct, "permutation_groups") || isfield(app.input_struct, "permutation_groups") && (isequal(app.input_struct.permutation_groups, false) || isempty(app.input_struct.permutation_groups))
                     app.input_struct.permute_method = nla.edge.permutationMethods.BehaviorVec();
                 else
                     app.input_struct.permute_method = nla.edge.permutationMethods.MultiLevel();
