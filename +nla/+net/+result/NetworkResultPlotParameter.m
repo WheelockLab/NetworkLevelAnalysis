@@ -27,7 +27,7 @@ classdef NetworkResultPlotParameter < handle
         end
 
         function result = plotProbabilityParameters(obj, edge_test_options, edge_test_result, test_method, plot_statistic,...
-                plot_title, fdr_correction, effect_size_filter, ranking_method, plot_value)
+                plot_title, fdr_correction, effect_size_filter, plot_value)
             % plot_title - this will be a string
             % plot_statistic - this is the stat that will be plotted
             % effect_size_filter - this will be a boolean or some sort of object (like Cohen's D > D-value)
@@ -48,7 +48,7 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % Grab the data from the NetworkTestResult object
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, ranking_method);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, fdr_correction);
 
             % Get the scale max and the labels
             if isstring(fdr_correction) || ischar(fdr_correction)
@@ -60,15 +60,6 @@ classdef NetworkResultPlotParameter < handle
             p_value_breakdown_label = fdr_correction.createLabel(obj.network_atlas, obj.updated_test_options);
             name_label = sprintf("%s %s\n%s", obj.network_test_results.test_display_name, plot_title,...
                 p_value_breakdown_label);
-%             else
-% 
-%                 name_label = sprintf("%s %s\nP < %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
-%                     p_value_max, p_value_breakdown_label);
-%                 if p_value_max == 0
-%                     name_label = sprintf("%s %s\nP = %.2g (%s)", obj.network_test_results.test_display_name, plot_title,...
-%                         p_value_max, p_value_breakdown_label);
-%                 end
-%             end
 
             % Filtering if there's a filter provided 
             significance_plot = TriMatrix(obj.number_of_networks, "logical", TriMatrixDiag.KEEP_DIAGONAL);
@@ -162,7 +153,7 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityVsNetworkSize(obj, test_method, plot_statistic)
             % Two convience methods
             network_size = obj.getNetworkSizes();
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, obj.updated_test_options.ranking_method);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, obj.updated_test_options.fdr_correction);
 
             negative_log10_statistics = -log10(statistic_input.v);
 
@@ -204,8 +195,8 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function statistic = getStatsFromMethodAndName(obj, method, plot_statistic, ranking_method)
-            import nla.RankingMethod nla.NetworkLevelMethod nla.net.result.NetworkTestResult
+        function statistic = getStatsFromMethodAndName(obj, method, ~, fdr_correction)
+            import nla.NetworkLevelMethod nla.net.result.NetworkTestResult
             
             switch method
                 case "no_permutations" 
@@ -216,18 +207,18 @@ classdef NetworkResultPlotParameter < handle
                     test_method = "within_network_pair";
             end
 
-            switch ranking_method
-                case "nla.RankingMethod.FREEDMAN_LANE"
-                    ranking = "freedman_lane_";
-                case "nla.RankingMethod.WESTFALL_YOUNG"
-                    ranking = "westfall_young_";
+            switch lower(erase(fdr_correction, "-"))
+                case "freedmanlane"
+                    fdr_method = "freedman_lane_";
+                case "westfallyoung"
+                    fdr_method = "westfall_young_";
                 otherwise
-                    ranking = "uncorrected_";
+                    fdr_method = "uncorrected_";
             end
             
             probability = NetworkTestResult().getPValueNames(method, obj.network_test_results.test_name);
 
-            statistic = obj.network_test_results.(test_method).(strcat(ranking, probability));
+            statistic = obj.network_test_results.(test_method).(strcat(fdr_method, probability));
         end
     end
 

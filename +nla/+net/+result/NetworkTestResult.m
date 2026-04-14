@@ -355,7 +355,6 @@ classdef NetworkTestResult < matlab.mixin.Copyable
             test_options = result_struct.input_struct;
             
             network_test_options = result_struct.net_input_struct;
-            network_test_options.ranking_method = "Uncorrected";
             network_test_options.no_permutations = network_test_options.nonpermuted;
             network_test_options.full_connectome = network_test_options.full_conn;
             network_test_options.within_network_pair = network_test_options.within_net_pair;
