@@ -48,7 +48,7 @@ classdef NetworkResultPlotParameter < handle
             end
 
             % Grab the data from the NetworkTestResult object
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, fdr_correction);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, fdr_correction);
 
             % Get the scale max and the labels
             if isstring(fdr_correction) || ischar(fdr_correction)
@@ -153,7 +153,7 @@ classdef NetworkResultPlotParameter < handle
         function result = plotProbabilityVsNetworkSize(obj, test_method, plot_statistic)
             % Two convience methods
             network_size = obj.getNetworkSizes();
-            statistic_input = obj.getStatsFromMethodAndName(test_method, plot_statistic, obj.updated_test_options.fdr_correction);
+            statistic_input = obj.getStatsFromMethodAndName(test_method, obj.updated_test_options.fdr_correction);
 
             negative_log10_statistics = -log10(statistic_input.v);
 
@@ -195,7 +195,7 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function statistic = getStatsFromMethodAndName(obj, method, ~, fdr_correction)
+        function statistic = getStatsFromMethodAndName(obj, method, fdr_correction)
             import nla.NetworkLevelMethod nla.net.result.NetworkTestResult
             
             switch method
