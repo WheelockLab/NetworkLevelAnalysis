@@ -8,8 +8,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         Panel                           matlab.ui.container.Panel
         PlotScaleDropDownLabel          matlab.ui.control.Label
         PlotScaleDropDown               matlab.ui.control.DropDown
-        RankingDropDownLabel            matlab.ui.control.Label
-        RankingDropDown                 matlab.ui.control.DropDown
         UpperLimitEditFieldLabel        matlab.ui.control.Label
         UpperLimitEditField             matlab.ui.control.NumericEditField
         LowerLimitEditFieldLabel        matlab.ui.control.Label
@@ -89,15 +87,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             if isequal(app.CohensDThresholdCheckBox.Value, true)
                 app.title = sprintf("%s (D > %g)", app.title, app.CohensDThresholdEditField.Value);
             end
-            if ~isequal(app.test_method, "no_permutations")
-                if isequal(app.RankingDropDown.Value, "nla.RankingMethod.FREEDMAN_LANE") % Look at me, I'm MATLAB. I have no idea why enums are beneficial or how to use them
-                    app.title = strcat(app.title, "\nRanking by Freedman-Lane Method");
-                elseif isequal(app.RankingDropDown.Value, "nla.RankingMethod.WESTFALL_YOUNG")
-                    app.title = strcat(app.title, "\nRanking by Westfall-Young Method");
-                else
-                    app.title = strcat(app.title, "\nUncorrected data");
-                end
-            end
         end
         
         function [width, height] = drawTriMatrixPlot(app)
@@ -105,15 +94,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             
             if ~isequal(app.matrix_plot, false)
                 app.save_plot_settings();
-            end
-            
-            if isfield(app.settings, "ranking") 
-                app.network_test_options.ranking_method = app.settings.ranking;
-                if isobject(app.matrix_plot)
-                    app.matrix_plot.removeLegend();
-                    delete(app.matrix_plot.image_display);
-                    delete(app.matrix_plot.color_bar);
-                end
             end
 
             switch app.MultipleComparisonCorrectionDropDown.Value
@@ -123,13 +103,16 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                     mcc = "BenjaminiYekutieli";
                 case "Holm-Bonferroni"
                     mcc = "HolmBonferroni";
+                case "Freedman-Lane"
+                    mcc = "FreedmanLane";
+                case "Westfall-Young"
+                    mcc = "WestfallYoung";
                 otherwise
                     mcc = app.MultipleComparisonCorrectionDropDown.Value;
             end
             app.getPlotTitle();
             
             if isequal(app.old_data, true)
-                app.RankingDropDown.Enable = false;
                 if ~isfield(app.network_test_result.full_connectome, 'd')
                     app.CohensDThresholdCheckBox.Enable = false;
                     app.CohensDThresholdEditField.Enable = false;
@@ -141,7 +124,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.edge_test_options.net_atlas, app.network_test_options);
             probability_parameters = app.parameters.plotProbabilityParameters(app.edge_test_options, app.edge_test_result,...
                 app.test_method, probability, sprintf(app.title), mcc, app.createEffectSizeFilter(),...
-                app.RankingDropDown.Value, app.PlotValueDropDown.Value);
+                app.PlotValueDropDown.Value);
             
 %             if ~isequal(app.UpperLimitEditField.Value, 0.3) && ~isequal(app.LowerLimitEditField.Value, 0.3)
             probability_parameters.plot_max = app.pvalueThresholdEditField.Value;
@@ -189,7 +172,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.matrix_plot.display_legend.Visible = app.LegendVisibleDropDown.Value;
             app.matrix_plot.plot_title.String = {};
             app.network_test_options.prob_max = app.pvalueThresholdEditField.Value;
-            app.settings.ranking = app.RankingDropDown.Value;
         end
         
         function load_plot_settings(app)
@@ -298,7 +280,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             p_value = strcat("uncorrected_", probability);
             probability_parameters = app.parameters.plotProbabilityParameters(app.edge_test_options, app.edge_test_result,...
                 app.test_method, p_value, sprintf(app.title), app.MultipleComparisonCorrectionDropDown.Value, app.createEffectSizeFilter(),...
-                app.RankingDropDown.Value);
+                app.PlotValueDropDown.Value);
             
             chord_plotter = nla.net.result.chord.ChordPlotter(app.edge_test_options.net_atlas, app.edge_test_result);
             
@@ -309,7 +291,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         % Value changed function: ColormapDropDown, 
         % LegendVisibleDropDown, LowerLimitEditField, 
         % MultipleComparisonCorrectionDropDown, PlotScaleDropDown, 
-        % RankingDropDown, UpperLimitEditField
+        % UpperLimitEditField
         function PlotScaleValueChanged(app, event)
             if isequal(app.settings, false)
                 app.settings = struct();
@@ -329,7 +311,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.settings.cohensD = app.CohensDThresholdCheckBox.Value;
             app.settings.cohensDValue = app.CohensDThresholdEditField.Value;
             app.settings.legend = app.LegendVisibleDropDown.Value;
-            app.settings.ranking = app.RankingDropDown.Value;
         end
 
         % Value changed function: ROIcentroidsonbrainplotsCheckBox
@@ -470,20 +451,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.PlotScaleDropDown.Position = [78 297 100 22];
             app.PlotScaleDropDown.Value = 'nla.gfx.ProbPlotMethod.DEFAULT';
 
-            % Create RankingDropDownLabel
-            app.RankingDropDownLabel = uilabel(app.Panel);
-            app.RankingDropDownLabel.HorizontalAlignment = 'right';
-            app.RankingDropDownLabel.Position = [226 297 50 22];
-            app.RankingDropDownLabel.Text = 'Ranking';
-
-            % Create RankingDropDown
-            app.RankingDropDown = uidropdown(app.Panel);
-            app.RankingDropDown.Items = {'Uncorrected', 'Freedman-Lane', 'Westfall-Young'};
-            app.RankingDropDown.ItemsData = {'nla.RankingMethod.UNCORRECTED', 'nla.RankingMethod.FREEDMAN_LANE', 'nla.RankingMethod.WESTFALL_YOUNG'};
-            app.RankingDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.RankingDropDown.Position = [291 297 100 22];
-            app.RankingDropDown.Value = 'nla.RankingMethod.UNCORRECTED';
-
             % Create UpperLimitEditFieldLabel
             app.UpperLimitEditFieldLabel = uilabel(app.Panel);
             app.UpperLimitEditFieldLabel.HorizontalAlignment = 'right';
@@ -534,20 +501,20 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             % Create ColormapDropDownLabel
             app.ColormapDropDownLabel = uilabel(app.Panel);
             app.ColormapDropDownLabel.HorizontalAlignment = 'right';
-            app.ColormapDropDownLabel.Position = [9 177 58 22];
+            app.ColormapDropDownLabel.Position = [221 297 58 22];
             app.ColormapDropDownLabel.Text = 'Colormap';
 
             % Create ColormapDropDown
             app.ColormapDropDown = uidropdown(app.Panel);
             app.ColormapDropDown.Items = {};
             app.ColormapDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.ColormapDropDown.Position = [78 177 100 22];
+            app.ColormapDropDown.Position = [290 297 100 22];
             app.ColormapDropDown.Value = {};
 
             % Create LegendVisibleDropDownLabel
             app.LegendVisibleDropDownLabel = uilabel(app.Panel);
             app.LegendVisibleDropDownLabel.HorizontalAlignment = 'right';
-            app.LegendVisibleDropDownLabel.Position = [233 177 84 22];
+            app.LegendVisibleDropDownLabel.Position = [231 147 84 22];
             app.LegendVisibleDropDownLabel.Text = 'Legend Visible';
 
             % Create LegendVisibleDropDown
@@ -555,20 +522,20 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.LegendVisibleDropDown.Items = {'On', 'Off'};
             app.LegendVisibleDropDown.ItemsData = {'on', 'off'};
             app.LegendVisibleDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.LegendVisibleDropDown.Position = [332 177 59 22];
+            app.LegendVisibleDropDown.Position = [330 147 59 22];
             app.LegendVisibleDropDown.Value = 'on';
 
             % Create MultipleComparisonCorrectionDropDownLabel
             app.MultipleComparisonCorrectionDropDownLabel = uilabel(app.Panel);
             app.MultipleComparisonCorrectionDropDownLabel.HorizontalAlignment = 'right';
-            app.MultipleComparisonCorrectionDropDownLabel.Position = [11 147 178 22];
+            app.MultipleComparisonCorrectionDropDownLabel.Position = [11 177 178 22];
             app.MultipleComparisonCorrectionDropDownLabel.Text = 'Multiple Comparison Correction';
 
             % Create MultipleComparisonCorrectionDropDown
             app.MultipleComparisonCorrectionDropDown = uidropdown(app.Panel);
-            app.MultipleComparisonCorrectionDropDown.Items = {'None', 'Bonferroni', 'Benjamini-Hochberg', 'Benjamini-Yekutieli', 'Holm-Bonferroni'};
+            app.MultipleComparisonCorrectionDropDown.Items = {'None', 'Bonferroni', 'Benjamini-Hochberg', 'Benjamini-Yekutieli', 'Holm-Bonferroni', 'Freedman-Lane', 'Westfall-Young'};
             app.MultipleComparisonCorrectionDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotScaleValueChanged, true);
-            app.MultipleComparisonCorrectionDropDown.Position = [226 147 165 22];
+            app.MultipleComparisonCorrectionDropDown.Position = [226 177 165 22];
             app.MultipleComparisonCorrectionDropDown.Value = 'None';
 
             % Create CohensDThresholdCheckBox

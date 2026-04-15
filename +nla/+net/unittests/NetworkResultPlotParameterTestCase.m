@@ -91,8 +91,8 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             probability = NetworkTestResult().getPValueNames("full_connectome", permutation_result.test_name);
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
-                false, nla.RankingMethod.UNCORRECTED, "nla.gfx.PlotValue.PVALUE");
+                testCase.edge_test_result, "full_connectome", probability, 'Title', "Bonferroni",...
+                false, "nla.gfx.PlotValue.PVALUE");
             
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -119,8 +119,8 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             probability = NetworkTestResult().getPValueNames("full_connectome", permutation_result.test_name);
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
-                false, nla.RankingMethod.UNCORRECTED, "nla.gfx.PlotValue.PVALUE");
+                testCase.edge_test_result, "full_connectome", probability, 'Title', "Bonferroni",...
+                false, "nla.gfx.PlotValue.PVALUE");
 
             expected_p_value_max = testCase.network_test_options.prob_max / testCase.network_atlas.numNetPairs();
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
@@ -157,8 +157,8 @@ classdef NetworkResultPlotParameterTestCase < matlab.unittest.TestCase
             probability = NetworkTestResult().getPValueNames("full_connectome", permutation_result.test_name);
 
             probability_parameters = plot_parameters.plotProbabilityParameters(testCase.edge_test_options,...
-                testCase.edge_test_result, "full_connectome", probability, 'Title', nla.net.mcc.Bonferroni(),...
-                false, nla.RankingMethod.UNCORRECTED, "nla.gfx.PlotValue.PVALUE");
+                testCase.edge_test_result, "full_connectome", probability, 'Title', "Bonferroni",...
+                false, "nla.gfx.PlotValue.PVALUE");
 
             expected_p_value_max = 2;
             expected_plot = nla.TriMatrix(plot_parameters.number_of_networks, "double", nla.TriMatrixDiag.KEEP_DIAGONAL);
