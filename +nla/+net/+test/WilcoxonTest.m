@@ -5,6 +5,7 @@ classdef WilcoxonTest < handle
         display_name = "Wilcoxon Rank Sum"
         statistics = ["ranksum_statistic", "single_sample_ranksum_statistic", "z_statistic"]
         ranking_statistic = "z_statistic"
+        allows_within_net_pair = true
     end
 
     methods

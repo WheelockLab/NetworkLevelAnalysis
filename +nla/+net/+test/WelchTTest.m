@@ -6,6 +6,7 @@ classdef WelchTTest < handle
         display_name = "Welch's T-test"
         statistics = ["t_statistic", "single_sample_t_statistic"]
         ranking_statistic = "t_statistic"
+        allows_within_net_pair = true
     end
 
     methods 
