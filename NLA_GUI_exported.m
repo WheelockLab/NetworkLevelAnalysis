@@ -6,25 +6,25 @@ classdef NLA_GUI < matlab.apps.AppBase
         FileMenu                      matlab.ui.container.Menu
         OpenpreviousresultMenu        matlab.ui.container.Menu
         GridLayout                    matlab.ui.container.GridLayout
-        Panel_7                       matlab.ui.container.Panel
-        RunQualityControlButton       matlab.ui.control.Button
-        MethodsPanel                  matlab.ui.container.Panel
-        NonPermutedCheckBox           matlab.ui.control.CheckBox
-        FullConnCheckBox              matlab.ui.control.CheckBox
-        WithinNetPairCheckBox         matlab.ui.control.CheckBox
-        PermutationcountEditField_2Label  matlab.ui.control.Label
-        PermutationcountEditField     matlab.ui.control.NumericEditField
-        Panel_3                       matlab.ui.container.Panel
-        NoneButton                    matlab.ui.control.Button
-        NetTestSelector               matlab.ui.control.ListBox
-        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
-        EdgeInputsPanel               matlab.ui.container.Panel
-        Panel                         matlab.ui.container.Panel
-        EdgeTestSelector              matlab.ui.control.DropDown
-        EdgeleveltestDropDownLabel    matlab.ui.control.Label
-        BranchLabel                   matlab.ui.control.Label
         Panel_5                       matlab.ui.container.Panel
         RunButton                     matlab.ui.control.Button
+        BranchLabel                   matlab.ui.control.Label
+        Panel                         matlab.ui.container.Panel
+        EdgeleveltestDropDownLabel    matlab.ui.control.Label
+        EdgeTestSelector              matlab.ui.control.DropDown
+        EdgeInputsPanel               matlab.ui.container.Panel
+        Panel_3                       matlab.ui.container.Panel
+        NetworkleveltestsCtrlclickformultipleLabel  matlab.ui.control.Label
+        NetTestSelector               matlab.ui.control.ListBox
+        NoneButton                    matlab.ui.control.Button
+        Panel_7                       matlab.ui.container.Panel
+        PermutationcountEditField     matlab.ui.control.NumericEditField
+        PermutationcountEditField_2Label  matlab.ui.control.Label
+        MethodsPanel                  matlab.ui.container.Panel
+        WithinNetPairCheckBox         matlab.ui.control.CheckBox
+        FullConnCheckBox              matlab.ui.control.CheckBox
+        NonPermutedCheckBox           matlab.ui.control.CheckBox
+        RunQualityControlButton       matlab.ui.control.Button
     end
 
     
@@ -38,11 +38,24 @@ classdef NLA_GUI < matlab.apps.AppBase
     end
     
     methods (Access = private)
-        function results = runWithInputs(app, mode)
+        function runWithInputs(app, mode)
             import nla.*
             % check if all input fields are satisfied
             [error_str, satisfied] = validateInputStruct(app.input_fields, 'Must satisfy fields:', true);
             [error_str, satisfied] = validateInputStruct(app.net_input_fields, error_str, satisfied);
+
+            %If user has selected tests that don't support within net-pair,
+            %show warning and confirm continue
+            show_within_NP_warning = app.checkForTestsThatDontSupportWithinNetPair(app.test_pool.net_tests);
+            if show_within_NP_warning
+                warning_msg = ['Chi Squared and Hypergeometric Tests don''t support within net pair tests. ',...
+                                'Within net pair results for those tests will not be generated. Continue?'];
+                quest_ans = questdlg(warning_msg);
+                if ~strcmpi(quest_ans,'Yes')
+                    %If user does not want to continue, stop
+                    return;
+                end
+            end
             
             if satisfied
                 error_str = "";
@@ -109,6 +122,16 @@ classdef NLA_GUI < matlab.apps.AppBase
                 % TODO ideally the run button would just stay greyed out until
                 % all inputs were satisfied
                 uialert(app.NetworkLevelAnalysisUIFigure, error_str, 'Inputs not satisfied');
+            end
+        end
+
+        function result = checkForTestsThatDontSupportWithinNetPair(app, net_tests)
+            result = false;
+            for i = 1:length(net_tests)
+                if net_tests{i}.allows_within_net_pair == false
+                    result = true;
+                    return;
+                end
             end
         end
     end
@@ -236,8 +259,8 @@ classdef NLA_GUI < matlab.apps.AppBase
             end
         end
 
-        % Value changed function: FullConnCheckBox, 
-        % NonPermutedCheckBox, WithinNetPairCheckBox
+        % Value changed function: FullConnCheckBox, NonPermutedCheckBox, 
+        % ...and 1 other component
         function MethodButtonGroupSelectionChanged(app, event)
             if ~(app.net_input_struct.full_connectome == app.FullConnCheckBox.Value)
                 app.WithinNetPairCheckBox.Value = false;

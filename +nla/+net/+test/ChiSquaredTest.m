@@ -5,6 +5,7 @@ classdef ChiSquaredTest < handle
         display_name = "Chi-Squared"
         statistics = ["chi2_statistic", "greater_than_expected"]
         ranking_statistic = "chi2_statistic"
+        allows_within_net_pair = false
     end
 
     methods

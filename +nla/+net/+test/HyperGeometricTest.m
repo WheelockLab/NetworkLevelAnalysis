@@ -5,6 +5,7 @@ classdef HyperGeometricTest < handle
         display_name = "Hypergeometric"
         statistics = ["two_sample_p_value", "greater_than_expected"]
         ranking_statistic = "two_sample_p_value"
+        allows_within_net_pair = false
     end
 
     methods
