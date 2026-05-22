@@ -5,36 +5,36 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         UIFigure                        matlab.ui.Figure
         Menu                            matlab.ui.container.Menu
         SaveasMenu                      matlab.ui.container.Menu
-        Panel                           matlab.ui.container.Panel
-        PlotScaleDropDownLabel          matlab.ui.control.Label
-        PlotScaleDropDown               matlab.ui.control.DropDown
-        UpperLimitEditFieldLabel        matlab.ui.control.Label
-        UpperLimitEditField             matlab.ui.control.NumericEditField
-        LowerLimitEditFieldLabel        matlab.ui.control.Label
-        LowerLimitEditField             matlab.ui.control.NumericEditField
-        pvalueThresholdEditFieldLabel   matlab.ui.control.Label
-        pvalueThresholdEditField        matlab.ui.control.NumericEditField
-        CohensDThresholdEditFieldLabel  matlab.ui.control.Label
-        CohensDThresholdEditField       matlab.ui.control.NumericEditField
-        ColormapDropDownLabel           matlab.ui.control.Label
-        ColormapDropDown                matlab.ui.control.DropDown
-        LegendVisibleDropDownLabel      matlab.ui.control.Label
-        LegendVisibleDropDown           matlab.ui.control.DropDown
-        MultipleComparisonCorrectionDropDownLabel  matlab.ui.control.Label
-        MultipleComparisonCorrectionDropDown  matlab.ui.control.DropDown
-        CohensDThresholdCheckBox        matlab.ui.control.CheckBox
-        ROIcentroidsonbrainplotsCheckBox  matlab.ui.control.CheckBox
-        ViewChordPlotsButton            matlab.ui.control.Button
-        ViewEdgeChordPlotsButton        matlab.ui.control.Button
-        EdgeChordPlotTypeDropDownLabel  matlab.ui.control.Label
-        EdgeChordPlotTypeDropDown       matlab.ui.control.DropDown
-        ViewConvergenceMapButton        matlab.ui.control.Button
-        ConvergencePlotColorDropDownLabel  matlab.ui.control.Label
-        ConvergencePlotColorDropDown    matlab.ui.control.DropDown
-        ApplyButton                     matlab.ui.control.Button
-        PlotValueDropDownLabel          matlab.ui.control.Label
-        PlotValueDropDown               matlab.ui.control.DropDown
         Panel_2                         matlab.ui.container.Panel
+        Panel                           matlab.ui.container.Panel
+        PlotValueDropDown               matlab.ui.control.DropDown
+        PlotValueDropDownLabel          matlab.ui.control.Label
+        ApplyButton                     matlab.ui.control.Button
+        ConvergencePlotColorDropDown    matlab.ui.control.DropDown
+        ConvergencePlotColorDropDownLabel  matlab.ui.control.Label
+        ViewConvergenceMapButton        matlab.ui.control.Button
+        EdgeChordPlotTypeDropDown       matlab.ui.control.DropDown
+        EdgeChordPlotTypeDropDownLabel  matlab.ui.control.Label
+        ViewEdgeChordPlotsButton        matlab.ui.control.Button
+        ViewChordPlotsButton            matlab.ui.control.Button
+        ROIcentroidsonbrainplotsCheckBox  matlab.ui.control.CheckBox
+        CohensDThresholdCheckBox        matlab.ui.control.CheckBox
+        MultipleComparisonCorrectionDropDown  matlab.ui.control.DropDown
+        MultipleComparisonCorrectionDropDownLabel  matlab.ui.control.Label
+        LegendVisibleDropDown           matlab.ui.control.DropDown
+        LegendVisibleDropDownLabel      matlab.ui.control.Label
+        ColormapDropDown                matlab.ui.control.DropDown
+        ColormapDropDownLabel           matlab.ui.control.Label
+        CohensDThresholdEditField       matlab.ui.control.NumericEditField
+        CohensDThresholdEditFieldLabel  matlab.ui.control.Label
+        pvalueThresholdEditField        matlab.ui.control.NumericEditField
+        pvalueThresholdEditFieldLabel   matlab.ui.control.Label
+        LowerLimitEditField             matlab.ui.control.NumericEditField
+        LowerLimitEditFieldLabel        matlab.ui.control.Label
+        UpperLimitEditField             matlab.ui.control.NumericEditField
+        UpperLimitEditFieldLabel        matlab.ui.control.Label
+        PlotScaleDropDown               matlab.ui.control.DropDown
+        PlotScaleDropDownLabel          matlab.ui.control.Label
     end
 
     
@@ -96,20 +96,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 app.save_plot_settings();
             end
 
-            switch app.MultipleComparisonCorrectionDropDown.Value
-                case "Benjamini-Hochberg"
-                    mcc = "BenjaminiHochberg";
-                case "Benjamini-Yekutieli"
-                    mcc = "BenjaminiYekutieli";
-                case "Holm-Bonferroni"
-                    mcc = "HolmBonferroni";
-                case "Freedman-Lane"
-                    mcc = "FreedmanLane";
-                case "Westfall-Young"
-                    mcc = "WestfallYoung";
-                otherwise
-                    mcc = app.MultipleComparisonCorrectionDropDown.Value;
-            end
+            mccObj = app.getMCCObjectFromString(app.MultipleComparisonCorrectionDropDown.Value);
+
             app.getPlotTitle();
             
             if isequal(app.old_data, true)
@@ -123,7 +111,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.parameters = nla.net.result.NetworkResultPlotParameter(app.network_test_result,...
                 app.edge_test_options.net_atlas, app.network_test_options);
             probability_parameters = app.parameters.plotProbabilityParameters(app.edge_test_options, app.edge_test_result,...
-                app.test_method, probability, sprintf(app.title), mcc, app.createEffectSizeFilter(),...
+                app.test_method, probability, sprintf(app.title), mccObj, app.createEffectSizeFilter(),...
                 app.PlotValueDropDown.Value);
             
 %             if ~isequal(app.UpperLimitEditField.Value, 0.3) && ~isequal(app.LowerLimitEditField.Value, 0.3)
@@ -228,6 +216,23 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.CohensDThresholdEditFieldLabel.Visible = false;
         
         end
+
+        function mccObj = getMCCObjectFromString(app, stringName)
+            switch stringName
+                case "Benjamini-Hochberg"
+                    mccObj = nla.net.mcc.BenjaminiHochberg();
+                case "Benjamini-Yekutieli"
+                    mccObj = nla.net.mcc.BenjaminiYekutieli();
+                case "Holm-Bonferroni"
+                    mccObj = nla.net.mcc.HolmBonferroni();
+                case "Freedman-Lane"
+                    mccObj = nla.net.mcc.FreedmanLane();
+                case "Westfall-Young"
+                    mccObj = nla.net.mcc.WestfallYoung();
+                otherwise
+                    mccObj = nla.net.mcc.None();
+            end
+        end
     end
     
 
@@ -276,10 +281,12 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             
             plot_type = app.chord_type;
             
+            mccObj = app.getMCCObjectFromString(app.MultipleComparisonCorrectionDropDown.Value);
+
             probability = NetworkTestResult().getPValueNames(app.test_method, app.network_test_result.test_name);
             p_value = strcat("uncorrected_", probability);
             probability_parameters = app.parameters.plotProbabilityParameters(app.edge_test_options, app.edge_test_result,...
-                app.test_method, p_value, sprintf(app.title), app.MultipleComparisonCorrectionDropDown.Value, app.createEffectSizeFilter(),...
+                app.test_method, p_value, sprintf(app.title), mccObj, app.createEffectSizeFilter(),...
                 app.PlotValueDropDown.Value);
             
             chord_plotter = nla.net.result.chord.ChordPlotter(app.edge_test_options.net_atlas, app.edge_test_result);
@@ -288,10 +295,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             chord_plotter.generateChordFigure(probability_parameters, plot_type)
         end
 
-        % Value changed function: ColormapDropDown, 
-        % LegendVisibleDropDown, LowerLimitEditField, 
-        % MultipleComparisonCorrectionDropDown, PlotScaleDropDown, 
-        % UpperLimitEditField
+        % Value changed function: ColormapDropDown, LegendVisibleDropDown, 
+        % ...and 4 other components
         function PlotScaleValueChanged(app, event)
             if isequal(app.settings, false)
                 app.settings = struct();
