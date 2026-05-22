@@ -207,10 +207,10 @@ classdef NetworkResultPlotParameter < handle
                     test_method = "within_network_pair";
             end
 
-            switch lower(erase(fdr_correction, "-"))
-                case "freedmanlane"
+            switch fdr_correction.name
+                case "Freedman-Lane"
                     fdr_method = "freedman_lane_";
-                case "westfallyoung"
+                case "Westfall-Young"
                     fdr_method = "westfall_young_";
                 otherwise
                     fdr_method = "uncorrected_";
