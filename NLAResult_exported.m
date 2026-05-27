@@ -6,17 +6,17 @@ classdef NLAResult < matlab.apps.AppBase
         FileMenu                   matlab.ui.container.Menu
         SaveButton                 matlab.ui.container.Menu
         SaveSummaryTableMenu       matlab.ui.container.Menu
-        SelectContrastDropdown     matlab.ui.control.DropDown
-        SelectContrastLabel        matlab.ui.control.Label
-        OpenDiagnosticPlotsButton  matlab.ui.control.Button
-        OpenTriMatrixPlotButton    matlab.ui.control.Button
-        BranchLabel                matlab.ui.control.Label
-        RunButton                  matlab.ui.control.Button
-        NetLevelLabel              matlab.ui.control.Label
-        ViewEdgeLevelButton        matlab.ui.control.Button
-        EdgeLevelLabel             matlab.ui.control.Label
-        FlipNestingButton          matlab.ui.control.Button
         ResultTree                 matlab.ui.container.Tree
+        FlipNestingButton          matlab.ui.control.Button
+        EdgeLevelLabel             matlab.ui.control.Label
+        ViewEdgeLevelButton        matlab.ui.control.Button
+        NetLevelLabel              matlab.ui.control.Label
+        RunButton                  matlab.ui.control.Button
+        BranchLabel                matlab.ui.control.Label
+        OpenTriMatrixPlotButton    matlab.ui.control.Button
+        OpenDiagnosticPlotsButton  matlab.ui.control.Button
+        SelectContrastLabel        matlab.ui.control.Label
+        SelectContrastDropdown     matlab.ui.control.DropDown
     end
 
     
@@ -108,7 +108,14 @@ classdef NLAResult < matlab.apps.AppBase
                     root = app.createNode(app.ResultTree, 'Within Net-pair');
                     for i = 1:size(app.results.permutation_network_test_results, 2)
                         result = app.results.permutation_network_test_results{i}; 
-                        test_allows_within_net_pair = app.test_pool.net_tests{i}.allows_within_net_pair;
+                        try
+                            test_allows_within_net_pair = result.allows_within_net_pair;
+                        catch ex
+                            %If this is an old result without this
+                            %property, default to show within net pair results
+                            test_allows_within_net_pair = true;                            
+                        end
+                        
                         if ~isequal(result.within_network_pair, false) && test_allows_within_net_pair
                             flags = struct();
                             flags.show_within_net_pair = true;

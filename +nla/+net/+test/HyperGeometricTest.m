@@ -36,6 +36,7 @@ classdef HyperGeometricTest < handle
             % Container to hold results
             % Pass a blank string as ranking statistic since Hypergeometric doesn't have one and we'll be skipping it
             result = nla.net.result.NetworkTestResult(test_options, number_of_networks, obj.name, obj.display_name, obj.statistics, obj.ranking_statistic); 
+            result.allows_within_net_pair = obj.allows_within_net_pair;
 
             % Double for-loop to iterate through trimatrix. Network is the row, network2 the column. Since
             % we only care about the bottom half, second for-loop is 1:network

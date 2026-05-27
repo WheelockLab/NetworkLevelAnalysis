@@ -19,7 +19,8 @@ classdef SandwichEstimator < nla.edge.result.Base
     
     methods
         function obj = SandwichEstimator(size, prob_max)
-            import nla.* % required due to matlab package system quirks
+            
+            obj.name = 'Sandwich Estimator';
             
             %MATLAB WEIRDNESS WARNING
             %In parallel processing, this constructor is somehow called
@@ -31,9 +32,9 @@ classdef SandwichEstimator < nla.edge.result.Base
                 %want to call superclass constructor obj@nla.EdgeLevelResult(size, prob_max);
                 %but can't within any "if block" due to MATLABism
                 %copying here
-                obj.coeff = TriMatrix(size);
-                obj.prob = TriMatrix(size);
-                obj.prob_sig = TriMatrix(size, 'logical');
+                obj.coeff = nla.TriMatrix(size);
+                obj.prob = nla.TriMatrix(size);
+                obj.prob_sig = nla.TriMatrix(size, 'logical');
                 obj.prob_max = prob_max;
                 obj.coeff_name = 'contrast t-vals';
             
