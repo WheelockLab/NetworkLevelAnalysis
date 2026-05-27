@@ -162,7 +162,7 @@ classdef TestPool < nla.DeepCopyable
             [number_of_processes, blocks] = obj.initializeParallelPool(num_perms);
             
             
-            parfor process = 1:number_of_processes
+            for process = 1:number_of_processes
                 network_result_block = obj.runEdgeAndNetPermBlock(edge_input_struct, net_input_struct, net_atlas,...
                     blocks(process), blocks(process+1), perm_seed);
                 network_result_blocks{process} = network_result_block;
@@ -188,23 +188,31 @@ classdef TestPool < nla.DeepCopyable
         function network_result_block = runEdgeAndNetPermBlock(obj, edge_input_struct, net_input_struct, net_atlas,...
             block_start, block_end, perm_seed)
         
+            isMultiContrast = isfield(edge_input_struct,'contrasts') && (size(edge_input_struct.contrasts,1)>1);
+            
             for iteration = block_start:block_end - 1
+                
                 rng(iteration);
-                permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
-                permuted_input.iteration = iteration;
                 
-                single_edge_result = obj.runEdgeTest(permuted_input);
-                network_results = obj.runNetTests(net_input_struct, single_edge_result, net_atlas, true);
-                
-                % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
-                % indexes
-                if isa(network_results, 'nla.MultiContrastResult')
+                if isMultiContrast
+                    
+                    network_results = obj.runMultiContrastPermutedIteration(edge_input_struct, net_input_struct, net_atlas);
+                    
                     if iteration - block_start + 1 == 1
                         network_result_block = network_results;
                     else
                         network_result_block.merge(network_results);
                     end
-                else                    
+                else
+                    
+                    permuted_input = edge_input_struct.permute_method.permute(edge_input_struct);
+                    permuted_input.iteration = iteration;
+
+                    single_edge_result = obj.runEdgeTest(permuted_input);
+                    network_results = obj.runNetTests(net_input_struct, single_edge_result, net_atlas, true);
+
+                    % Ugh, this is so horrible. Have to do this due to Matlab not being able to index 2D arrays separately among
+                    % indexes                   
                     if iteration - block_start + 1 == 1
                         for test = 1:numNetTests(obj)
                             network_result_block{test} = copy(network_results{test});
@@ -214,6 +222,7 @@ classdef TestPool < nla.DeepCopyable
                             network_result_block{test}.merge(network_results{test});
                         end
                     end
+                    
                 end
 
                 if ~islogical(obj.data_queue)
@@ -221,7 +230,7 @@ classdef TestPool < nla.DeepCopyable
                 end
             end
         end
-        
+                        
         function edge_result_perm = runEdgeTestPerm(obj, input_struct, num_perms, perm_seed)
             % Optional perm_seed parameter for replicating runs. If not
             % passed in, is set from current date/time and thus will
@@ -374,6 +383,42 @@ classdef TestPool < nla.DeepCopyable
                 	net_results.addNamedResult(this_contrast_name,this_contrast_net_result)
                 end
             end
+        end
+        
+        function network_results = runMultiContrastPermutedIteration(obj, edge_input_struct, net_input_struct, net_atlas)
+                        
+            %Per contrast, permute data, run edge test, run net test
+            num_contrasts = size(edge_input_struct.contrasts,1);
+            has_contrast_names = isfield(edge_input_struct,'contrastNames') & ~isempty(edge_input_struct.contrastNames);
+            
+            network_results = nla.MultiContrastResult();
+            
+            for contrast_idx = 1:num_contrasts            
+
+                this_contrast = edge_input_struct.contrasts(contrast_idx,:);
+                if has_contrast_names
+                    this_contrast_name = edge_input_struct.contrastNames{contrast_idx};
+                else
+                    this_contrast_name = ['contrast', num2str(contrast_idx)];
+                end
+
+                % permute data for this contrast
+                input_struct_this_contrast = edge_input_struct;
+                input_struct_this_contrast.contrasts = this_contrast;
+                input_struct_this_contrast.contrastNames = this_contrast_name;
+                permuted_input = input_struct_this_contrast.permute_method.permute(input_struct_this_contrast);
+                
+                % get edge result for this contrast
+                edge_result_this_contrast = obj.edge_test.run(permuted_input);                
+                
+                % get net results for this contrast
+                this_contrast_net_result = {};
+                for i = 1:numNetTests(obj)
+                    this_contrast_net_result{i} = obj.net_tests{i}.run(net_input_struct, edge_result_this_contrast, net_atlas, true);
+                end
+                network_results.addNamedResult(this_contrast_name,this_contrast_net_result)
+            end
+            
         end
         
         function val = numNetTests(obj)
