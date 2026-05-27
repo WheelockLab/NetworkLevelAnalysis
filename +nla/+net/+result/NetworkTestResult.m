@@ -18,6 +18,7 @@ classdef NetworkTestResult < matlab.mixin.Copyable
         full_connectome = false % Results of the full_connectome test. Two sample p-values.
         no_permutations = false % Results for the non-permuted test. Single sample p-values (except :math:`\chi^2`\ and hypergeometric tests).
         permutation_results = struct() % Results of each permutation. Statistics and p-values. Note: The p-values are for each individual permutation test, not the overall p-value.  
+        allows_within_net_pair = true % boolean of whether the result should show within net pair results
     end
 
     properties (Access = private)
