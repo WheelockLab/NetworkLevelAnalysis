@@ -131,6 +131,12 @@ classdef MatrixPlot < handle
                 "plot_scale", obj.plot_scale, "color_map", 1);
             obj.default_settings = obj.current_settings;
         end
+        
+        function delete(obj)
+            %object cleanup
+            %delete legend if it exists
+            obj.removeLegend();
+        end
 
         function displayImage(obj)
             % Call this method to plot the data. 
@@ -249,7 +255,10 @@ classdef MatrixPlot < handle
         end
 
         function createLegend(obj)
-            % Creates the Legend
+            % Creates the Legend if it doesn't already exist
+            if ~isempty(obj.display_legend)
+                return;
+            end
             entries = [];
             for network = 1:obj.number_networks
                 entry = bar(obj.axes, NaN);
