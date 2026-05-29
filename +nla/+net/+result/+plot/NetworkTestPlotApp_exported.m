@@ -123,6 +123,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             
 
             plotter = nla.net.result.plot.PermutationTestPlotter(app.edge_test_options.net_atlas);
+            if ~isequal(app.matrix_plot, false)
+                delete(app.matrix_plot); %clearing stale matrix_plot object prevents multiple legends from being drawn in next step
+            end
             [width, height, app.matrix_plot] = plotter.plotProbability(app.Panel_2, probability_parameters,...
                 nla.inputField.LABEL_GAP, -50);
             
