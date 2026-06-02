@@ -45,8 +45,8 @@ function qcKSOutput(ks_result_p_value, edge_test_options)
     edge_test_options.prob_max = 0.05;
     default_discrete_colors = 1000;
 
-    p_value_max = network_test_options.fdr_correction.correct(edge_test_options.net_atlas,...
-        edge_test_options, '');
+    [~, p_value_max] = network_test_options.fdr_correction.correct(edge_test_options.net_atlas,...
+        edge_test_options, ks_result_p_value);
 
     color_map = nla.net.result.NetworkResultPlotParameter.getColormap(default_discrete_colors,...
         p_value_max);
