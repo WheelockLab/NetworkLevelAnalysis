@@ -20,6 +20,8 @@ classdef BrainPlot < handle
         surface_parcels
         mesh_type
         mesh_alpha
+        force_ball_stick_plot
+        ball_stick_direction_only
         all_edges = []
     end
 
@@ -50,9 +52,13 @@ classdef BrainPlot < handle
             addParameter(brain_input_parser, "surface_parcels", true, @isboolean);
             addParameter(brain_input_parser, "mesh_type", nla.gfx.MeshType.STD, @isenum);
             addParameter(brain_input_parser, "mesh_alpha", 0.25, validNumberInput);
+            addParameter(brain_input_parser, "force_ball_stick_plot", false, @islogical);
+            addParameter(brain_input_parser, "ball_stick_direction_only", false, @islogical);
 
             parse(brain_input_parser, edge_test_result, edge_test_options, network_test_options, network1, network2, network_atlas, varargin{:});
-            properties = ["edge_test_result", "edge_test_options", "network_test_options", "network1", "network2", "network_atlas", "ROI_radius", "surface_parcels", "mesh_type", "mesh_alpha"];
+            properties = ["edge_test_result", "edge_test_options", "network_test_options", "network1", "network2",...
+                            "network_atlas", "ROI_radius", "surface_parcels", "mesh_type", "mesh_alpha",...
+                            "force_ball_stick_plot", "ball_stick_direction_only"];
             for property = properties
                 obj.(property{1}) = brain_input_parser.Results.(property{1});
             end
@@ -74,7 +80,7 @@ classdef BrainPlot < handle
 
             obj.setROIandConnectivity();
             
-            if obj.surface_parcels && ~islogical(obj.network_atlas.parcels)
+            if obj.surface_parcels && ~islogical(obj.network_atlas.parcels) && ~obj.force_ball_stick_plot
                 edges1 = obj.singlePlot(subplot("Position", [0.45, 0.505, 0.53, 0.45]), ViewPos.LAT, BrainColorMode.COLOR_ROIS, obj.color_map);
                 edges2 = obj.singlePlot(subplot("Position", [0.45, 0.055, 0.53, 0.45]), ViewPos.MED, BrainColorMode.COLOR_ROIS, obj.color_map);
                 obj.all_edges = [edges1 edges2];
@@ -92,7 +98,7 @@ classdef BrainPlot < handle
                 plot_axis = subplot("Position", [0.075, 0.025, 0.35, 0.85]);
             end
 
-            if obj.surface_parcels && ~islogical(obj.network_atlas.parcels)
+            if obj.surface_parcels && ~islogical(obj.network_atlas.parcels) && ~obj.force_ball_stick_plot
                 edges5 = obj.singlePlot(plot_axis, ViewPos.DORSAL, BrainColorMode.COLOR_ROIS, obj.color_map);
             else
                 edges5 = obj.singlePlot(plot_axis, ViewPos.DORSAL, BrainColorMode.NONE, obj.color_map);
@@ -338,7 +344,7 @@ classdef BrainPlot < handle
                     obj.drawCortex(obj.network_atlas.anat, plot_axis, view_position, ROI_color_map(obj.network_atlas.parcels.ctx_l + 1, :), ROI_color_map(obj.network_atlas.parcels.ctx_r + 1, :));
                 else
                 drawCortex(ax, net_atlas.anat, ctx, obj.mesh_alpha, view_pos);
-                    if color_mode ~= BrainColorMode.NONE
+                    if color_mode ~= nla.gfx.BrainColorMode.NONE
                         for i = 1:net_atlas.numROIs()
                             % render a sphere at each ROI location
                             nla.gfx.drawSphere(ax, ROI_final_positions(i, :), ROI_colors(i, :), obj.ROI_radius);
