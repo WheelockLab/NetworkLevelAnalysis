@@ -45,9 +45,10 @@ classdef NLA_GUI < matlab.apps.AppBase
             [error_str, satisfied] = validateInputStruct(app.net_input_fields, error_str, satisfied);
 
             %If user has selected tests that don't support within net-pair,
-            %show warning and confirm continue
+            %and is not running QC, show warning and confirm continue
             show_within_NP_warning = app.checkForTestsThatDontSupportWithinNetPair(app.test_pool.net_tests);
-            if show_within_NP_warning
+            is_running_qc = (mode == 1);
+            if show_within_NP_warning && ~is_running_qc
                 warning_msg = ['Chi Squared and Hypergeometric Tests don''t support within net pair tests. ',...
                                 'Within net pair results for those tests will not be generated. Continue?'];
                 quest_ans = questdlg(warning_msg);
