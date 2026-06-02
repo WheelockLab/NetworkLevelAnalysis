@@ -5,6 +5,7 @@ classdef NetworkResultPlotParameter < handle
         network_test_results
         network_atlas
         updated_test_options
+        force_ball_stick_brain_plot = false
     end
 
     properties (Dependent)
@@ -78,7 +79,7 @@ classdef NetworkResultPlotParameter < handle
                 significance_type = "nla.gfx.SigType.DECREASING";
                 % determine colormap and operate on values if it's -log10
                 switch obj.updated_test_options.prob_plot_method
-                    case "LOG" % FUCK Matlab and their enums
+                    case "LOG"
                         color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
                             statistic_input, p_value_max);
                     % Here we take a -log10 and change the maximum value to show on the plot
@@ -123,7 +124,8 @@ classdef NetworkResultPlotParameter < handle
                 % nla.gfx.drawBrainVis(edge_test_options, obj.updated_test_options, obj.network_atlas,...
                 %     nla.gfx.MeshType.STD, 0.25, 3, true, edge_test_result, network1, network2,...
                 %     any(strcmp(obj.noncorrelation_input_tests, obj.network_test_results.test_name)));
-                brain_plot = nla.gfx.brain.BrainPlot(edge_test_result, edge_test_options, obj.updated_test_options, network1, network2, edge_test_options.net_atlas);
+                brain_plot = nla.gfx.brain.BrainPlot(edge_test_result, edge_test_options, obj.updated_test_options, ...
+                                                    network1, network2, edge_test_options.net_atlas, 'force_ball_stick_plot',obj.force_ball_stick_brain_plot);
                 brain_plot.drawBrainPlots()
                 waitbar(0.95);
                 close(wait_popup);
