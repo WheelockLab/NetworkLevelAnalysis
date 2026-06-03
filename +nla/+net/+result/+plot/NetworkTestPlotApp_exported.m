@@ -37,6 +37,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         BrainPlotTypeLabel              matlab.ui.control.Label
         BrainPlotTypeDropDown           matlab.ui.control.DropDown
         Panel_2                         matlab.ui.container.Panel
+        Label                           matlab.ui.control.Label
     end
 
     
@@ -665,7 +666,14 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.Panel_2 = uipanel(app.UIFigure);
             app.Panel_2.AutoResizeChildren = 'off';
             app.Panel_2.BackgroundColor = [1 1 1];
-            app.Panel_2.Position = [22 298 542 464];
+            app.Panel_2.Position = [22 311 542 451];
+
+            % Create Label
+            app.Label = uilabel(app.UIFigure);
+            app.Label.HorizontalAlignment = 'center';
+            app.Label.FontColor = [0.502 0.502 0.502];
+            app.Label.Position = [28 288 536 22];
+            app.Label.Text = '(Click on significant net -pair blocks above to display brain plots for that net-pair)';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
