@@ -67,7 +67,7 @@ To keep all networks provided in the original atlas, the user can set the dropdo
 
 .. figure:: _static/silhouette_coefficient_plot.png
 
-    Example silhouette coefficient plot
+    Example normality plot
 
 Test Normality
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
