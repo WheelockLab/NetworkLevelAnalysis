@@ -20,6 +20,7 @@ Welcome to documentation for Network Level Analysis
    edge_level_tests
    network_level_tests
    network_level_results
+   sandwich_estimator
    for_developers
    bibliography
 
