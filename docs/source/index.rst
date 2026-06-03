@@ -17,6 +17,7 @@ Welcome to documentation for Network Level Analysis
    using_the_gui
    behavior_table
    network_atlases
+   quality_control
    edge_level_tests
    network_level_tests
    network_level_results
