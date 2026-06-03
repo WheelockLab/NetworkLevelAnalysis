@@ -47,7 +47,7 @@ The user can also access a separate dedicated set of quality control tests via t
 This control requires that the user has loaded a Network Atlas, Functional Connectivity, and Behavior data, 
 and has selected a variable for Behavior.
 
-.. figure:: _static/quality_control_gui.ong
+.. figure:: _static/quality_control_gui.png
 
     Quality Control GUI
 
