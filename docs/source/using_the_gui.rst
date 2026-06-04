@@ -65,14 +65,14 @@ The results will be saved as:
 #. a ResultPool object using models and classes from the NLA codebase. This can only be used if the NLA is in MATLAB's current path.
 #. a nested structure of data that can be used without the NLA code. The structures are in the same ordering as the ResultPool, but there are no built-in classes and orderings.
 
-.. _trimatrix_plot:
+.. _net_level_results_window:
 
-TriMatrix Plot
+Lower Triangle Network-Level Results Window
 ---------------------------------
 
 .. figure:: _static/trimatrix_plot.png
 
-    Trimatrix (lower triangular area) of p-values and display options
+    TriMatrix (lower triangular area) of p-values and display options
 
 1. TriMatrix plot of p-values for selected test.
 2. Options. Plot Scale: allows for linear, log, and -log10 scaling of results. Colormap: change the colormap of results using built-in MATLAB colormaps. Plot Value: plot p-values or statistics. Upper and Lower Limit: set limits for color scale. p-value threshold: set threshold for significance, defaults to 0.05. 
