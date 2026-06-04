@@ -27,18 +27,23 @@ Edge-level Chord Plots
 Edge-level chord plots show all edge-level results for significant network pairs after analysis. (See :ref:`Lower Triangle Network-Level Results Window <net_level_results_window>` for all plotting options).
 
 .. figure:: _static/edge_chord_pval.png
+    
     Type: p-value
 
 .. figure:: _static/edge_chord_coeff.png
+    
     Type: coefficient
 
 .. figure:: _static/edge_chord_coeff_split.png
+    
     Type: coefficient, split
 
 .. figure:: _static/edge_chord_coeff_basic.png
+    
     Type: coefficient, basic
 
 .. figure:: _static/edge_chord_coeff_split_basic.png
+    
     Type: coefficient, split + basic
 
 .. _net_chord: 
