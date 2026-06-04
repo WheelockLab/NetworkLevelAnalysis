@@ -24,7 +24,7 @@ Or, in the file browser section of the MATLAB window, right click on ``NLA_GUI.m
     Selection of network-level test(s). One can be selected, or multiple with Ctrl/Shift + left click. 
     See :doc:`Network-level tests`
 #. Run options
-    Checkboxes to select test method(s). If within network pair is selected, full connectome will also be selected. 
+    Checkboxes to select test method(s). If within network pair is selected, full connectome will also be selected. Note: Chi-Squared and Hypergeometric tests are incompatible with the within newtork pair method. Quality control (See: :ref:`Quality Control <quality_control>`) button launches the quality control menu.
     Permutation count is how many permutations to run. More permutations will take more time, but will produce more precise results.
     Run will run the edge level test and open the results window.
 
@@ -75,6 +75,9 @@ TriMatrix Plot
     Trimatrix (lower triangular area) of p-values and display options
 
 1. TriMatrix plot of p-values for selected test.
-2. Options. After changing options, the :guilabel:`Apply` button must be pushed to take effect.
-   There are also two buttons to display chord plots. One displays the network-level results, one displays the edge-level results. The options for these must be selected before the 
-   chord plots are opened. The chord plots will not update after they are opened.
+2. Options. Plot Scale: allows for linear, log, and -log10 scaling of results. Colormap: change the colormap of results using built-in MATLAB colormaps. Plot Value: plot p-values or statistics. Upper and Lower Limit: set limits for color scale. p-value threshold: set threshold for significance, defaults to 0.05. 
+   Multiple Comparisons Correction: select correction type from a drop down list. Options include, none, Bonferroni, Benjamini-Hochberg, Benjamini-Yekutieli, Holm-Bonferroni, Freedman-Lane, and Westfall-Young. Legend Visible: turn on/off the legend containing networks and their colors.
+   Edge Chord Plot Type: visualization options for edge-level chord plots. Chords can be visualized according to p-value or coefficient. Coefficient-based visualization can be split according to positive and negative edges, and they can be visualized in basic format, hardcoded with [-0.3,0.3] limits, unless the Sandwich estimator is used [-3, 3] for that case. 
+   Non-basic format colors chords with respect to the standard deviation of the data. There are buttons to visualize edge- and network-level chord plots. There are no visualization options for network-level chord plots. Convergence Plot Color: colormap for convergence plot, requires the selection of multiple network-level results in the Results Window (See :ref:`Results Window <results_window>`). 
+   Brain Plot Type: visualizes edge-level results as sticks between ROI centroids visualized as spheres on the brain. There are two options, magnitude and direction. Magnitude colors the sticks based on the magnitude of the correlation. Direction colors the sticks red if the correlation is positive and blue if the correlation is negative. There is a checkbox to show or hide the ROI centroids on brain plots.
+   After changing options, the :guilabel:`Apply` button must be pushed to take effect. Chord plots, convergence plots, and brain plots will not update after their generation. 
