@@ -35,6 +35,8 @@ Loading Results
 If previous data was saved (See :ref:`saving results <saving_results>`) there is an option to load it here. Click the :guilabel:`File` menu in the upper left-hand corner and select :guilabel:`Load Previous Results`.
 Depending on the size of the saved data, this could take a bit of time.
 
+.. _results_window:
+
 Results Window
 ----------------------------------
 
