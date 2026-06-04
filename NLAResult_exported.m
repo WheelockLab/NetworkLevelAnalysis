@@ -321,6 +321,17 @@ classdef NLAResult < matlab.apps.AppBase
             drawnow;
             
             selected_nodes = app.ResultTree.SelectedNodes;
+            
+            %First, make cell array of all selected results. Need these for
+            %convergence plots, and have to pass them to each plot window
+            results_all_selected_nodes = {};
+            for i = 1:size(selected_nodes, 1)
+                if ~isempty(selected_nodes(i).NodeData)
+                    results_all_selected_nodes(end+1) = selected_nodes(i).NodeData(1);
+                end
+            end
+                
+            
             for i = 1:size(selected_nodes, 1)
                 if ~isempty(selected_nodes(i).NodeData)
                     result = selected_nodes(i).NodeData{1};
@@ -329,7 +340,7 @@ classdef NLAResult < matlab.apps.AppBase
                     prog.Message = sprintf('Generating %s %s', result.test_display_name, plot_type);
                     
 %                     result.output(app.input_struct, app.net_input_struct, app.input_struct.net_atlas, app.edge_result, helpers.mergeStruct(node_flags, extra_flags));
-                    nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct, app.old_data)
+                    nla.net.result.plot.NetworkTestPlotApp(result, app.edge_result, node_flags, app.input_struct, app.net_input_struct, app.old_data, results_all_selected_nodes)
                     prog.Value = i / size(selected_nodes, 1);                    
                     
                 end

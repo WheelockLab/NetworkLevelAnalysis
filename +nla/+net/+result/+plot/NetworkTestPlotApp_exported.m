@@ -37,6 +37,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         BrainPlotTypeLabel              matlab.ui.control.Label
         BrainPlotTypeDropDown           matlab.ui.control.DropDown
         Panel_2                         matlab.ui.container.Panel
+        Label                           matlab.ui.control.Label
     end
 
     
@@ -54,6 +55,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         chord_type = "nla.PlotType.CHORD"
         settings = false
         old_data = false % data from previous output structures. Not networktestresult object
+        results_all_selected_nodes % results from all selected nodes from the calling NLA_Result GUI, in order to dynamically calculate convergence plots
     end
     
     properties (Dependent)
@@ -296,6 +298,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             
             app.setBrainPlotDropdownOptions(edge_test_options.net_atlas);
             
+            app.results_all_selected_nodes = varargin{1};
+            
             app.drawTriMatrixPlot();
         end
 
@@ -406,18 +410,31 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 case "within_network_pair"
                     flags.show_within_net_pair = true;
             end
-            switch app.MultipleComparisonCorrectionDropDown.Value
-                case "Benjamini-Hochberg"
-                    app.network_test_options.fdr_correction = "BenjaminiHochberg";
-                case "Benjamini-Yekutieli"
-                    app.network_test_options.fdr_correction = "BenjaminiYekutieli";
-                case "Holm-Bonferroni"
-                    app.network_test_options.fdr_correction = "HolmBonferroni";
-                otherwise
-                    app.network_test_options.fdr_correction = app.MultipleComparisonCorrectionDropDown.Value;
-            end
+%             switch app.MultipleComparisonCorrectionDropDown.Value
+%                 case "Benjamini-Hochberg"
+%                     app.network_test_options.fdr_correction = "BenjaminiHochberg";
+%                 case "Benjamini-Yekutieli"
+%                     app.network_test_options.fdr_correction = "BenjaminiYekutieli";
+%                 case "Holm-Bonferroni"
+%                     app.network_test_options.fdr_correction = "HolmBonferroni";
+%                 otherwise
+%                     app.network_test_options.fdr_correction = app.MultipleComparisonCorrectionDropDown.Value;
+%             end
             
-            [test_number, significance_count_matrix, names] = app.network_test_result.getSigMat(app.network_test_options, app.edge_test_options.net_atlas, flags);
+            app.network_test_options.fdr_correction = app.getMCCObjectFromString(app.MultipleComparisonCorrectionDropDown.Value);
+            
+            
+            
+            sig_count_mat = nla.TriMatrix(app.edge_test_options.net_atlas.numNets(), 'double', nla.TriMatrixDiag.KEEP_DIAGONAL);
+            test_number = length(app.results_all_selected_nodes);
+            all_names = [];
+            
+            for i = 1:test_number                
+                this_result = app.results_all_selected_nodes{i};                
+                [test_temp, significance_count_matrix, name] = this_result.getSigMat(app.network_test_options, app.edge_test_options.net_atlas, flags);
+                sig_count_mat.v = sig_count_mat.v + significance_count_matrix.v;
+                all_names = [all_names name];
+            end
             
             colors = str2func(lower(app.ConvergencePlotColorDropDown.Value));
             if isequal(app.ConvergencePlotColorDropDown.Value, "Bone")
@@ -426,8 +443,8 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
                 color_map = [[1, 1, 1]; flip(colors())];
             end
 
-            nla.gfx.drawConvergenceMap(app.edge_test_options, app.network_test_options, app.edge_test_options.net_atlas, significance_count_matrix,...
-                test_number, names, app.edge_test_result, color_map);
+            nla.gfx.drawConvergenceMap(app.edge_test_options, app.network_test_options, app.edge_test_options.net_atlas, sig_count_mat,...
+                test_number, all_names, app.edge_test_result, color_map);
 
             if ispc
                 nla.gfx.moveFigToParentUILocation(gcf, app.UIFigure);
@@ -665,7 +682,14 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.Panel_2 = uipanel(app.UIFigure);
             app.Panel_2.AutoResizeChildren = 'off';
             app.Panel_2.BackgroundColor = [1 1 1];
-            app.Panel_2.Position = [22 298 542 464];
+            app.Panel_2.Position = [22 311 542 451];
+
+            % Create Label
+            app.Label = uilabel(app.UIFigure);
+            app.Label.HorizontalAlignment = 'center';
+            app.Label.FontColor = [0.502 0.502 0.502];
+            app.Label.Position = [28 288 536 22];
+            app.Label.Text = '(Click on significant net -pair blocks above to display brain plots for that net-pair)';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
