@@ -55,6 +55,13 @@ Net-level chord plots show all net-level results for significant network pairs a
 
 .. figure:: _static/net_chord_plot.png
 
+Convergence Map
+---------------------------
+
+Convergence maps show network pairs that are significant across multiple tests and/or methods. Select multiple tests in the results window (See :ref:`Results Window <results_window>`)" and then click the :guilabel:`View Convergence Map` button. 
+
+.. figure:: _static/net_chord_plot.png
+
 Network Pair Size Diagnostic Plots
 ---------------------------
 
