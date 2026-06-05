@@ -11,15 +11,15 @@ will need to be saved. All edge-level test objects must inherit from ``nla.edge.
 
 * **Test object**
 
-..
-    commenting this out because it's broken right now. filed report on github
-    .. mat:module:: edge
+  * Constant properties to define for the concrete class you're adding:
+    * name - name of test (string / char, ex: "Pearson's r")
+    * coeff_name - name of test statistic (string / char, ex: "Pearson's r (Fisher-Z Transformed)"
 
-    .. mat:autoclass:: BaseTest
+  * a ``run`` method   
 
-        .. mat:automethod:: run(input_struct)
+    .. mat:automethod:: run(obj, input_struct)
 
-        .. mat:automethod:: inputs = requiredInputs()
+
 
 
 * **Result object**
@@ -72,4 +72,4 @@ The only requirements are below
   :permutations: Boolean to determine if the test is being run with permutations (``true``) or without (``false``)
   :result: :doc:`NetworkTestResult </network_level_results>`
 
-* ``requiredInputs`` See :ref:`Edge-level tests <requiredInputs>`
+* ``requiredInputs`` was an old field for dispalying input fields for the tests on the main NLA_GUI. For now, just define ``requiredInputs()`` as a static method of the class and have it return an empty cell array.
