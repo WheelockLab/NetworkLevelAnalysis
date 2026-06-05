@@ -56,20 +56,18 @@ Check Head Motion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If your selected behavior data from the main GUI included motion data, select the name of the corresponding variable in the ``Motion Field`` dropdown.
-Then clicking the ``Check Head Motion`` will display quality plots relating to FC-Motion correlation :cite:p:`CiricR`. 
-
-.. figure:: _static/quality_control_motion_plot.png
+Then clicking the ``Check Head Motion`` will display quality plots relating to FC-Motion correlation.
 
 View Silhouette Coefficient
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The user can generate a triangle plot for the silhouette coefficent for information on how well the atlas model fits the connectivity data.
+The user can generate a triangle plot for the silhouette coefficent :cite:p:`RousseeuwPJ` for information on how well the atlas model fits the connectivity data.
 If there is a network the user would like to exclude from the silhouette coefficient calculations (typically a network labeled 'None' or 'Unassigned'), the user can select that network for removal via the ``Unspecified/None "network"`` dropdown.
 To keep all networks provided in the original atlas, the user can set the dropdown to the 'N/A' option.
 
 .. figure:: _static/silhouette_coefficient_plot.png
 
-    Example normality plot
+    Example silhouette coefficient plot
 
 Test Normality
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
