@@ -59,7 +59,7 @@ The current supported options are:
 * Homoskedastic (effectively an Ordinary Least Squares model)
 * Heteroskedastic
 * Unconstrained Blocks
-* Guillaume (implements model described in Guillaume paper)
+* Guillaume :cite:p:`GuillaumeB`
 
 Selecting either ``Unconstrained Blocks`` or ``Guillaume`` will enable the group variable controls towards the bottom of the GUI.
 
