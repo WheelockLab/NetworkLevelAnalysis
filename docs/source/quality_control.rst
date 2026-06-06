@@ -56,7 +56,9 @@ Check Head Motion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If your selected behavior data from the main GUI included motion data, select the name of the corresponding variable in the ``Motion Field`` dropdown.
-Then clicking the ``Check Head Motion`` will display quality plots relating to FC-Motion correlation.
+Then clicking the ``Check Head Motion`` will display quality plots relating to FC-Motion correlation :cite:p:`CiricR`
+
+.. figure:: _static/quality_control_motion_plot.png
 
 View Silhouette Coefficient
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
