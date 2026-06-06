@@ -17,11 +17,12 @@ will need to be saved. All edge-level test objects must inherit from ``nla.edge.
 
   * a ``run`` method   
 
-    .. mat:automethod:: result = run(obj, input_struct)
+    **result = run(obj, input_struct)**
+
     input_struct typically contains the following fields in the normal GUI pipeline for most current tests (except SwE and OLS):
+
       * behavior - [numSubjects x 1] array of doubles
       * func_conn - nla.TriMatrix object, containing functional connectivity data for all edges and subjects
-
 
 
 
