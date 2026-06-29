@@ -38,13 +38,20 @@ function outY = wildBootstrap(inY, inX, inContrasts, origBeta, origResidual)
         residual = origResidual;
     end
     
+    covariateIsNoise = inContrasts == 0;
+
     %generate new values by using betas from noise only, and adding in
     %random multiplier of residual
+    beta_reduced = beta(covariateIsNoise,:);
+    X_reduced = inX(:,covariateIsNoise);
+    %Find a residual based off of only the coefficients and x data for those noise coefficients;
+    residual_reduced = inY - (X_reduced * beta_reduced);
+
     numObs = size(inX,1);
     residualNoiseMultFactor = getRademacherVector(numObs);
     
-    covariateIsNoise = inContrasts == 0;
-    outY = inX(:,covariateIsNoise) * beta(covariateIsNoise,:) + (residualNoiseMultFactor .* residual);
+    
+    outY = X_reduced * beta_reduced + (residualNoiseMultFactor .* residual_reduced);
     
 end
     
