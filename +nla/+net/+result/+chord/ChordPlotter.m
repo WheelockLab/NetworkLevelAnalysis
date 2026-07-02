@@ -9,6 +9,8 @@ classdef ChordPlotter < handle
         axis_width = 750; % Constant for the size of the chord
         trimatrix_width = 500; % Constant for the size of the Trimatrix plotted with
         bottom_text_height = 250; % How far from the bottom of the trimatrix the text appears
+        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+            "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
     properties
@@ -16,6 +18,7 @@ classdef ChordPlotter < handle
         edge_test_result % Edge test results
         split_plot = false % This is an option that is set automatically during operation. 
         edge_plot_type = "nla.gfx.EdgeChordPlotMethod.PROB" % Default chord type for edges
+        chord_plotter = false
     end
 
     methods
@@ -35,6 +38,9 @@ classdef ChordPlotter < handle
             import nla.gfx.SigType nla.net.result.plot.PermutationTestPlotter nla.gfx.EdgeChordPlotMethod nla.gfx.setTitle
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
+            if isfield(parameters, "lower_bound")
+                coefficient_bounds(1) = parameters.lower_bound;
+            end
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
                 coefficient_bounds = [parameters.p_value_plot_max, 1];
             end
@@ -68,15 +74,21 @@ classdef ChordPlotter < handle
                 % thresholding below the "insignificance" value
                 statistic_matrix = copy(parameters.statistic_plot_matrix);
                 statistic_matrix.v(~parameters.significance_plot.v) = insignificance;
-                chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, figure_axis, 500, statistic_matrix,...
+                obj.chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, figure_axis, 500, statistic_matrix,...
                     'color_map', parameters.color_map, 'direction', parameters.significance_type, 'upper_limit',...
                     coefficient_bounds(2), 'lower_limit', coefficient_bounds(1), 'chord_type', chord_type);
-                chord_plotter.drawChords();
+                obj.chord_plotter.drawChords();
                 setTitle(figure_axis, parameters.name_label)
             else
                 % Plot edge chord
                 obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
             end
+
+            settings_menu = uimenu(plot_figure, 'Text', 'Settings');
+            change_scale_option = uimenu(settings_menu,'Text','Change Scale');
+            change_scale_option.MenuSelectedFcn = {@obj.adjustScale, coefficient_bounds, plot_figure, parameters, chord_type};
+            change_color_map = uimenu(settings_menu, 'Text', 'Change Color Map');
+            change_color_map.MenuSelectedFcn = {@obj.adjustColor, plot_figure, parameters, chord_type};
         end
     end
 
@@ -198,6 +210,102 @@ classdef ChordPlotter < handle
                 labels{tick + 1} = sprintf("%.2g", coefficient_min + (tick * ((coefficient_max - coefficient_min) / number_ticks)));
             end
             color_bar.TickLabels = labels;
+        end
+
+        function adjustScale(obj, src, ~, bounds, plot_figure, parameters, chord_type)
+            chord_figure = src.Parent.Parent;
+            modal = figure('WindowStyle', 'normal', 'Units', 'pixels', 'Position',...
+                [chord_figure.Position(1), chord_figure.Position(2), chord_figure.Position(3) / 3, chord_figure.Position(4) / 3]);
+            
+            upper_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 130, 100, 30], "String",...
+                bounds(2));
+            upper_limit_box.Position(4) = upper_limit_box.FontSize * 2;
+            lower_limit_box = uicontrol('Style', 'edit', "Units", "pixels", 'Position', [90, 100, 100, 30], "String",...
+                bounds(1)); 
+            lower_limit_box.Position(4) = lower_limit_box.FontSize * 2;
+
+            uicontrol('Style', 'text', 'String', 'Upper Limit', "Units", "pixels", 'Position',...
+                [upper_limit_box.Position(1) - 80, upper_limit_box.Position(2) - 2, 80, upper_limit_box.Position(4)]);
+            uicontrol('Style', 'text', 'String', 'Lower Limit', "Units", "pixels", 'Position',...
+                [lower_limit_box.Position(1) - 80, lower_limit_box.Position(2) - 2, 80, lower_limit_box.Position(4)]);
+
+            apply_button_position = [10, 10, 100, 30];
+            apply_button = uicontrol('String', 'Apply',...
+                "Callback", {@obj.applyScale, upper_limit_box, lower_limit_box, false, plot_figure, parameters, chord_type},...
+                "Units", "pixels",...
+                'Position', apply_button_position);
+            
+            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
+                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            uicontrol('String', 'Close', 'Callback', @(~, ~)close(modal), "Units", "pixels", 'Position',...
+                close_button_position);
+        end
+
+        function adjustColor(obj, src, ~, plot_figure, parameters, chord_type)
+            chord_figure = src.Parent.Parent;
+            modal = figure('WindowStyle', 'normal', 'Units', 'pixels', 'Position',...
+                [chord_figure.Position(1), chord_figure.Position(2), chord_figure.Position(3) / 2, chord_figure.Position(4) / 3]);
+
+            % Color Map selector
+            % Adapted from colormap-dropdown: https://www.mathworks.com/matlabcentral/fileexchange/43659-colormap-dropdown-menu 
+
+            color_map_select = uicontrol('Style', 'popupmenu',...
+                'Position', [90, 130, 275, 30], "Units", "pixels",...
+                'FontName', 'Courier');
+            uicontrol("Style", "text", "string", "Colormaps", "Units", "pixels",...
+                "Position", [color_map_select.Position(1) - 80, color_map_select.Position(2) - 2, 80, color_map_select.Position(4)]);
+            initial_colors = 16;
+            colormap_html = {};
+            for colors = 1:numel(obj.colormap_choices)
+                colormap_function = str2func(strcat(strcat("@(x) ",lower(obj.colormap_choices{colors})), "(x)"));
+                CData = colormap_function(initial_colors);
+                new_html_start = '<HTML> ';
+                new_html = '';
+                for color_iterator = initial_colors:-1:1
+                    hex_code = nla.gfx.rgb2hex([CData(color_iterator, 1), CData(color_iterator, 2),...
+                        CData(color_iterator, 3)]);
+                    new_html = [new_html '<FONT bgcolor="' hex_code ' "color="' hex_code '">__</FONT>'];
+                end
+                new_html_end = [new_html ' </HTML>'];
+                new_html = [new_html_start new_html_end];
+                colormap_html = [colormap_html; new_html];
+            end
+
+            if ~isfield(parameters, "color_map_name")
+                parameters.color_map_name = 1;
+            end
+            set(color_map_select, "Value", parameters.color_map_name, "String", colormap_html);
+
+            apply_button_position = [10, 10, 100, 30];
+            apply_button = uicontrol('String', 'Apply',...
+                "Callback", {@obj.applyScale, false, false, color_map_select, plot_figure, parameters, chord_type},...
+                "Units", "pixels",...
+                'Position', apply_button_position);
+            
+            close_button_position = [apply_button.Position(1) + apply_button.Position(3) + 10,...
+                apply_button.Position(2), apply_button.Position(3), apply_button.Position(4)];
+            uicontrol('String', 'Close', 'Callback', @(~, ~)close(modal), "Units", "pixels", 'Position',...
+                close_button_position);
+        end
+
+        function applyScale(obj, src, ~, upper_limit_box, lower_limit_box, color_map, plot_figure, parameters, chord_type)
+            
+            if ~isequal(upper_limit_box, false)
+                parameters.p_value_plot_max = str2double(get(upper_limit_box, "String"));
+                parameters.lower_bound = str2double(get(lower_limit_box, "String"));
+            end
+
+            if ~isequal(color_map, false)
+                color_map = get(color_map, "Value");
+                color_map_name = str2func(lower(obj.colormap_choices{color_map}));
+                parameters.color_map = color_map_name(1000);
+                parameters.color_map_name = color_map;
+            end
+
+            obj.generateChordFigure(parameters, chord_type)
+
+            close(plot_figure);
+            close(src.Parent);
         end
     end
 end
