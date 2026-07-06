@@ -33,7 +33,7 @@ classdef ChordPlotter < handle
             end
         end
 
-        function generateChordFigure(obj, parameters, chord_type)
+        function generateChordFigure(obj, parameters, chord_type, parent_figure)
             % generateChordFigure plots chords for a network test
             import nla.gfx.SigType nla.net.result.plot.PermutationTestPlotter nla.gfx.EdgeChordPlotMethod nla.gfx.setTitle
 
@@ -58,6 +58,9 @@ classdef ChordPlotter < handle
                 plot_figure = nla.gfx.createFigure((obj.axis_width * 2), obj.axis_width);
             else
                 plot_figure = nla.gfx.createFigure(obj.axis_width , obj.axis_width);
+            end
+            if ~isequal(parent_figure, false)
+                nla.gfx.moveFigToParentUILocation(plot_figure, parent_figure);
             end
             
             % Plot a standard chord plot
@@ -302,7 +305,7 @@ classdef ChordPlotter < handle
                 parameters.color_map_name = color_map;
             end
 
-            obj.generateChordFigure(parameters, chord_type)
+            obj.generateChordFigure(parameters, chord_type, plot_figure)
 
             close(plot_figure);
             close(src.Parent);
