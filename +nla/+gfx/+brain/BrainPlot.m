@@ -16,7 +16,10 @@ classdef BrainPlot < handle
         color_bar
         ROI_values = []
         function_connectivity_values = []
+        ROI_connections = []
         ROI_radius
+        ROI_radius_min_max = [] % use for a min max size when using variable ROI sphere scaling based on # connections
+        ROI_radius_by_index = [] 
         surface_parcels
         mesh_type
         mesh_alpha
@@ -35,6 +38,7 @@ classdef BrainPlot < handle
         functional_connectivity_exists
         color_functional_connectivity
     end
+        
 
     methods
 
@@ -48,17 +52,22 @@ classdef BrainPlot < handle
             addRequired(brain_input_parser, "network_atlas");
 
             validNumberInput = @(x) isnumeric(x) && isscalar(x);
+            validStringInput = @(x) ischar(x) || isstring(x);
+            validMinMaxArray = @(x) (isnumeric(x) && (length(x)==2)) || isempty(x); %allow empty to not use this feature
             addParameter(brain_input_parser, "ROI_radius", 3, validNumberInput);
             addParameter(brain_input_parser, "surface_parcels", true, @isboolean);
             addParameter(brain_input_parser, "mesh_type", nla.gfx.MeshType.STD, @isenum);
             addParameter(brain_input_parser, "mesh_alpha", 0.25, validNumberInput);
             addParameter(brain_input_parser, "force_ball_stick_plot", false, @islogical);
             addParameter(brain_input_parser, "ball_stick_direction_only", false, @islogical);
+            addParameter(brain_input_parser, "test_name", "unknown", validStringInput);
+            addParameter(brain_input_parser, "ROI_radius_min_max", [], validMinMaxArray);
+            
 
             parse(brain_input_parser, edge_test_result, edge_test_options, network_test_options, network1, network2, network_atlas, varargin{:});
             properties = ["edge_test_result", "edge_test_options", "network_test_options", "network1", "network2",...
                             "network_atlas", "ROI_radius", "surface_parcels", "mesh_type", "mesh_alpha",...
-                            "force_ball_stick_plot", "ball_stick_direction_only"];
+                            "force_ball_stick_plot", "ball_stick_direction_only", "test_name", "ROI_radius_min_max"];
             for property = properties
                 obj.(property{1}) = brain_input_parser.Results.(property{1});
             end
@@ -72,6 +81,7 @@ classdef BrainPlot < handle
 
             obj.ROI_values = nan(obj.network_atlas.numROIs(), 1);
             obj.function_connectivity_values = nan(obj.network_atlas.numROIs(), 1);
+            obj.ROI_connections = nan(obj.network_atlas.numROIs(), 1);
             %%
         end
 
@@ -140,6 +150,7 @@ classdef BrainPlot < handle
                 [coefficient1, coefficient2, function_connectivity1, function_connectivity2] = obj.getCoefficients(network1_ROI_index, network2_ROI_indexes);
                 obj.ROI_values(network1_ROI_index) = (sum(coefficient1) + sum(coefficient2)) / (numel(coefficient1) + numel(coefficient2));
                 obj.function_connectivity_values(network1_ROI_index) = (sum(function_connectivity1) + sum(function_connectivity2)) / (numel(function_connectivity1) + numel(function_connectivity2));
+                obj.ROI_connections(network1_ROI_index) = numel(coefficient1) + numel(coefficient2);
             end
 
             for ROI_index2_iterator = 1:numel(network2_ROI_indexes)
@@ -147,6 +158,7 @@ classdef BrainPlot < handle
                 [coefficient1, coefficient2, function_connectivity1, function_connectivity2] = obj.getCoefficients(network2_ROI_index, network1_ROI_indexes);
                 ROI_value = (sum(coefficient1) + sum(coefficient2)) / (numel(coefficient1) + numel(coefficient2));
                 function_connectivity_value = (sum(function_connectivity1) + sum(function_connectivity2)) / (numel(function_connectivity1) + numel(function_connectivity2));
+                obj.ROI_connections(network2_ROI_index) = numel(coefficient1) + numel(coefficient2);
                 if obj.network1 == obj.network2
                     obj.ROI_values(network2_ROI_index) = (obj.ROI_values(network2_ROI_index) + ROI_value) ./ 2;
                     obj.function_connectivity_values(network2_ROI_index) = (obj.function_connectivity_values(network2_ROI_index) + function_connectivity_value) ./ 2;
@@ -364,15 +376,49 @@ classdef BrainPlot < handle
 
         function drawROISpheres(obj, ROI_position, plot_axis, connectivity_map)
 
+            obj.setROIByIndexMap();
+            
             for network = [obj.network1, obj.network2]
                 network_indexes = obj.network_atlas.nets(network).indexes;
                 for index_iterator = 1:numel(network_indexes)
                     index = network_indexes(index_iterator);
                     
                     if connectivity_map(index)
-                        nla.gfx.drawSphere(plot_axis, ROI_position(index, :), obj.network_atlas.nets(network).color, obj.ROI_radius);
+                        nla.gfx.drawSphere(plot_axis, ROI_position(index, :), ...
+                            obj.network_atlas.nets(network).color, obj.ROI_radius_by_index(index));
                     end
                 end
+            end
+        end
+        
+        function setROIByIndexMap(obj)
+            if isempty(obj.ROI_radius_min_max)
+                obj.ROI_radius_by_index = ones(obj.network_atlas.numROI(),1) * obj.ROI_radius;
+            else
+                %if we are using dynamically sized ROI spheres, size them
+                %in the range based off of the number of valid connections
+                %they have after obj.setROIAndConnectivity
+                non_nan_connections = obj.ROI_connections(~isnan(obj.ROI_connections));
+                min_connections = min(non_nan_connections);
+                max_connections = max(non_nan_connections);
+                min_radius = obj.ROI_radius_min_max(1);
+                max_radius = obj.ROI_radius_min_max(2);
+                
+                connection_range = max_connections - min_connections;
+                radius_range = max_radius - min_radius;
+                connection_to_radius_scaling = radius_range/connection_range;
+                
+                obj.ROI_radius_by_index = ((obj.ROI_connections - min_connections) *...
+                                                connection_to_radius_scaling) + min_radius;
+                
+            end
+        end
+        
+        function radius = getROIRadius(obj, roi_index)
+            if isempty(obj.ROI_radius_min_max)
+                radius = obj.ROI_radius;
+            else
+                min
             end
         end
 
@@ -437,7 +483,7 @@ classdef BrainPlot < handle
         function addTitle(obj)
             figure_title = sprintf("Brain Visualization: Average of edge-level correlations between nets in [%s - %s] Network Pair", obj.network_atlas.nets(obj.network1).name, obj.network_atlas.nets(obj.network2).name);
             if obj.is_noncorrelation_input
-                figure_title = [figure_title sprintf("  (Edge-level P < %.2g)", obj.edge_test_options.prob_max)];
+                figure_title = strcat(figure_title, sprintf("  (Edge-level P < %.2g)", obj.edge_test_options.prob_max));
             end
             obj.plot_figure.Name = figure_title;
         end
@@ -503,7 +549,7 @@ classdef BrainPlot < handle
         % GETTERS for dependent properties
         function value = get.is_noncorrelation_input(obj)
             % Convenience method to determine if inputs were correlation coefficients, or "significance" values
-            value = any(strcmp(obj.noncorrelation_input_tests, obj.test_name));
+            value = any(strcmpi(obj.noncorrelation_input_tests, obj.test_name));
         end
 
         function value = get.functional_connectivity_exists(obj)
