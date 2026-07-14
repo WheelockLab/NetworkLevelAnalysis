@@ -406,10 +406,18 @@ classdef BrainPlot < handle
                 
                 connection_range = max_connections - min_connections;
                 radius_range = max_radius - min_radius;
-                connection_to_radius_scaling = radius_range/connection_range;
                 
-                obj.ROI_radius_by_index = ((obj.ROI_connections - min_connections) *...
-                                                connection_to_radius_scaling) + min_radius;
+                if connection_range == 0
+                    radius_mid = min_radius + (radius_range/2);
+                    obj.ROI_radius_by_index = ones(obj.network_atlas.numROI(),1)*radius_mid;
+                elseif radius_range == 0
+                    obj.ROI_radius_by_index = ones(obj.network_atlas.numROI(),1)*min_radius;
+                else
+                    connection_to_radius_scaling = radius_range/connection_range;
+
+                    obj.ROI_radius_by_index = ((obj.ROI_connections - min_connections) *...
+                                                    connection_to_radius_scaling) + min_radius;
+                end
                 
             end
         end
