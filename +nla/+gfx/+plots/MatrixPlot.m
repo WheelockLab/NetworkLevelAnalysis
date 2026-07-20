@@ -35,6 +35,7 @@ classdef MatrixPlot < handle
         current_settings % the settings for the plot (upper, lower, scale)
         display_legend
         p_value_max
+        app_plot % Used when called for FC Avg
     end
 
     properties (Dependent)
@@ -112,12 +113,13 @@ classdef MatrixPlot < handle
             addParameter(matrix_input_parser, 'y_position', 0, validNumberInput);
             addParameter(matrix_input_parser, 'discrete_colorbar', false, @islogical);
             addParameter(matrix_input_parser, 'plot_scale', nla.gfx.ProbPlotMethod.DEFAULT);
-            addParameter(matrix_input_parser, 'p_value_max', 0.05)
+            addParameter(matrix_input_parser, 'p_value_max', 0.05);
+            addParameter(matrix_input_parser, 'app_plot', true, @islogical)
             
             parse(matrix_input_parser, figure, name, matrix, networks, figure_size, varargin{:});
             properties = {'figure', 'name', 'matrix', 'networks', 'figure_size', 'network_clicked_callback',...
                 'marked_networks', 'figure_margins', 'draw_legend', 'draw_colorbar', 'color_map', 'lower_limit',...
-                'upper_limit', 'x_position', 'y_position', 'discrete_colorbar', 'plot_scale', 'p_value_max'};
+                'upper_limit', 'x_position', 'y_position', 'discrete_colorbar', 'plot_scale', 'p_value_max', 'app_plot'};
             for property = properties
                 obj.(property{1}) = matrix_input_parser.Results.(property{1});
                 if property{1} == "marked_networks"
@@ -180,6 +182,18 @@ classdef MatrixPlot < handle
                 obj.plot_title = text(obj.axes, dimensions("plot_width") / 2 , dimensions("offset_y") / 2, obj.name,...
                     'FontName', obj.plot_title.FontName, 'FontSize', 14, 'FontWeight', obj.plot_title.FontWeight,...
                     'HorizontalAlignment', 'center');
+            end
+
+            if isequal(obj.app_plot, false)
+                settings_menu = uimenu(obj.figure, 'Text', 'Settings');
+                change_scale_option = uimenu(settings_menu,'Text','Change Scale');
+                change_scale_option.MenuSelectedFcn = {...
+                    @obj.adjustScale, [obj.lower_limit, obj.upper_limit], obj.figure,...
+                    struct('lower_bound', obj.lower_limit, 'upper_bound', obj.upper_limit, 'p_value_plot_max', obj.p_value_max),...
+                    false...
+                };
+                change_color_map = uimenu(settings_menu, 'Text', 'Change Color Map');
+                change_color_map.MenuSelectedFcn = {@obj.adjustColor, obj.figure, struct('color_map', obj.color_map, 'color_map_name', ""), false};
             end
 
             obj.fixRendering();
@@ -337,7 +351,7 @@ classdef MatrixPlot < handle
                 image_height = image_height + 20;
             end
 
-            % colorbar margins
+            % colorbar marginsobj
             if obj.draw_colorbar
                 image_width = image_width + obj.colorbar_width + obj.colorbar_offset + obj.colorbar_text_w;
             end
@@ -677,5 +691,15 @@ classdef MatrixPlot < handle
             obj.image_display.CData(position_y:position_y + chunk_height - 1, position_x + chunk_width, :) =...
                 repelem(chunk_color(1:size(chunk_color, 1), size(chunk_color, 2), :), obj.elementSize(), 1);
         end
+
+        function adjustScale(obj, src, ~, bounds, plot_figure, parameters, chord_type)
+            nla.gfx.scaleSelector(src, bounds, plot_figure, parameters, chord_type, @obj.applyScale);
+        end
+
+        function adjustColor(obj, src, ~, plot_figure, parameters, chord_type)
+            nla.gfx.colorSelector(src, plot_figure, parameters, chord_type, @obj.applyScale, obj.colormap_choices);
+        end
+
+
     end
 end
