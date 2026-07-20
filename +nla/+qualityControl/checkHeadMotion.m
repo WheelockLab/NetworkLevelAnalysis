@@ -1,14 +1,24 @@
-function checkHeadMotion(fig, input_struct, motion)
+function checkHeadMotion(fig, input_struct, motion, remove_index)
     
+    network_atlas = input_struct.net_atlas;
+    functional_connectivity = input_struct.func_conn;
+    if remove_index ~= 0
+        [new_netatlas, functional_connectivity] = nla.removeNetworks(input_struct.net_atlas, input_struct.net_atlas.nets(remove_index).name, strcat(input_struct.net_atlas.name, '_-', input_struct.net_atlas.nets(remove_index).name), input_struct.func_conn);
+        network_atlas = nla.NetworkAtlas(new_netatlas);
+        if ~isa(functional_connectivity, 'nla.TriMatrix')
+            functional_connectivity = nla.TriMatrix(functional_connectivity);
+        end        
+    end
+
     prog = uiprogressdlg(fig, 'Title', 'Generating figures', 'Message', 'Generating head motion figures');
     prog.Value = 0.02;
-    distances = nla.helpers.euclidianDistanceROIs(input_struct.net_atlas);
+    distances = nla.helpers.euclidianDistanceROIs(network_atlas);
     prog.Value = 0.75;
-    [r_vec, p_vec] = corr(motion, input_struct.func_conn.v', 'type', 'Pearson');
+    [r_vec, p_vec] = corr(motion, functional_connectivity.v', 'type', 'Pearson');
     
-    prob = nla.TriMatrix(input_struct.net_atlas.numROIs());
-    r = nla.TriMatrix(input_struct.net_atlas.numROIs());
-    h = nla.TriMatrix(input_struct.net_atlas.numROIs(), 'logical');
+    prob = nla.TriMatrix(network_atlas.numROIs());
+    r = nla.TriMatrix(network_atlas.numROIs());
+    h = nla.TriMatrix(network_atlas.numROIs(), 'logical');
     prob.v = p_vec';
     r.v = r_vec';
     h.v = nla.lib.fdr_bh(prob.v);
@@ -25,7 +35,7 @@ function checkHeadMotion(fig, input_struct, motion)
     ulimit = 0.3;
     
     fig = nla.gfx.createFigure(1800, 900);
-    matrix_plot = nla.gfx.plots.MatrixPlot(fig, "FC-motion correlation (Pearson's r)", r, input_struct.net_atlas.nets,...
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, "FC-motion correlation (Pearson's r)", r, network_atlas.nets,...
         nla.gfx.FigSize.LARGE, 'lower_limit', llimit, 'upper_limit', ulimit);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions("image_width");
@@ -35,14 +45,14 @@ function checkHeadMotion(fig, input_struct, motion)
 
     ax = subplot('Position', [0.780, 0.540, 0.20, 0.40]);
     nla.gfx.setTitle(ax, sprintf("FC-motion correlation (Pearson's r) (q < 0.05)\n"));
-    nla.gfx.drawROIsOnCortex(ax, input_struct.net_atlas, ctx, mesh_alpha, ROI_radius, nla.gfx.ViewPos.DORSAL, false,...
+    nla.gfx.drawROIsOnCortex(ax, network_atlas, ctx, mesh_alpha, ROI_radius, nla.gfx.ViewPos.DORSAL, false,...
         nla.gfx.BrainColorMode.NONE);
     
-    for col = 1:input_struct.net_atlas.numROIs()
-        for row = (col + 1):input_struct.net_atlas.numROIs()
+    for col = 1:network_atlas.numROIs()
+        for row = (col + 1):network_atlas.numROIs()
             if h.get(row, col)
-                pos1 = input_struct.net_atlas.ROIs(row).pos;
-                pos2 = input_struct.net_atlas.ROIs(col).pos;
+                pos1 = network_atlas.ROIs(row).pos;
+                pos2 = network_atlas.ROIs(col).pos;
                 
                 edge_color = nla.gfx.valToColor(r.get(row, col), llimit, ulimit, color_map);
                 

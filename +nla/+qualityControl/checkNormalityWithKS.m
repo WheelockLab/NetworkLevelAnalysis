@@ -1,4 +1,4 @@
-function checkNormalityWithKS(fig, input_struct, test_pool)
+function checkNormalityWithKS(fig, input_struct, test_pool, remove_index)
 
     prog = uiprogressdlg(...
         fig, 'Title', 'Checking Normaility', 'Message', 'Running Kolmogorov-Smirnov Test'...
@@ -9,25 +9,31 @@ function checkNormalityWithKS(fig, input_struct, test_pool)
     edge_test_result = test_pool.runEdgeTest(input_struct);
 
     prog.Value = 0.5;
-    ks_result = runKolmogorovSmirnovTest(input_struct, edge_test_result);
+    ks_result = runKolmogorovSmirnovTest(input_struct, edge_test_result, remove_index);
 
     prog.Value = 0.75;
-    qcKSOutput(ks_result.p, input_struct)
+    qcKSOutput(ks_result.p, input_struct, remove_index)
 
 end
 
-function ks_result = runKolmogorovSmirnovTest(input_struct, edge_result)
+function ks_result = runKolmogorovSmirnovTest(input_struct, edge_result, remove_index)
     import nla.TriMatrix nla.TriMatrixDiag
 
+    network_atlas = input_struct.net_atlas;
+    if remove_index ~= 0
+        [new_netatlas] = nla.removeNetworks(input_struct.net_atlas, input_struct.net_atlas.nets(remove_index).name, strcat(input_struct.net_atlas.name, '_-', input_struct.net_atlas.nets(remove_index).name));
+        network_atlas = nla.NetworkAtlas(new_netatlas);
+    end
+
     ks_result = struct();
-    number_of_networks = input_struct.net_atlas.numNets();
+    number_of_networks = network_atlas.numNets();
     ks_result.p = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
     ks_result.ks = TriMatrix(number_of_networks, TriMatrixDiag.KEEP_DIAGONAL);
 
     for network1 = 1:number_of_networks
         for network2 = 1:network1
-            network_rho = edge_result.coeff.get(input_struct.net_atlas.nets(network1).indexes,...
-                input_struct.net_atlas.nets(network2).indexes);
+            network_rho = edge_result.coeff.get(network_atlas.nets(network1).indexes,...
+                network_atlas.nets(network2).indexes);
             [~, p, ks] = kstest(network_rho);
             ks_result.p.set(network1, network2, p);
             ks_result.ks.set(network1, network2, ks);
@@ -35,7 +41,7 @@ function ks_result = runKolmogorovSmirnovTest(input_struct, edge_result)
     end
 end
 
-function qcKSOutput(ks_result_p_value, edge_test_options)
+function qcKSOutput(ks_result_p_value, edge_test_options, remove_index)
     % This will open the qc figure for the KS test
     
     network_test_options = nla.net.genBaseInputs();
@@ -45,15 +51,20 @@ function qcKSOutput(ks_result_p_value, edge_test_options)
     edge_test_options.prob_max = 0.05;
     default_discrete_colors = 1000;
 
-    [~, p_value_max] = network_test_options.fdr_correction.correct(edge_test_options.net_atlas,...
-        edge_test_options, ks_result_p_value);
+    network_atlas = edge_test_options.net_atlas;
+    if remove_index ~= 0
+        [new_netatlas] = nla.removeNetworks(edge_test_options.net_atlas, edge_test_options.net_atlas.nets(remove_index).name, strcat(edge_test_options.net_atlas.name, '-', edge_test_options.net_atlas.nets(remove_index).name));
+        network_atlas = nla.NetworkAtlas(new_netatlas);
+    end
+
+    [~, p_value_max] = network_test_options.fdr_correction.correct(network_atlas, edge_test_options, ks_result_p_value);
 
     color_map = nla.net.result.NetworkResultPlotParameter.getColormap(default_discrete_colors,...
         p_value_max);
 
     fig = nla.gfx.createFigure();
     % Also remember to move this in read the docs
-    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test p-value\nSmaller values are less normal"), ks_result_p_value, edge_test_options.net_atlas.nets, nla.gfx.FigSize.LARGE,...
+    matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test p-value\nSmaller values are less normal"), ks_result_p_value, network_atlas.nets, nla.gfx.FigSize.LARGE,...
         'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions('image_width');
