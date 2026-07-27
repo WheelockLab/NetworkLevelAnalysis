@@ -44,7 +44,7 @@ classdef Base < nla.TestResult
 
             fig = nla.gfx.createFigure();
             matrix_plot = nla.gfx.plots.MatrixPlot(fig, coeff_label, obj.coeff, net_atlas.nets, nla.gfx.FigSize.LARGE, 'lower_limit', obj.coeff_range(1),...
-                'upper_limit', obj.coeff_range(2));
+                'upper_limit', obj.coeff_range(2), 'app_plot', false);
             matrix_plot.displayImage();
             w = matrix_plot.image_dimensions("image_width");
             h = matrix_plot.image_dimensions("image_height");
