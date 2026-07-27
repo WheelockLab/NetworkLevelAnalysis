@@ -59,6 +59,7 @@ classdef ChordPlotter < handle
             else
                 plot_figure = nla.gfx.createFigure(obj.axis_width , obj.axis_width);
             end
+            
             if ~isequal(parent_figure, false)
                 nla.gfx.moveFigToParentUILocation(plot_figure, parent_figure);
             end
@@ -117,7 +118,7 @@ classdef ChordPlotter < handle
             clipped_values_positive.v = obj.edge_test_result.coeff.v;
             clipped_values_positive.v(obj.edge_test_result.coeff.v < 0) = 0;
 
-            color_map = turbo(1000);
+            color_map = parula(1000);
             significance_type = "nla.gfx.SigType.ABS_INCREASING";
             insignificance = 0; % This is basically the background for the plot
             % This is the title for the positive (or non-split) chord plot
@@ -269,7 +270,7 @@ classdef ChordPlotter < handle
             if ~isequal(color_map, false)
                 color_map = get(color_map, "Value");
                 color_map_name = str2func(lower(obj.colormap_choices{color_map}));
-                parameters.color_map = color_map_name(1000);
+                parameters.color_map = flip(color_map_name(1000));
                 parameters.color_map_name = color_map;
             end
 
