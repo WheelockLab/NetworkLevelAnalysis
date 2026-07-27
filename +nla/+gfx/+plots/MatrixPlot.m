@@ -210,7 +210,7 @@ classdef MatrixPlot < handle
             obj.color_bar.Ticks = [];
             
             color_map = color_map_select;
-            if ~isstring(color_map_select) && ~ischar(color_map_select)
+            if ~isstring(color_map_select) && ~ischar(color_map_select) && ~isequal(color_map, false)
                 color_map = get(color_map_select, "Value");
                 color_map = obj.colormap_choices{color_map};
             end
@@ -221,13 +221,20 @@ classdef MatrixPlot < handle
             if isnumeric(upper_limit_box)
                 obj.upper_limit = upper_limit_box;
             else
-                obj.upper_limit = get(upper_limit_box, "String");
+                obj.upper_limit = get(upper_limit_box, 'String');
             end
 
             if isnumeric(lower_limit_box)
                 obj.lower_limit = lower_limit_box;
             else
-                obj.lower_limit = get(lower_limit_box, "String");
+                obj.lower_limit = get(lower_limit_box, 'String');
+            end
+
+            if isstring(obj.upper_limit) || ischar(obj.upper_limit)
+                obj.upper_limit = str2double(obj.upper_limit);
+            end
+            if isstring(obj.lower_limit) || ischar(obj.lower_limit)
+                obj.lower_limit = str2double(obj.lower_limit);
             end
 
             if ~isstring(obj.plot_scale)
@@ -253,7 +260,11 @@ classdef MatrixPlot < handle
             discrete_colors = NetworkResultPlotParameter().default_discrete_colors;
 
             if new_scale == "nla.gfx.ProbPlotMethod.DEFAULT"
-                new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, obj.upper_limit, color_map);
+                if ~isequal(color_map, false)
+                    new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, obj.upper_limit, color_map);
+                else
+                    new_color_map = obj.color_map;
+                end
                 obj.plot_scale = new_scale;
             elseif new_scale == "nla.gfx.ProbPlotMethod.LOG"
                 new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, obj.upper_limit, color_map);
@@ -449,10 +460,10 @@ classdef MatrixPlot < handle
                 initial_render = false;
                 upper_value = varargin{2};
                 lower_value = varargin{1};
-                if isstring(upper_value)
+                if isstring(upper_value) || ischar(upper_value) % why are strings not chars???
                     upper_value = str2double(upper_value);
                 end
-                if isstring(lower_value)
+                if isstring(lower_value) || ischar(lower_value)
                     lower_value = str2double(lower_value);
                 end
             end
@@ -692,14 +703,21 @@ classdef MatrixPlot < handle
                 repelem(chunk_color(1:size(chunk_color, 1), size(chunk_color, 2), :), obj.elementSize(), 1);
         end
 
-        function adjustScale(obj, src, ~, bounds, plot_figure, parameters, chord_type)
-            nla.gfx.scaleSelector(src, bounds, plot_figure, parameters, chord_type, @obj.applyScale);
+        function adjustScale(obj, src, ~, bounds, plot_figure, parameters, ~)
+            nla.gfx.scaleSelector(src, bounds, plot_figure, parameters, false, @obj.applyScaleWrapper);
         end
 
-        function adjustColor(obj, src, ~, plot_figure, parameters, chord_type)
-            nla.gfx.colorSelector(src, plot_figure, parameters, chord_type, @obj.applyScale, obj.colormap_choices);
+        function adjustColor(obj, src, ~, plot_figure, parameters, ~)
+            nla.gfx.colorSelector(src, plot_figure, parameters, false, @obj.applyScaleWrapper, obj.colormap_choices);
         end
 
-
+        function applyScaleWrapper(obj, ~, ~, upper_limit_box, lower_limit_box, color_map, ~, ~, ~)
+            % This is used for the edge trimatrix, fc avg which is why we keep the ProbPlotMethod to DEFAULT
+            if isequal(upper_limit_box, false)
+                upper_limit_box = obj.upper_limit;
+                lower_limit_box = obj.lower_limit;
+            end
+            obj.applyScale(false, false, upper_limit_box, lower_limit_box, "nla.gfx.ProbPlotMethod.DEFAULT", "nla.gfx.ProbPlotMethod.DEFAULT", color_map)
+        end
     end
 end
