@@ -128,6 +128,10 @@ classdef BrainPlot < handle
             obj.color_map_axis = plot_axis;
 
             obj.addTitle();
+
+            settings_menu = uimenu(obj.plot_figure, 'Text', 'Settings');
+            change_scale_option = uimenu(settings_menu, 'Text', 'Change Scale');
+            change_scale_option.MenuSelectedFcn = @obj.openModal;
         end
 
         function setROIandConnectivity(obj)
