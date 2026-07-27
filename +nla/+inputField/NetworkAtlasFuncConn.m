@@ -322,8 +322,9 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             fc_avg = copy(obj.func_conn);
             fc_avg.v = mean(fc_avg.v, 2);
             fig_l = nla.gfx.createFigure();
+
             matrix_plot = nla.gfx.plots.MatrixPlot(fig_l, 'FC Average (Fisher Z(R))', fc_avg, obj.net_atlas.nets,...
-                nla.gfx.FigSize.LARGE);
+                nla.gfx.FigSize.LARGE, "app_plot", false);
             fig_l.Position(3) = matrix_plot.image_dimensions("image_width");
             fig_l.Position(4) = matrix_plot.image_dimensions("image_height");
             matrix_plot.displayImage();
