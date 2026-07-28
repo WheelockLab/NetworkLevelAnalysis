@@ -1,4 +1,4 @@
-function colorSelector(src, plot_figure, plot_parameters, chord_type, callback_function, color_choices)
+function colorSelector(src, plot_figure, parameters, chord_type, callback_function, color_choices)
     original_figure = src.Parent.Parent;
     modal = figure('WindowStyle', 'normal', 'Units', 'pixels', 'Position',...
         [original_figure.Position(1), original_figure.Position(2), original_figure.Position(3) / 2, original_figure.Position(4) / 3]);
@@ -28,7 +28,7 @@ function colorSelector(src, plot_figure, plot_parameters, chord_type, callback_f
         colormap_html = [colormap_html; new_html];
     end
 
-    if ~isfield(parameters, "color_map_name")
+    if ~isfield(parameters, "color_map_name") || ischar(parameters.color_map_name) || isstring(parameters.color_map_name)
         parameters.color_map_name = 1;
     end
     set(color_map_select, "Value", parameters.color_map_name, "String", colormap_html);
