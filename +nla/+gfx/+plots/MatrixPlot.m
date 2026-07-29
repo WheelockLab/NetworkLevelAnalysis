@@ -193,7 +193,7 @@ classdef MatrixPlot < handle
                     false...
                 };
                 change_color_map = uimenu(settings_menu, 'Text', 'Change Color Map');
-                change_color_map.MenuSelectedFcn = {@obj.adjustColor, obj.figure, struct('color_map', obj.color_map, 'color_map_name', ""), false};
+                change_color_map.MenuSelectedFcn = {@obj.adjustColor, obj.figure, struct('color_map', obj.color_map, 'color_map_name', "")};
             end
 
             obj.fixRendering();
@@ -707,7 +707,7 @@ classdef MatrixPlot < handle
             nla.gfx.scaleSelector(src, bounds, plot_figure, parameters, false, @obj.applyScaleWrapper);
         end
 
-        function adjustColor(obj, src, ~, plot_figure, parameters, ~)
+        function adjustColor(obj, src, ~, plot_figure, parameters)
             nla.gfx.colorSelector(src, plot_figure, parameters, false, @obj.applyScaleWrapper, obj.colormap_choices);
         end
 
