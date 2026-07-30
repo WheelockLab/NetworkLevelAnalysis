@@ -9,6 +9,8 @@ classdef ChordPlotter < handle
         axis_width = 750; % Constant for the size of the chord
         trimatrix_width = 500; % Constant for the size of the Trimatrix plotted with
         bottom_text_height = 250; % How far from the bottom of the trimatrix the text appears
+        colormap_choices = {"Parula", "Turbo", "HSV", "Hot", "Cool", "Spring", "Summer", "Autumn", "Winter", "Gray",...
+            "Bone", "Copper", "Pink"}; % Colorbar choices
     end
 
     properties
@@ -16,6 +18,7 @@ classdef ChordPlotter < handle
         edge_test_result % Edge test results
         split_plot = false % This is an option that is set automatically during operation. 
         edge_plot_type = "nla.gfx.EdgeChordPlotMethod.PROB" % Default chord type for edges
+        chord_plotter = false
     end
 
     methods
@@ -30,11 +33,14 @@ classdef ChordPlotter < handle
             end
         end
 
-        function generateChordFigure(obj, parameters, chord_type)
+        function generateChordFigure(obj, parameters, chord_type, parent_figure)
             % generateChordFigure plots chords for a network test
             import nla.gfx.SigType nla.net.result.plot.PermutationTestPlotter nla.gfx.EdgeChordPlotMethod nla.gfx.setTitle
 
             coefficient_bounds = [0, parameters.p_value_plot_max];
+            if isfield(parameters, "lower_bound")
+                coefficient_bounds(1) = parameters.lower_bound;
+            end
             if parameters.significance_type == SigType.INCREASING && parameters.p_value_plot_max < 1
                 coefficient_bounds = [parameters.p_value_plot_max, 1];
             end
@@ -54,6 +60,10 @@ classdef ChordPlotter < handle
                 plot_figure = nla.gfx.createFigure(obj.axis_width , obj.axis_width);
             end
             
+            if ~isequal(parent_figure, false)
+                nla.gfx.moveFigToParentUILocation(plot_figure, parent_figure);
+            end
+            
             % Plot a standard chord plot
             if chord_type == "nla.PlotType.CHORD"
                 figure_axis = axes(plot_figure, 'Units', 'pixels', 'Position', [0, 0, obj.axis_width,...
@@ -68,26 +78,38 @@ classdef ChordPlotter < handle
                 % thresholding below the "insignificance" value
                 statistic_matrix = copy(parameters.statistic_plot_matrix);
                 statistic_matrix.v(~parameters.significance_plot.v) = insignificance;
-                chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, figure_axis, 500, statistic_matrix,...
+                obj.chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, figure_axis, 500, statistic_matrix,...
                     'color_map', parameters.color_map, 'direction', parameters.significance_type, 'upper_limit',...
                     coefficient_bounds(2), 'lower_limit', coefficient_bounds(1), 'chord_type', chord_type);
-                chord_plotter.drawChords();
+                obj.chord_plotter.drawChords();
                 setTitle(figure_axis, parameters.name_label)
+                settings_menu = uimenu(plot_figure, 'Text', 'Settings');
+                change_scale_option = uimenu(settings_menu,'Text','Change Scale');
+                change_scale_option.MenuSelectedFcn = {@obj.adjustScale, coefficient_bounds, plot_figure, parameters, chord_type};
+                change_color_map = uimenu(settings_menu, 'Text', 'Change Color Map');
+                change_color_map.MenuSelectedFcn = {@obj.adjustColor, plot_figure, parameters, chord_type};
             else
                 % Plot edge chord
-                obj.generateEdgeChordFigure(plot_figure, parameters, chord_type)
+                obj.generateEdgeChordFigure(plot_figure, parameters, chord_type, parent_figure)
             end
+
+
         end
     end
 
     methods (Access = protected)
-        function generateEdgeChordFigure(obj, plot_figure, parameters, chord_type)
+        function generateEdgeChordFigure(obj, plot_figure, parameters, chord_type, parent_figure)
             % generateEdgeChordFigure generates the edge chord plotting
             import nla.gfx.EdgeChordPlotMethod nla.gfx.setTitle
 
-            range_limit = std(obj.edge_test_result.coeff.v) * 5;
-            coefficient_min = -range_limit;
-            coefficient_max = range_limit;
+            if isfield(parameters, "lower_bound")
+                coefficient_min = parameters.lower_bound;
+                coefficient_max = parameters.p_value_plot_max;
+            else
+                range_limit = std(obj.edge_test_result.coeff.v) * 5;
+                coefficient_min = -range_limit;
+                coefficient_max = range_limit;
+            end
 
             clipped_values = nla.TriMatrix(obj.network_atlas.numROIs(), nla.TriMatrixDiag.REMOVE_DIAGONAL);
             clipped_values.v = obj.edge_test_result.coeff.v;
@@ -96,7 +118,7 @@ classdef ChordPlotter < handle
             clipped_values_positive.v = obj.edge_test_result.coeff.v;
             clipped_values_positive.v(obj.edge_test_result.coeff.v < 0) = 0;
 
-            color_map = turbo(1000);
+            color_map = parula(1000);
             significance_type = "nla.gfx.SigType.ABS_INCREASING";
             insignificance = 0; % This is basically the background for the plot
             % This is the title for the positive (or non-split) chord plot
@@ -110,21 +132,39 @@ classdef ChordPlotter < handle
             switch obj.edge_plot_type
                 case "nla.gfx.EdgeChordPlotMethod.COEFF"
                     main_title = positive_title;
+                    if isfield(parameters, "lower_bound")
+                        coefficient_min = parameters.lower_bound;
+                        coefficient_max = parameters.p_value_plot_max;
+                    end
 
                 case "nla.gfx.EdgeChordPlotMethod.COEFF_SPLIT"
                     main_title = negative_title;
                     positive_main_title = positive_title;
+                    if isfield(parameters, "lower_bound")
+                        coefficient_min = parameters.lower_bound;
+                        coefficient_max = parameters.p_value_plot_max;
+                    end
 
                 case "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"
-                    coefficient_min = obj.edge_test_result.coeff_range(1);
-                    coefficient_max = obj.edge_test_result.coeff_range(2);
+                    if isfield(parameters, "lower_bound")
+                        coefficient_min = parameters.lower_bound;
+                        coefficient_max = parameters.p_value_plot_max;
+                    else
+                        coefficient_min = obj.edge_test_result.coeff_range(1);
+                        coefficient_max = obj.edge_test_result.coeff_range(2);
+                    end
 
                     main_title = negative_title;
                     positive_main_title = positive_title;
 
                 case "nla.gfx.edgeChordPlotMethod.COEFF_BASE"
-                    coefficient_min = obj.edge_test_result.coeff_range(1);
-                    coefficient_max = obj.edge_test_result.coeff_range(2);
+                    if isfield(parameters, "lower_bound")
+                        coefficient_min = parameters.lower_bound;
+                        coefficient_max = parameters.p_value_plot_max;
+                    else
+                        coefficient_min = obj.edge_test_result.coeff_range(1);
+                        coefficient_max = obj.edge_test_result.coeff_range(2);
+                    end
 
                     main_title = positive_title;
 
@@ -134,13 +174,19 @@ classdef ChordPlotter < handle
 
                     clipped_values.v = obj.edge_test_result.prob.v;
                     significance_type = "nla.gfx.SigType.DECREASING";
-                    coefficient_min = 0;
-                    coefficient_max = obj.edge_test_result.prob_max;
+                    if isfield(parameters, "lower_bound")
+                        coefficient_min = parameters.lower_bound;
+                        coefficient_max = parameters.p_value_plot_max;
+                    else
+                        coefficient_min = 0;
+                        coefficient_max = obj.edge_test_result.prob_max;
+                    end
 
                     insignificance = 1;
                     main_title = sprintf("Edge-level P-values (P < %g) (Within Significant Net-Pair)",...
                         obj.edge_test_result.prob_max);
             end
+            coefficient_bounds = [coefficient_min, coefficient_max];
 
             % Filtering/Thresholding out values
             for network1 = 1:obj.network_atlas.numNets()
@@ -165,8 +211,8 @@ classdef ChordPlotter < handle
                 obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_SPLIT" || obj.edge_plot_type == "nla.gfx.EdgeChordPlotMethod.COEFF_BASE_SPLIT"...
             )
                 positive_chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values_positive,...
-                    'direction', significance_type, 'chord_type', chord_type, 'color_map', color_map, 'lower_limit',...
-                    coefficient_min, 'upper_limit', coefficient_max);
+                    'direction', significance_type, 'chord_type', chord_type, 'color_map', parameters.color_map, 'lower_limit',...
+                    coefficient_bounds(1), 'upper_limit', coefficient_bounds(2));
                 positive_chord_plotter.drawChords();
                 setTitle(plot_axis, positive_main_title);
 
@@ -177,12 +223,12 @@ classdef ChordPlotter < handle
                 plot_axis.Visible = true;
             end
 
-            chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values, 'chord_type', chord_type,...
-                'direction', significance_type, 'color_map', color_map, 'lower_limit', coefficient_min, 'upper_limit', coefficient_max);
-            chord_plotter.drawChords();
+            obj.chord_plotter = nla.gfx.chord.ChordPlot(obj.network_atlas, plot_axis, 450, clipped_values, 'chord_type', chord_type,...
+                'direction', significance_type, 'color_map', parameters.color_map, 'lower_limit', coefficient_bounds(1), 'upper_limit', coefficient_bounds(2));
+            obj.chord_plotter.drawChords();
             setTitle(plot_axis, main_title);
 
-            colormap(plot_axis, color_map);
+            colormap(plot_axis, parameters.color_map);
             color_bar = colorbar(plot_axis);
             color_bar.Units = 'pixels';
             color_bar.Location = 'east';
@@ -198,6 +244,40 @@ classdef ChordPlotter < handle
                 labels{tick + 1} = sprintf("%.2g", coefficient_min + (tick * ((coefficient_max - coefficient_min) / number_ticks)));
             end
             color_bar.TickLabels = labels;
+
+            settings_menu = uimenu(plot_figure, 'Text', 'Settings');
+            change_scale_option = uimenu(settings_menu,'Text','Change Scale');
+            change_scale_option.MenuSelectedFcn = {@obj.adjustScale, coefficient_bounds, plot_figure, parameters, chord_type};
+            change_color_map = uimenu(settings_menu, 'Text', 'Change Color Map');
+            change_color_map.MenuSelectedFcn = {@obj.adjustColor, plot_figure, parameters, chord_type};
+        end
+
+        function adjustScale(obj, src, ~, bounds, plot_figure, parameters, chord_type)
+            nla.gfx.scaleSelector(src, bounds, plot_figure, parameters, chord_type, @obj.applyScale);
+        end
+
+        function adjustColor(obj, src, ~, plot_figure, parameters, chord_type)
+            nla.gfx.colorSelector(src, plot_figure, parameters, chord_type, @obj.applyScale, obj.colormap_choices);
+        end
+
+        function applyScale(obj, src, ~, upper_limit_box, lower_limit_box, color_map, plot_figure, parameters, chord_type)
+            
+            if ~isequal(upper_limit_box, false)
+                parameters.p_value_plot_max = str2double(get(upper_limit_box, "String"));
+                parameters.lower_bound = str2double(get(lower_limit_box, "String"));
+            end
+
+            if ~isequal(color_map, false)
+                color_map = get(color_map, "Value");
+                color_map_name = str2func(lower(obj.colormap_choices{color_map}));
+                parameters.color_map = flip(color_map_name(1000));
+                parameters.color_map_name = color_map;
+            end
+
+            obj.generateChordFigure(parameters, chord_type, plot_figure)
+
+            close(plot_figure);
+            close(src.Parent);
         end
     end
 end
