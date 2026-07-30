@@ -128,6 +128,13 @@ classdef BrainPlot < handle
             obj.color_map_axis = plot_axis;
 
             obj.addTitle();
+
+            settings_menu = uimenu(obj.plot_figure, 'Text', 'Settings');
+            change_scale_option = uimenu(settings_menu, 'Text', 'Change Scale');
+            change_scale_option.MenuSelectedFcn = {...
+                @obj.adjustScale, [obj.lower_limit, obj.upper_limit], obj.plot_figure,...
+                struct('lower_bound', obj.lower_limit, 'upper_bound', obj.upper_limit), false...
+            };
         end
 
         function setROIandConnectivity(obj)
@@ -497,6 +504,14 @@ classdef BrainPlot < handle
         function setDefaults(obj, ~, ~, upper_limit_box, lower_limit_box)
             set(upper_limit_box, "String", obj.default_settings.upper_limit);
             set(lower_limit_box, "String", obj.default_settings.lower_limit);
+        end
+
+        function adjustScale(obj, src, ~, bounds, plot_figure, parameters, ~)
+            nla.gfx.scaleSelector(src, bounds, plot_figure, parameters, false, @obj.applyScaleWrapper);
+        end
+
+        function applyScaleWrapper(obj, ~, ~, upper_limit_box, lower_limit_box, ~, ~, ~, ~)
+            obj.applyScale(false, false, upper_limit_box, lower_limit_box);
         end
 
         %% 
