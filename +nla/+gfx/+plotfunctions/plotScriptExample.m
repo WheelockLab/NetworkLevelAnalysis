@@ -65,4 +65,4 @@ data_is_sig = data_as_mat < 0.05;
 plot_settings = nla.gfx.plotfunctions.getDefaultPlotSettings();
 
 fig_h = figure();
-nla.gfx.plotfunctions.plotNetTriMatrix(fig_h, net_atlas, data_as_mat, data_is_sig, plot_settings)
+nla.gfx.plotfunctions.plotNetTriMatrix(fig_h, net_atlas, data_as_mat, data_is_sig, plot_settings);
