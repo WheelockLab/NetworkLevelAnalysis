@@ -322,11 +322,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             chord_plotter = nla.net.result.chord.ChordPlotter(app.edge_test_options.net_atlas, app.edge_test_result);
             
             probability_parameters.edge_chord_plot_method = app.EdgeChordPlotTypeDropDown.Value;
-<<<<<<< HEAD
-            chord_plotter.generateChordFigure(probability_parameters, plot_type);
-=======
-            chord_plotter.generateChordFigure(probability_parameters, plot_type, app.UIFigure)
->>>>>>> master
+            chord_plotter.generateChordFigure(probability_parameters, plot_type, app.UIFigure);
         end
 
         % Value changed function: ColormapDropDown, 
