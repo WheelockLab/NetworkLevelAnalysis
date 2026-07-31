@@ -24,9 +24,9 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
         MultipleComparisonCorrectionDropDown  matlab.ui.control.DropDown
         ROIcentroidsonbrainplotsCheckBox  matlab.ui.control.CheckBox
         ViewNetChordPlotsButton         matlab.ui.control.Button
-        CohensDThresholdCheckBox        matlab.ui.control.CheckBox
         ViewEdgeChordPlotsButton        matlab.ui.control.Button
         EdgeChordPlotTypeDropDownLabel  matlab.ui.control.Label
+        CohensDThresholdCheckBox        matlab.ui.control.CheckBox
         EdgeChordPlotTypeDropDown       matlab.ui.control.DropDown
         ViewConvergenceMapButton        matlab.ui.control.Button
         ConvergencePlotColorDropDownLabel  matlab.ui.control.Label
@@ -322,7 +322,7 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             chord_plotter = nla.net.result.chord.ChordPlotter(app.edge_test_options.net_atlas, app.edge_test_result);
             
             probability_parameters.edge_chord_plot_method = app.EdgeChordPlotTypeDropDown.Value;
-            chord_plotter.generateChordFigure(probability_parameters, plot_type)
+            chord_plotter.generateChordFigure(probability_parameters, plot_type);
         end
 
         % Value changed function: ColormapDropDown, 
@@ -602,13 +602,6 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.ViewNetChordPlotsButton.Position = [263 82 140 22];
             app.ViewNetChordPlotsButton.Text = 'View Net Chord Plots';
 
-            % Create CohensDThresholdCheckBox
-            app.CohensDThresholdCheckBox = uicheckbox(app.Panel);
-            app.CohensDThresholdCheckBox.Enable = 'off';
-            app.CohensDThresholdCheckBox.Visible = 'off';
-            app.CohensDThresholdCheckBox.Text = 'Cohen''s D Threshold';
-            app.CohensDThresholdCheckBox.Position = [402 4 134 22];
-
             % Create ViewEdgeChordPlotsButton
             app.ViewEdgeChordPlotsButton = uibutton(app.Panel, 'push');
             app.ViewEdgeChordPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @ViewEdgeChordPlotsButtonPushed, true);
@@ -620,6 +613,13 @@ classdef NetworkTestPlotApp < matlab.apps.AppBase
             app.EdgeChordPlotTypeDropDownLabel.HorizontalAlignment = 'right';
             app.EdgeChordPlotTypeDropDownLabel.Position = [13 150 123 22];
             app.EdgeChordPlotTypeDropDownLabel.Text = 'Edge Chord Plot Type';
+
+            % Create CohensDThresholdCheckBox
+            app.CohensDThresholdCheckBox = uicheckbox(app.Panel);
+            app.CohensDThresholdCheckBox.Enable = 'off';
+            app.CohensDThresholdCheckBox.Visible = 'off';
+            app.CohensDThresholdCheckBox.Text = 'Cohen''s D Threshold';
+            app.CohensDThresholdCheckBox.Position = [402 4 134 22];
 
             % Create EdgeChordPlotTypeDropDown
             app.EdgeChordPlotTypeDropDown = uidropdown(app.Panel);

@@ -725,7 +725,22 @@ classdef NLAResult < matlab.apps.AppBase
                 results_all_selected_nodes = {};
                 for i = 1:size(selected_nodes, 1)
                     if ~isempty(selected_nodes(i).NodeData)
-                        results_all_selected_nodes(end+1) = selected_nodes(i).NodeData(1);
+                        this_node_struct = struct();
+                        this_node_struct.net_result = selected_nodes(i).NodeData{1}.copy();
+                        %Determine if this selected result was specific to
+                        %nonperm, fullconn, or within net pair
+                        this_test_method = selected_nodes(i).NodeData{2};
+                        if isfield(this_test_method,'show_full_conn')
+                            this_node_test_method = 'full_connectome';
+                        elseif isfield(this_test_method, 'show_nonpermuted')
+                            this_node_test_method = 'no_permutations';
+                        elseif isfield(this_test_method, 'show_within_net_pair')
+                            this_node_test_method = 'within_network_pair';
+                        end
+                        
+                        this_node_struct.test_method = this_node_test_method;                        
+                        
+                        results_all_selected_nodes{end+1} = this_node_struct;
                     end
                 end
                 
