@@ -12,10 +12,13 @@ classdef NetworkAtlas < nla.DeepCopyable
     % :param space: (Optional) The mesh that the atlas` ROI locations/parcels are in. Two options - ``Talairach (TT)`` or ``Montreal Neurological Institute (MNI)``
 
     properties (SetAccess = private)
-        nets % This is the net_names
-
+        nets 
+        net_names
         ROIs
+        ROI_key
+        ROI_pos
         ROI_order
+        net_colors
         name
         space
         anat = false;
@@ -37,7 +40,8 @@ classdef NetworkAtlas < nla.DeepCopyable
             end
             
             net_names = net_struct.net_names;
-            
+            obj.net_names = net_names;
+
             net_count = numel(net_names);
             ROI_count = size(net_struct.ROI_key, 1);
             
@@ -45,6 +49,7 @@ classdef NetworkAtlas < nla.DeepCopyable
             if isfield(net_struct, 'net_colors')
                 net_colors = net_struct.net_colors;
             end
+            obj.net_colors = net_colors;
             
             ROI_positions = zeros(ROI_count, 3);
             if isfield(net_struct, 'ROI_pos')
@@ -60,6 +65,9 @@ classdef NetworkAtlas < nla.DeepCopyable
                 net_struct.ROI_order = net_struct.ROI_order(sort_idx);
                 ROI_positions = ROI_positions(sort_idx, :);
             end
+            obj.ROI_pos = ROI_positions;
+            obj.ROI_key = net_struct.ROI_key;
+            obj.ROI_order = net_struct.ROI_order;
             
             %% Network atlas name
             obj.name = net_struct.name;

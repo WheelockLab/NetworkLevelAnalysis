@@ -78,7 +78,8 @@ function [atlas_out, fc_out] = removeNetworks(atlas_in, net_names, name, fc_in)
     
     %% Functional connectivity (optional)
     if exist('fc_in', 'var')
-        fc_ordered = fc_in(atlas_in.ROI_order, atlas_in.ROI_order, :);
+        fc_in_matrix = fc_in.asMatrix();
+        fc_ordered = fc_in_matrix(atlas_in.ROI_order, atlas_in.ROI_order, :);
         fc_reduced = fc_ordered(ROI_mask, ROI_mask, :);
         ROI_order_inverse(atlas_out.ROI_order) = [1:numel(atlas_out.ROI_order)]';
         fc_out = fc_reduced(ROI_order_inverse, ROI_order_inverse, :);
