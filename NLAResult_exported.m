@@ -752,7 +752,7 @@ classdef NLAResult < matlab.apps.AppBase
                 try
                     thisFnBaseName = app.AutomatedReportsDropDown.Value;
                     thisFnBaseName = thisFnBaseName(1:(end-2)); %trim .m extension from end for function name
-                    eval(sprintf('thisFn = @(x) %s(x)', thisFnBaseName));
+                    eval(sprintf('thisFn = @(x) %s(x);', thisFnBaseName));
                     thisFn(inputStruct);
                     rmpath(app.automatedScriptFolder);
                 catch
