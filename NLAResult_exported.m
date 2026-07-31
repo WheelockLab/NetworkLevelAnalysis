@@ -2,21 +2,24 @@ classdef NLAResult < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                   matlab.ui.Figure
-        FileMenu                   matlab.ui.container.Menu
-        SaveButton                 matlab.ui.container.Menu
-        SaveSummaryTableMenu       matlab.ui.container.Menu
-        ResultTree                 matlab.ui.container.Tree
-        FlipNestingButton          matlab.ui.control.Button
-        EdgeLevelLabel             matlab.ui.control.Label
-        ViewEdgeLevelButton        matlab.ui.control.Button
-        NetLevelLabel              matlab.ui.control.Label
-        RunButton                  matlab.ui.control.Button
-        BranchLabel                matlab.ui.control.Label
-        OpenTriMatrixPlotButton    matlab.ui.control.Button
-        OpenDiagnosticPlotsButton  matlab.ui.control.Button
-        SelectContrastLabel        matlab.ui.control.Label
-        SelectContrastDropdown     matlab.ui.control.DropDown
+        UIFigure                       matlab.ui.Figure
+        FileMenu                       matlab.ui.container.Menu
+        SaveButton                     matlab.ui.container.Menu
+        SaveSummaryTableMenu           matlab.ui.container.Menu
+        ResultTree                     matlab.ui.container.Tree
+        FlipNestingButton              matlab.ui.control.Button
+        EdgeLevelLabel                 matlab.ui.control.Label
+        ViewEdgeLevelButton            matlab.ui.control.Button
+        NetLevelLabel                  matlab.ui.control.Label
+        RunButton                      matlab.ui.control.Button
+        BranchLabel                    matlab.ui.control.Label
+        OpenTriMatrixPlotButton        matlab.ui.control.Button
+        OpenDiagnosticPlotsButton      matlab.ui.control.Button
+        SelectContrastLabel            matlab.ui.control.Label
+        SelectContrastDropdown         matlab.ui.control.DropDown
+        RunSelectedCustomScript        matlab.ui.control.Button
+        AutomatedReportsDropDownLabel  matlab.ui.control.Label
+        AutomatedReportsDropDown       matlab.ui.control.DropDown
     end
 
     
@@ -35,6 +38,8 @@ classdef NLAResult < matlab.apps.AppBase
         multi_contrast_edge_result = false
         multi_contrast_net_result = false
         selected_contrast_name = ''
+        
+        automatedScriptFolder
     end
     
     methods (Access = private)
@@ -266,6 +271,9 @@ classdef NLAResult < matlab.apps.AppBase
                 app.results = false;
             end
             
+            app.AutomatedReportsDropDown.Enable = true;
+            app.RunSelectedCustomScript.Enable = true;            
+            
             
         end
         
@@ -352,6 +360,31 @@ classdef NLAResult < matlab.apps.AppBase
         function branchLabel(app, gui, result)
             app.BranchLabel.Text = sprintf('gui | %s\nresult | %s', gui, result);
         end
+        
+        function populateAutomatedScriptsDropdown(app, searchFolder)
+                        
+            app.automatedScriptFolder = searchFolder;
+            
+            if ~exist(searchFolder,'dir')
+                scriptOptions = {'Select New Script Folder'};
+            else
+                scriptOptions = {'Select New Script Folder'};
+                allEntitiesInDir = dir(searchFolder);
+                for i = 1:length(allEntitiesInDir)
+                    thisEntity = allEntitiesInDir(i);
+                    isFile = ~thisEntity.isdir;
+                    if isFile
+                        isMFile = length(thisEntity.name)>2 & strcmp(thisEntity.name(end-1:end),'.m');
+                        if isMFile
+                            scriptOptions{end+1} = thisEntity.name;
+                        end
+                    end
+                end
+            end
+            
+            app.AutomatedReportsDropDown.Items = scriptOptions;            
+            
+        end
     end
 
     % Callbacks that handle component events
@@ -363,6 +396,8 @@ classdef NLAResult < matlab.apps.AppBase
             
             app.UIFigure.Name = 'NLA Result';
             app.UIFigure.Icon = [findRootPath() 'thumb.png'];
+            
+            app.populateAutomatedScriptsDropdown(fullfile(nla.findRootPath(), 'result_report_scripts'));
             
             if isa(test_pool, 'nla.ResultPool')
                 initFromResult(app, test_pool, input_struct, net_input_struct, old_data);
@@ -442,6 +477,9 @@ classdef NLAResult < matlab.apps.AppBase
             drawnow();
             
             app.setNesting();
+            
+            app.AutomatedReportsDropDown.Enable = true;
+            app.RunSelectedCustomScript.Enable = true; 
             
             close(prog);
         end
@@ -670,6 +708,59 @@ classdef NLAResult < matlab.apps.AppBase
                 app.setNesting();
             end
         end
+
+        % Button pushed function: RunSelectedCustomScript
+        function RunSelectedCustomScriptButtonPushed(app, event)
+            selectedFnName = app.AutomatedReportsDropDown.Value;
+            if strcmpi(selectedFnName,'Select New Script Folder')
+                
+                newScriptFolder = uigetdir(nla.findRootPath(),'Select New Script Folder');
+                app.populateAutomatedScriptsDropdown(newScriptFolder);   
+                
+            else                
+                
+                selected_nodes = app.ResultTree.SelectedNodes;
+            
+                %Make cell array of all selected results
+                results_all_selected_nodes = {};
+                for i = 1:size(selected_nodes, 1)
+                    if ~isempty(selected_nodes(i).NodeData)
+                        this_node_struct = struct();
+                        this_node_struct.net_result = selected_nodes(i).NodeData{1}.copy();
+                        %Determine if this selected result was specific to
+                        %nonperm, fullconn, or within net pair
+                        this_test_method = selected_nodes(i).NodeData{2};
+                        if isfield(this_test_method,'show_full_conn')
+                            this_node_test_method = 'full_connectome';
+                        elseif isfield(this_test_method, 'show_nonpermuted')
+                            this_node_test_method = 'no_permutations';
+                        elseif isfield(this_test_method, 'show_within_net_pair')
+                            this_node_test_method = 'within_network_pair';
+                        end
+                        
+                        this_node_struct.test_method = this_node_test_method;                        
+                        
+                        results_all_selected_nodes{end+1} = this_node_struct;
+                    end
+                end
+                
+                inputStruct = struct();
+                inputStruct.selected_results = results_all_selected_nodes;
+                inputStruct.net_atlas = app.input_struct.net_atlas;
+                
+                addpath(app.automatedScriptFolder);
+                try
+                    thisFnBaseName = app.AutomatedReportsDropDown.Value;
+                    thisFnBaseName = thisFnBaseName(1:(end-2)); %trim .m extension from end for function name
+                    eval(sprintf('thisFn = @(x) %s(x);', thisFnBaseName));
+                    thisFn(inputStruct);
+                    rmpath(app.automatedScriptFolder);
+                catch
+                    rmpath(app.automatedScriptFolder);
+                end
+            end
+            
+        end
     end
 
     % Component initialization
@@ -702,7 +793,7 @@ classdef NLAResult < matlab.apps.AppBase
             % Create ResultTree
             app.ResultTree = uitree(app.UIFigure);
             app.ResultTree.Multiselect = 'on';
-            app.ResultTree.Position = [9 90 418 482];
+            app.ResultTree.Position = [9 125 418 447];
 
             % Create FlipNestingButton
             app.FlipNestingButton = uibutton(app.UIFigure, 'push');
@@ -737,19 +828,19 @@ classdef NLAResult < matlab.apps.AppBase
             app.BranchLabel.HorizontalAlignment = 'right';
             app.BranchLabel.VerticalAlignment = 'top';
             app.BranchLabel.FontColor = [0.8 0.8 0.8];
-            app.BranchLabel.Position = [1 41 418 29];
+            app.BranchLabel.Position = [1 18 418 29];
             app.BranchLabel.Text = {'gui | unknown_branch:0000000'; 'result produced by | unknown_branch:0000000'};
 
             % Create OpenTriMatrixPlotButton
             app.OpenTriMatrixPlotButton = uibutton(app.UIFigure, 'push');
             app.OpenTriMatrixPlotButton.ButtonPushedFcn = createCallbackFcn(app, @OpenTriMatrixPlotButtonPushed, true);
-            app.OpenTriMatrixPlotButton.Position = [11 58 146 22];
+            app.OpenTriMatrixPlotButton.Position = [11 88 146 22];
             app.OpenTriMatrixPlotButton.Text = 'Open TriMatrix Plot';
 
             % Create OpenDiagnosticPlotsButton
             app.OpenDiagnosticPlotsButton = uibutton(app.UIFigure, 'push');
             app.OpenDiagnosticPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @OpenDiagnosticPlotsButtonPushed, true);
-            app.OpenDiagnosticPlotsButton.Position = [11 28 147 22];
+            app.OpenDiagnosticPlotsButton.Position = [11 58 147 22];
             app.OpenDiagnosticPlotsButton.Text = 'Open Diagnostic Plots';
 
             % Create SelectContrastLabel
@@ -765,6 +856,26 @@ classdef NLAResult < matlab.apps.AppBase
             app.SelectContrastDropdown.Enable = 'off';
             app.SelectContrastDropdown.Position = [141 610 154 22];
             app.SelectContrastDropdown.Value = {};
+
+            % Create RunSelectedCustomScript
+            app.RunSelectedCustomScript = uibutton(app.UIFigure, 'push');
+            app.RunSelectedCustomScript.ButtonPushedFcn = createCallbackFcn(app, @RunSelectedCustomScriptButtonPushed, true);
+            app.RunSelectedCustomScript.Enable = 'off';
+            app.RunSelectedCustomScript.Position = [389 81 38 29];
+            app.RunSelectedCustomScript.Text = 'RUN';
+
+            % Create AutomatedReportsDropDownLabel
+            app.AutomatedReportsDropDownLabel = uilabel(app.UIFigure);
+            app.AutomatedReportsDropDownLabel.HorizontalAlignment = 'right';
+            app.AutomatedReportsDropDownLabel.WordWrap = 'on';
+            app.AutomatedReportsDropDownLabel.Enable = 'off';
+            app.AutomatedReportsDropDownLabel.Position = [175 82 67 28];
+            app.AutomatedReportsDropDownLabel.Text = 'Automated Reports';
+
+            % Create AutomatedReportsDropDown
+            app.AutomatedReportsDropDown = uidropdown(app.UIFigure);
+            app.AutomatedReportsDropDown.Enable = 'off';
+            app.AutomatedReportsDropDown.Position = [250 82 133 29];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
