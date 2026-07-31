@@ -10,5 +10,6 @@ function settings_struct = getDefaultPlotSettings()
     settings_struct.significance_type =  nla.gfx.SigType.DECREASING;
     settings_struct.plot_scale = nla.gfx.ProbPlotMethod.DEFAULT;
     settings_struct.plot_max = 0.0500;
+    settings_struct.show_legend = true;
 
 end

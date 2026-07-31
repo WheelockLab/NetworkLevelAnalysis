@@ -24,8 +24,10 @@ function plotNetTriMatrix(fig_h, net_atlas, plot_data, sig_matrix, plot_settings
     
     plotter = nla.net.result.plot.PermutationTestPlotter(net_atlas);
     
-    plotter.plotProbability(fig_h, probability_parameters,...
+    [~,~,plot_h] = plotter.plotProbability(fig_h, probability_parameters,...
         nla.inputField.LABEL_GAP, -50);
+    
+    plot_h.display_legend.Visible = probability_parameters.show_legend;
 
 
 end

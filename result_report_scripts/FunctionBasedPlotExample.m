@@ -6,6 +6,7 @@ function FunctionBasedPlotExample(inArg)
     % net pair) of the selected test.
     
     plot_settings = nla.gfx.plotfunctions.getDefaultPlotSettings();
+    plot_settings.show_legend = false;
     
     
     for i = 1:length(inArg.selected_results)   
@@ -32,10 +33,15 @@ function FunctionBasedPlotExample(inArg)
 
         data_as_mat = net_result_tri_matrix.asMatrix();
 
-        data_is_sig = data_as_mat < net_result.test_options.prob_max;        
+        data_is_sig = data_as_mat < net_result.test_options.prob_max;   
+        
+        plot_settings.name_label = sprintf('%s %s %s', ...
+                                    strrep(net_result.test_display_name, '_', ' '),...
+                                    strrep(p_value_type, '_', ' '),...
+                                    strrep(sample_type, '_', ' '));
 
         fig_h = figure();
-        nla.gfx.plotfunctions.plotNetTriMatrix(fig_h, inArg.net_atlas, data_as_mat, data_is_sig, plot_settings);
+        nla.gfx.plotfunctions.plotNetTriMatrix(fig_h, inArg.net_atlas, data_as_mat, data_is_sig, plot_settings);        
     end
     
     
