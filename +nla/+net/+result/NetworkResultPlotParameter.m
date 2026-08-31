@@ -97,7 +97,7 @@ classdef NetworkResultPlotParameter < handle
                         significance_type = "nla.gfx.SigType.INCREASING";
                     otherwise
                         color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
-                            p_value_max);
+                            p_value_max, true);
                 end
             else
                 ranking_statistic = obj.network_test_results.ranking_statistic;
@@ -111,7 +111,7 @@ classdef NetworkResultPlotParameter < handle
                 %         color_map
                 significance_type = "nla.gfx.SigType.DECREASING";
                 color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
-                    p_value_plot_max);
+                    p_value_plot_max, true);
             end
 
             % callback function for brain image. 
