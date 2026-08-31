@@ -81,7 +81,7 @@ classdef NetworkResultPlotParameter < handle
                 switch obj.updated_test_options.prob_plot_method
                     case "LOG"
                         color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
-                            statistic_input, p_value_max);
+                            statistic_input, p_value_max, true);
                     % Here we take a -log10 and change the maximum value to show on the plot
                     case "NEGATIVE_LOG_10"
                         color_map = parula(obj.default_discrete_colors);
