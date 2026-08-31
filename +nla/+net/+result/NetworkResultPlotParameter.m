@@ -81,7 +81,7 @@ classdef NetworkResultPlotParameter < handle
                 switch obj.updated_test_options.prob_plot_method
                     case "LOG"
                         color_map = nla.net.result.NetworkResultPlotParameter.getLogColormap(obj.default_discrete_colors,...
-                            statistic_input, p_value_max);
+                            statistic_input, p_value_max, true);
                     % Here we take a -log10 and change the maximum value to show on the plot
                     case "NEGATIVE_LOG_10"
                         color_map = parula(obj.default_discrete_colors);
@@ -97,7 +97,7 @@ classdef NetworkResultPlotParameter < handle
                         significance_type = "nla.gfx.SigType.INCREASING";
                     otherwise
                         color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
-                            p_value_max);
+                            p_value_max, true);
                 end
             else
                 ranking_statistic = obj.network_test_results.ranking_statistic;
@@ -111,7 +111,7 @@ classdef NetworkResultPlotParameter < handle
                 %         color_map
                 significance_type = "nla.gfx.SigType.DECREASING";
                 color_map = nla.net.result.NetworkResultPlotParameter.getColormap(obj.default_discrete_colors,...
-                    p_value_plot_max);
+                    p_value_plot_max, true);
             end
 
             % callback function for brain image. 
@@ -225,7 +225,7 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods(Static)
-        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max, color_map)
+        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max, color_map, white_out)
             log_minimum = log10(min(nonzeros(probabilities_input.v)));
             log_minimum = max([-40, log_minimum]);
 
@@ -240,13 +240,15 @@ classdef NetworkResultPlotParameter < handle
             if p_value_max ~= 0
                 color_map = flip(color_map_base(ceil(logspace(log_minimum, 0, default_discrete_colors) .*...
                     default_discrete_colors), :));
-                color_map = [color_map; default_color_map];
+                if white_out
+                    color_map = [color_map; default_color_map];
+                end
             else
                 color_map = default_color_map;
             end
         end
 
-        function color_map = getColormap(default_discrete_colors, p_value_max, color_map)
+        function color_map = getColormap(default_discrete_colors, p_value_max, color_map, white_out)
             color_map_base = parula(default_discrete_colors);
             if nargin > 2
                 color_map_name = str2func(lower(color_map));
@@ -258,7 +260,9 @@ classdef NetworkResultPlotParameter < handle
                 color_map = default_color_map;
             else
                 color_map = flip(color_map_base);
-                color_map = [color_map; default_color_map];
+                if white_out
+                    color_map = [color_map; default_color_map];
+                end
             end
         end
     end
