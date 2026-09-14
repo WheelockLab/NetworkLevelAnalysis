@@ -60,7 +60,7 @@ function qcKSOutput(ks_result_p_value, edge_test_options, remove_index)
     [~, p_value_max] = network_test_options.fdr_correction.correct(network_atlas, edge_test_options, ks_result_p_value);
 
     color_map = nla.net.result.NetworkResultPlotParameter.getColormap(default_discrete_colors,...
-        p_value_max, true);
+        p_value_max);
 
     fig = nla.gfx.createFigure();
     % Also remember to move this in read the docs
