@@ -225,7 +225,7 @@ classdef NetworkResultPlotParameter < handle
     end
 
     methods(Static)
-        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max, color_map, white_out)
+        function color_map = getLogColormap(default_discrete_colors, probabilities_input, p_value_max, white_out, color_map)
             log_minimum = log10(min(nonzeros(probabilities_input.v)));
             log_minimum = max([-40, log_minimum]);
 
@@ -248,9 +248,9 @@ classdef NetworkResultPlotParameter < handle
             end
         end
 
-        function color_map = getColormap(default_discrete_colors, p_value_max, color_map, white_out)
+        function color_map = getColormap(default_discrete_colors, p_value_max, white_out, color_map)
             color_map_base = parula(default_discrete_colors);
-            if nargin > 2
+            if nargin > 3
                 color_map_name = str2func(lower(color_map));
                 color_map_base = color_map_name(default_discrete_colors);
             end
