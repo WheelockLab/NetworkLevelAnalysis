@@ -261,13 +261,13 @@ classdef MatrixPlot < handle
 
             if new_scale == "nla.gfx.ProbPlotMethod.DEFAULT"
                 if ~isequal(color_map, false)
-                    new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, obj.upper_limit, color_map);
+                    new_color_map = NetworkResultPlotParameter.getColormap(discrete_colors, obj.upper_limit, obj.app_plot, color_map);
                 else
                     new_color_map = obj.color_map;
                 end
                 obj.plot_scale = new_scale;
             elseif new_scale == "nla.gfx.ProbPlotMethod.LOG"
-                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, obj.upper_limit, color_map);
+                new_color_map = NetworkResultPlotParameter.getLogColormap(discrete_colors, obj.matrix, obj.upper_limit, obj.app_plot, color_map);
                 obj.plot_scale = new_scale;
             else
                 color_map_name = str2func(lower(color_map));
