@@ -4,8 +4,7 @@ Setup
 Download
 --------------------------------
 
-Download the NLA files from github to your computer. Note where it is located, this folder will be added to 
-MATLAB's path in the next step.
+Download a ZIP of the latest release from our  `NITRC Page <https://www.nitrc.org/projects/nla_toolbox>`_  . Extract the ZIP file to the desired location on your computer. Note where it is located, since you will need to add this folder to MATLAB's path in the next step.
 
 Add NLA Folders to MATLAB Path
 -------------------------------------
