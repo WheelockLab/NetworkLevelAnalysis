@@ -16,7 +16,7 @@ function checkHeadMotion(fig, input_struct, motion, remove_index)
     prog.Value = 0.75;
     [r_vec, p_vec] = corr(motion, functional_connectivity.v', 'type', 'Pearson');
     if any(isnan(r_vec))
-        msgbox("NaNs appearing in correlation between motion and functional connectivity. Please choose another column for motion")
+        msgbox("Please choose another column for motion variable. NaN's are present or value is constant")
         return
     end
     
