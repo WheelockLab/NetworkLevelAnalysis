@@ -58,14 +58,17 @@ function qcKSOutput(ks_result_p_value, edge_test_options, remove_index)
     end
 
     [~, p_value_max] = network_test_options.fdr_correction.correct(network_atlas, edge_test_options, ks_result_p_value);
-
+    if max(ks_result_p_value.v) < p_value_max
+        p_value_max = max(ks_result_p_value.v);
+    end
+    
     color_map = nla.net.result.NetworkResultPlotParameter.getColormap(default_discrete_colors,...
-        p_value_max, true);
+        p_value_max, false);
 
     fig = nla.gfx.createFigure();
     % Also remember to move this in read the docs
     matrix_plot = nla.gfx.plots.MatrixPlot(fig, sprintf("Non-permuted Kolmogorov-Smirnov Test p-value\nSmaller values are less normal"), ks_result_p_value, network_atlas.nets, nla.gfx.FigSize.LARGE,...
-        'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map);
+        'lower_limit', 0.00, 'upper_limit', p_value_max, 'color_map', color_map, 'app_plot', false);
     matrix_plot.displayImage();
     width = matrix_plot.image_dimensions('image_width');
     height = matrix_plot.image_dimensions('image_height');
