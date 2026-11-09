@@ -192,8 +192,10 @@ classdef BrainPlot < handle
 
                 coefficient1 = coefficient1(logical(probability_significance1));
                 coefficient2 = coefficient2(logical(probability_significance2));
-                function_connectivity1 = function_connectivity1(logical(probability_significance1));
-                function_connectivity2 = function_connectivity2(logical(probability_significance2));
+                if obj.functional_connectivity_exists
+                    function_connectivity1 = function_connectivity1(logical(probability_significance1));
+                    function_connectivity2 = function_connectivity2(logical(probability_significance2));
+                end
             end
         end
 
@@ -425,15 +427,7 @@ classdef BrainPlot < handle
                 end
                 
             end
-        end
-        
-        function radius = getROIRadius(obj, roi_index)
-            if isempty(obj.ROI_radius_min_max)
-                radius = obj.ROI_radius;
-            else
-                min
-            end
-        end
+        end        
 
         function [ROI_final_positions, ROI_colors] = getROIPositions(obj, view_position, color_mode, color_matrix)
             import nla.gfx.BrainColorMode
