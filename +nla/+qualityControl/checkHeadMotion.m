@@ -54,13 +54,13 @@ function checkHeadMotion(fig, input_struct, motion, remove_index)
     
     for col = 1:network_atlas.numROIs()
         for row = (col + 1):network_atlas.numROIs()
-                pos1 = network_atlas.ROIs(row).pos;
-                pos2 = network_atlas.ROIs(col).pos;
-                
-                edge_color = nla.gfx.valToColor(r.get(row, col), llimit, ulimit, color_map);
-                
-                p = plot3([pos1(1), pos2(1)], [pos1(2), pos2(2)], [pos1(3), pos2(3)], 'Color', edge_color, 'LineWidth', 2);
-                p.Annotation.LegendInformation.IconDisplayStyle = 'off';
+            pos1 = network_atlas.ROIs(row).pos;
+            pos2 = network_atlas.ROIs(col).pos;
+            
+            edge_color = nla.gfx.valToColor(r.get(row, col), llimit, ulimit, color_map);
+            
+            p = plot3([pos1(1), pos2(1)], [pos1(2), pos2(2)], [pos1(3), pos2(3)], 'Color', edge_color, 'LineWidth', 2);
+            p.Annotation.LegendInformation.IconDisplayStyle = 'off';
         end
     end
     
