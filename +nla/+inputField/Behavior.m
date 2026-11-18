@@ -304,13 +304,14 @@ classdef Behavior < nla.inputField.InputField
                     
                     vals = table2array(obj.behavior_full);
 
-                    containsNaN = sum(isnan(vals)) > 0;
-                    repeatedNines = ((vals == 99) + (vals == 999) + (vals == 9999)) > 0;
-                    unusualValues = abs((vals - mean(vals)) ./ std(vals)) > 3;
-                    containsRepeatedNines = sum(repeatedNines & unusualValues) > 0;
+                    containsNaN = sum(isnan(vals)) > 0;  
+                    
+                    containsRepeatedNines = obj.findColumnsWithSuspicious999s(vals);
+                    
+                    
                     if sum(containsNaN) > 0
                         could_not_load_some_columns = true;
-                        could_not_load_str = [could_not_load_str sprintf("Columns %s could not be loaded due to containing NaN values.",...
+                        could_not_load_str = [could_not_load_str sprintf("Columns (%s) could not be loaded due to containing NaN values.",...
                             nla.helpers.humanReadableList(labels(containsNaN)))];
                         colindexes = [1:numel(labels)];
                         obj.behavior_full(:, colindexes(containsNaN)) = [];
@@ -321,7 +322,8 @@ classdef Behavior < nla.inputField.InputField
                     end
                     
                     if sum(containsRepeatedNines) > 0
-                        uialert(obj.fig, sprintf("Columns %s contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.",...
+                        containsRepeatedNines = logical(containsRepeatedNines);
+                        uialert(obj.fig, sprintf("Columns (%s) contain unusual values of repeating 9's (99, 9999, etc).\nIf you are using these to mark missing values for subjects, you should either avoid using the offending columns, or remove the offending subjects from your behavioral file and functional connectivity before loading them in.",...
                             nla.helpers.humanReadableList(labels(containsRepeatedNines))), 'Warning', 'Icon', 'warning');
                     end
 
@@ -331,6 +333,29 @@ classdef Behavior < nla.inputField.InputField
                     uialert(obj.fig, ex.message, 'Error while loading behavior file');
                 end
             end
+        end
+        
+        function suspiciousNines = findColumnsWithSuspicious999s(obj, inDataMtx)
+            %to find 99's, 999's, etc likely used as magic values,
+            %see if they are well outside the typical range of the
+            %non-999 values in each column (by seeing if the 999's
+            %are outside 3 st devs of the non 999 values)
+            
+            repeatedNines = ((inDataMtx == 99) + (inDataMtx == 999) + (inDataMtx == 9999)) > 0; 
+            numCols = size(inDataMtx,2);
+            suspiciousNines = zeros(1,numCols);
+            for i = 1:numCols
+                nonNineValsThisColumn = ~repeatedNines(:,i);
+                meanNonNines = mean(inDataMtx(nonNineValsThisColumn,i));
+                stdNonNines = std(inDataMtx(nonNineValsThisColumn,i));
+
+                if ((stdNonNines) == 0 || isnan(stdNonNines)) && any(repeatedNines(:,i))
+                    suspiciousNines(i) = true;
+                else
+                    unusualValsThisCol = abs((inDataMtx(:,i) - meanNonNines) ./ stdNonNines) > 3;
+                    suspiciousNines(i) = any(unusualValsThisCol & repeatedNines(:,i));
+                end
+            end            
         end
         
         function genPartialVarianceOpts(obj)
