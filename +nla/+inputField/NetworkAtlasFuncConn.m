@@ -272,16 +272,21 @@ classdef NetworkAtlasFuncConn < nla.inputField.InputField
             if ~islogical(fc_unordered)
                 obj.func_conn_unordered = double(fc_unordered);
                 
-                %% Transform R-values to Z-scores
-                % If this condition isn't true, it cannot be R values
-                % If it is true, it is almost certainly R values but might not be
-                if all(abs(obj.func_conn_unordered(:)) <= 1)
-                    sel = uiconfirm(obj.fig, sprintf('Fisher Z transform functional connectivity data?\n(If you have provided R-values)'), 'Fisher Z transform?');
-                    if strcmp(sel, 'Ok')
-                        obj.func_conn_unordered = nla.fisherR2Z(obj.func_conn_unordered);
+                % check for zeros or NaNs in fc
+                if any(isnan(fc_unordered(:))) || any(find(~fc_unordered(:)))
+                   uialert(obj.fig, sprintf('Could not load functional connectivity. Matrix contains zero or NaN values'), 'Invalid functional connectivity file'); 
+                else
+                    %% Transform R-values to Z-scores
+                    % If this condition isn't true, it cannot be R values
+                    % If it is true, it is almost certainly R values but might not be
+                    if all(abs(obj.func_conn_unordered(:)) <= 1)
+                        sel = uiconfirm(obj.fig, sprintf('Fisher Z transform functional connectivity data?\n(If you have provided R-values)'), 'Fisher Z transform?');
+                        if strcmp(sel, 'Ok')
+                            obj.func_conn_unordered = nla.fisherR2Z(obj.func_conn_unordered);
+                        end
                     end
+                    obj.update();
                 end
-                obj.update();
             else
                 uialert(obj.fig, sprintf('Could not load functional connectivity matrix from %s', file), 'Invalid functional connectivity file');
             end
