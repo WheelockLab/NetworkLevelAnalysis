@@ -47,7 +47,7 @@ function qcKSOutput(ks_result_p_value, edge_test_options, remove_index)
     network_test_options = nla.net.genBaseInputs();
     network_test_options.full_connectome = false;
     network_test_options.within_network_pair = false;
-    network_test_options.fdr_correction = nla.net.mcc.None();
+    network_test_options.fdr_correction = nla.net.mcc.Bonferroni();
     edge_test_options.prob_max = 0.05;
     default_discrete_colors = 1000;
 
